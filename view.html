@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Ügyfélriport – ÉpítésNapló AI PRO</title>
   <meta name="description" content="Biztonságos, csak olvasható ÉpítésNapló ügyfélriport ügyfél jóváhagyással." />
-  <link rel="stylesheet" href="style.css?v=96" />
+  <link rel="stylesheet" href="style.css?v=80" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <style id="v88PublicReportMobileCss">
     html,body{max-width:100%;overflow-x:hidden}.publicReportView{box-sizing:border-box}.publicReportCard{max-width:min(1050px,calc(100vw - 20px))!important;box-sizing:border-box!important;overflow:hidden!important}#publicReportContent,#publicReportContent *{box-sizing:border-box;max-width:100%}#publicReportContent{overflow-wrap:anywhere}#publicReportContent h1{font-size:clamp(30px,9vw,62px)!important;line-height:1.06!important;word-break:break-word}#publicReportContent h2{font-size:clamp(22px,6.5vw,34px)!important;line-height:1.15!important}#publicReportContent h3{font-size:clamp(18px,5vw,26px)!important;line-height:1.2!important}#publicReportContent p,#publicReportContent li,#publicReportContent td,#publicReportContent th{font-size:clamp(14px,3.8vw,17px)!important;line-height:1.42!important}#publicReportContent table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important}#publicReportContent th,#publicReportContent td{white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;padding:8px 6px!important;vertical-align:top!important}
@@ -24,7 +24,7 @@
   </section>
   <section id="publicReportView" class="publicReportView"><div class="publicReportCard"><div id="publicReportContent"><p>Riport betöltése...</p></div><div id="approvalBox" class="approvalBox hidden"></div></div></section>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-adapter.js?v=96"></script><script src="v19-pro-features.js?v=96"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="supabase-adapter.js?v=97"></script><script src="v19-pro-features.js?v=97"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
     let currentToken = '';
     function safeText(value){ return String(value || '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s])); }
@@ -399,6 +399,39 @@ function ensureMediaViewerModal(){
         document.getElementById('approvalBox').innerHTML = `<h2>Ügyfél visszajelzés</h2><p class="muted">Válaszd ki, mit szeretnél rögzíteni. A kivitelezőnél a döntés, név, email és kérdés/megjegyzés is megjelenik.</p><input id="clientApproveName" placeholder="Név / cég" /><input id="clientApproveEmail" placeholder="Email cím (opcionális)" /><textarea id="clientApproveMessage" placeholder="Megjegyzés vagy kérdés (opcionális)"></textarea><label class="checkLine"><input id="clientApproveCheck" type="checkbox" /> Megtekintettem az építési napló riportot.</label><div class="approvalActionGrid"><button class="btn ghost" onclick="approveReport('viewed')">Megnéztem</button><button class="btn primary" onclick="approveReport('accepted')">Elfogadom</button><button class="btn ghost" onclick="approveReport('question')">Kérdésem van</button></div>`;
         document.title = (report.project_name ? report.project_name + ' - ' : '') + 'Építési Napló';
       }
+      function approvalButtonsV97(){
+        return Array.from(document.querySelectorAll('#approvalBox .approvalActionGrid button'));
+      }
+      function setApprovalBusyV97(decision, busy){
+        const labels = { viewed:'Megnéztem', accepted:'Elfogadom', question:'Kérdésem van' };
+        approvalButtonsV97().forEach(btn => {
+          if(!btn.dataset.originalText) btn.dataset.originalText = btn.textContent;
+          btn.disabled = !!busy;
+          const isTarget = (btn.getAttribute('onclick') || '').includes(`'${decision}'`) || (btn.getAttribute('onclick') || '').includes('"'+decision+'"');
+          if(busy && isTarget) btn.textContent = 'Mentés...';
+          if(!busy) btn.textContent = btn.dataset.originalText || labels[decision] || 'Mentés';
+        });
+      }
+      function showApprovalStatusV97(type, text){
+        let status = document.getElementById('approvalStatusV97');
+        if(!status){
+          status = document.createElement('div');
+          status.id = 'approvalStatusV97';
+          const grid = document.querySelector('#approvalBox .approvalActionGrid');
+          (grid?.parentNode || document.getElementById('approvalBox')).insertBefore(status, grid || null);
+        }
+        const bg = type === 'error' ? '#fee2e2' : type === 'success' ? '#dcfce7' : '#e0f2fe';
+        const border = type === 'error' ? '#ef4444' : type === 'success' ? '#22c55e' : '#38bdf8';
+        status.style.cssText = `margin:12px 0;padding:12px 14px;border-radius:12px;border:1px solid ${border};background:${bg};color:#111827;font-weight:700;`;
+        status.textContent = text;
+      }
+      function friendlyApprovalErrorV97(error){
+        const msg = String(error?.message || error || '');
+        if(/statement timeout|canceling statement|timeout|failed to fetch/i.test(msg)){
+          return 'A szerver most lassan válaszol. Várj kb. 1 percet, majd nyomd meg újra a gombot.';
+        }
+        return 'Mentési hiba: ' + (msg || 'ismeretlen hiba');
+      }
       window.approveReport = async function(decision='accepted'){
         const name = document.getElementById('clientApproveName')?.value.trim() || '';
         const email = document.getElementById('clientApproveEmail')?.value.trim() || '';
@@ -414,14 +447,20 @@ function ensureMediaViewerModal(){
         const aiContextBlock = `<section class="aiProfessionalContextBlock" style="margin:22px 0;padding:16px 18px;border-left:5px solid #22c55e;background:#ecfdf5;border-radius:12px;color:#111827;"><h2 style="margin:0 0 8px;">AI szakmai kiegészítés</h2><p style="margin:0;">A riportban szereplő AI szakmai kontroll a munkafázis ellenőrzési pontjait is rögzíti. Különösen fontos a rétegrend, tömörítés, szint, lejtés, vízelvezetés, fotódokumentáció és a következő munkafázis előtti ellenőrzés dokumentálása.</p></section>`;
         const approvedReportHtml = baseReportHtml + clientBlock + aiContextBlock;
         const approvedReportText = baseReportText + (message ? `\n\nÜgyfél kérdése / észrevétele:\n${message}` : '') + `\n\nAI szakmai kiegészítés: A riportban szereplő AI szakmai kontroll a munkafázis ellenőrzési pontjait is rögzíti: rétegrend, tömörítés, szint, lejtés, vízelvezetés, fotódokumentáció és következő lépés.`;
+        setApprovalBusyV97(decision, true);
+        showApprovalStatusV97('info', 'Mentés folyamatban...');
         try{
           await window.EpitesNaploAPI.approvePublicReport(currentToken, {
             name, email, decision, message, clientComment: message,
             reportHtml: approvedReportHtml,
             reportText: approvedReportText
           });
-          document.getElementById('approvalBox').innerHTML = `<div class="reportOpenedBox"><b>Visszajelzés mentve: ${safeText(labels[decision] || 'Megnéztem')}</b><br>Dátum: ${new Date().toLocaleString('hu-HU')}${message ? `<br><small>Kérdés/megjegyzés: ${safeText(message)}</small>` : ''}<br><small>A kivitelező projektoldalán megjelenik és letölthető lesz.</small></div>`;
-        }catch(e){ alert('Jóváhagyás mentési hiba: '+(e.message||e)); }
+          document.getElementById('approvalBox').innerHTML = `<div class="reportOpenedBox"><b>Visszajelzés mentve: ${safeText(labels[decision] || 'Megnéztem')} ✔</b><br>Dátum: ${new Date().toLocaleString('hu-HU')}${message ? `<br><small>Kérdés/megjegyzés: ${safeText(message)}</small>` : ''}<br><small>A kivitelező projektoldalán megjelenik és letölthető lesz.</small></div>`;
+        }catch(e){
+          setApprovalBusyV97(decision, false);
+          showApprovalStatusV97('error', friendlyApprovalErrorV97(e));
+          console.warn('Jóváhagyás mentési hiba:', e);
+        }
       };
       window.addEventListener('keydown', event => {
         const modal = document.getElementById('mediaViewerModal');
