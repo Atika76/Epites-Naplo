@@ -2923,9 +2923,7 @@ function requireLoginV38(message){
     if(state.user) return;
     const target = e.target.closest('button, a, input, select, textarea');
     if(!target) return;
-    // V96: a Rendszerfunkciók magyarázatai vendégként is olvashatóak.
-    // Csak a mentési / fizetési / projektműveleteket zárjuk, az információs gombokat nem.
-    if(target.closest('#authModal') || target.closest('#guestLockModalV38') || target.closest('#featureExplainModal') || target.closest('.featureExplainGrid') || target.closest('.featureExplainItem') || target.closest('#subscription') || target.id === 'heroRegisterBtn') return;
+    if(target.closest('#authModal') || target.closest('#guestLockModalV38') || target.closest('#subscription') || target.id === 'heroRegisterBtn') return;
     const href = target.getAttribute && target.getAttribute('href');
     if(href && (href.startsWith('#home') || href.startsWith('#subscription') || href.startsWith('index.html#home') || href.startsWith('index.html#subscription'))) return;
     if(target.matches('input, select, textarea') || target.onclick || target.tagName === 'BUTTON'){
