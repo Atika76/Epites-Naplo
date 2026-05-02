@@ -1327,13 +1327,6 @@ window.EpitesNaploAPI = {
   api.approvePublicReport = async function(token, payload = {}){
     const decision = String(payload.decision || 'accepted').slice(0, 40);
     const message = String(payload.message || '').slice(0, 1000);
-    const clientComment = String(payload.clientComment || payload.message || '').slice(0, 2500);
-    // V97: a nagy HTML snapshotot korlátozzuk, mert a Supabase Nano/Micro környezetben
-    // a túl nagy mentés néha statement timeoutot okozott az ügyfél gomboknál.
-    const approvedHtml = String(payload.reportHtml || '').slice(0, 250000);
-    const approvedText = String(payload.reportText || '').slice(0, 80000);
-    const shouldFallback = err => /function .* does not exist|schema cache|statement timeout|canceling statement|timeout/i.test(String(err?.message || err || ''));
-
     let result = await db.rpc('approve_public_report_v71', {
       p_token: token,
       p_client_name: payload.name || '',
@@ -1341,12 +1334,10 @@ window.EpitesNaploAPI = {
       p_decision: decision,
       p_message: message,
       p_user_agent: navigator.userAgent || '',
-      p_approved_report_html: approvedHtml,
-      p_approved_report_text: approvedText
+      p_approved_report_html: payload.reportHtml || '',
+      p_approved_report_text: payload.reportText || ''
     });
-
-    // Ha a teljes snapshot mentése túl lassú, mentünk könnyített jóváhagyást, hogy a gomb ne haljon el.
-    if(result.error && shouldFallback(result.error)){
+    if(result.error && /function .* does not exist|schema cache/i.test(String(result.error.message || ''))){
       result = await db.rpc('approve_public_report_v33', {
         p_token: token,
         p_client_name: payload.name || '',
@@ -1356,7 +1347,7 @@ window.EpitesNaploAPI = {
         p_user_agent: navigator.userAgent || ''
       });
     }
-    if(result.error && shouldFallback(result.error)){
+    if(result.error && /function .* does not exist|schema cache/i.test(String(result.error.message || ''))){
       result = await db.rpc('approve_public_report_by_token', {
         p_token: token,
         p_client_name: payload.name || '',
@@ -1365,28 +1356,29 @@ window.EpitesNaploAPI = {
       });
     }
     if(result.error) throw result.error;
-
-    // V97: az ügyfél kérdését/megjegyzését külön is próbáljuk rögzíteni, de ha a szerver lassú,
-    // nem dobjuk szét a felületet: a fő jóváhagyás már megtörtént.
+    // V90: az ügyfél kérdését/megjegyzését biztosan mentjük.
+    // A régi megoldás anon felhasználónál RLS miatt nem mindig tudott update-et futtatni,
+    // ezért először sima update-et próbálunk, majd security definer RPC-vel javítjuk a legutóbbi jóváhagyást.
     try {
+      const clientComment = String(payload.clientComment || payload.message || '').slice(0, 2500);
       const approvalId = result?.data?.id || result?.data?.approval_id || result?.data?.approval?.id || null;
-      if (clientComment || approvedHtml) {
+      const approvedHtml = String(payload.reportHtml || '').slice(0, 900000);
+      const approvedText = String(payload.reportText || '').slice(0, 120000);
+      if (clientComment) {
         if (approvalId) {
           await db.from('report_approvals')
-            .update({ client_comment: clientComment, message: clientComment || message, approved_report_html: approvedHtml, approved_report_text: approvedText })
+            .update({ client_comment: clientComment, message: clientComment, approved_report_html: approvedHtml, approved_report_text: approvedText })
             .eq('id', approvalId);
         }
-        if (clientComment) {
-          await db.rpc('patch_report_approval_comment_v90', {
-            p_token: token,
-            p_client_comment: clientComment,
-            p_approved_report_html: approvedHtml,
-            p_approved_report_text: approvedText
-          });
-        }
+        await db.rpc('patch_report_approval_comment_v90', {
+          p_token: token,
+          p_client_comment: clientComment,
+          p_approved_report_html: approvedHtml,
+          p_approved_report_text: approvedText
+        });
       }
     } catch (patchError) {
-      console.warn('Ügyfél kérdés/snapshot utólagos mentése nem sikerült:', patchError?.message || patchError);
+      console.warn('Ügyfél kérdés utólagos mentése nem sikerült:', patchError?.message || patchError);
     }
     return result.data;
   };
