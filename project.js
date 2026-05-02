@@ -4178,12 +4178,21 @@ document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeReportCe
       out = '<!doctype html>\n' + doc.documentElement.outerHTML;
     } catch(_) {}
     const css = `<style>
-      .v80PhotoBlock,.photos,.v74Photos,.v77Photos,.entryImageGrid,.reportImageGrid{break-inside:avoid!important;page-break-inside:avoid!important;margin-top:10px!important}
-      .v80PhotoBlock img,.photos img,.v74Photos img,.v77Photos img,.entryImageGrid img,.reportImageGrid img{display:block!important;object-fit:cover!important}
+      .v80PhotoBlock,.photos,.v74Photos,.v77Photos,.entryImageGrid,.reportImageGrid{display:flex!important;flex-wrap:wrap!important;gap:10px!important;break-inside:avoid!important;page-break-inside:avoid!important;margin-top:10px!important}
+      .v80PhotoBlock figure,.photos figure,.v74Photos figure,.v77Photos figure,.entryImageGrid figure,.reportImageGrid figure{width:120px!important;max-width:120px!important;margin:0!important;padding:6px!important;border:1px solid #e5e7eb!important;border-radius:10px!important;background:#fff!important;box-sizing:border-box!important;break-inside:avoid!important;page-break-inside:avoid!important}
+      .v80PhotoBlock a,.photos a,.v74Photos a,.v77Photos a,.entryImageGrid a,.reportImageGrid a{display:block!important;width:100%!important;height:105px!important;overflow:hidden!important;border-radius:8px!important;background:#f8fafc!important}
+      .v80PhotoBlock img,.photos img,.v74Photos img,.v77Photos img,.entryImageGrid img,.reportImageGrid img{display:block!important;width:100%!important;height:105px!important;max-width:100%!important;object-fit:cover!important;cursor:zoom-in!important;border-radius:8px!important}
+      body>img, main>img, section>img, article>img{max-width:120px!important;max-height:105px!important;object-fit:cover!important;border-radius:8px!important;cursor:zoom-in!important}
+      .v80ReportLightbox{position:fixed!important;inset:0!important;z-index:999999!important;background:rgba(2,6,23,.92)!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:22px!important;box-sizing:border-box!important}
+      .v80ReportLightbox img{max-width:94vw!important;max-height:88vh!important;width:auto!important;height:auto!important;object-fit:contain!important;border-radius:12px!important;background:#000!important}
+      .v80ReportLightbox button{position:fixed!important;top:14px!important;right:14px!important;border:0!important;border-radius:999px!important;background:#fbbf24!important;color:#111827!important;font-weight:900!important;padding:10px 14px!important;cursor:pointer!important}
       .reportMediaOpen,.reportMediaPending,.v67PhotoHint{display:none!important}
-      @media print{.v80PhotoBlock,.photos,.v74Photos,.v77Photos,.entryImageGrid,.reportImageGrid{break-inside:avoid!important;page-break-inside:avoid!important}.v80ApprovalStamp{break-inside:avoid!important;page-break-inside:avoid!important}}
+      @media print{.v80PhotoBlock,.photos,.v74Photos,.v77Photos,.entryImageGrid,.reportImageGrid{display:flex!important;gap:5mm!important;break-inside:avoid!important;page-break-inside:avoid!important}.v80PhotoBlock figure,.photos figure,.v74Photos figure,.v77Photos figure,.entryImageGrid figure,.reportImageGrid figure{width:28mm!important;max-width:28mm!important;padding:1mm!important}.v80PhotoBlock a,.photos a,.v74Photos a,.v77Photos a,.entryImageGrid a,.reportImageGrid a{height:25mm!important}.v80PhotoBlock img,.photos img,.v74Photos img,.v77Photos img,.entryImageGrid img,.reportImageGrid img{height:25mm!important}.v80ApprovalStamp{break-inside:avoid!important;page-break-inside:avoid!important}.v80ReportLightbox{display:none!important}}
     </style>`;
-    return out.includes('</head>') ? out.replace('</head>', `${css}</head>`) : `${css}${out}`;
+    const clickScript = `<script>(function(){if(window.__v80ReportThumbOpen)return;window.__v80ReportThumbOpen=true;function list(){return Array.from(document.querySelectorAll('img')).filter(function(img){return img.src&&!img.closest('.v80ReportLightbox')})}function openAt(i){var imgs=list();if(!imgs.length)return;var idx=Math.max(0,Math.min(i,imgs.length-1));var d=document.createElement('div');d.className='v80ReportLightbox';function render(){d.innerHTML='<button type="button">Bezárás</button><img src="'+imgs[idx].src.replace(/"/g,'&quot;')+'" alt="">';d.querySelector('button').onclick=function(){d.remove()};}render();d.onclick=function(e){if(e.target===d)d.remove()};document.addEventListener('keydown',function key(e){if(!document.body.contains(d)){document.removeEventListener('keydown',key);return}if(e.key==='Escape')d.remove();if(e.key==='ArrowRight'){idx=(idx+1)%imgs.length;render()}if(e.key==='ArrowLeft'){idx=(idx-1+imgs.length)%imgs.length;render()}});document.body.appendChild(d)}document.addEventListener('click',function(e){var img=e.target.closest('img');if(!img||img.closest('.v80ReportLightbox'))return;e.preventDefault();openAt(list().indexOf(img))},true);})();<\/script>`;
+    out = out.includes('</head>') ? out.replace('</head>', `${css}</head>`) : `${css}${out}`;
+    if(!out.includes('__v80ReportThumbOpen')) out = out.includes('</body>') ? out.replace('</body>', `${clickScript}</body>`) : `${out}${clickScript}`;
+    return out;
   }
   function approvalStamp(row){
     const message = rowMessage(row);
@@ -4338,14 +4347,26 @@ document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeReportCe
       return `<div class="v80ApprovalRow"><div><span class="tag ${cls}">${esc(rowLabel(decision))}</span><br><small>${esc(rowDate(row))}${row.client_name ? ' - '+esc(row.client_name) : ''}${row.client_email ? ' - '+esc(row.client_email) : ''}</small>${message ? `<p class="v80ApprovalMessage">${esc(message).replace(/\n/g,'<br>')}</p>` : ''}</div><div class="v80ApprovalActions"><button class="btn small primary" type="button" data-v80-approval-download="${esc(row.id)}">Sajat peldany HTML</button><button class="btn small ghost" type="button" data-v80-approval-print="${esc(row.id)}">PDF / nyomtatas</button></div></div>`;
     }).join('');
   }
-  document.addEventListener('click', function(event){
+  document.addEventListener('click', async function(event){
     const btn = event.target.closest('[data-v80-approval-download],[data-v80-approval-print],[data-v79-approval-download],[data-v79-approval-print],[data-v71-download],[data-v71-print]');
     if(!btn) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     const id = btn.getAttribute('data-v80-approval-download') || btn.getAttribute('data-v80-approval-print') || btn.getAttribute('data-v79-approval-download') || btn.getAttribute('data-v79-approval-print') || btn.getAttribute('data-v71-download') || btn.getAttribute('data-v71-print');
-    if(btn.hasAttribute('data-v80-approval-download') || btn.hasAttribute('data-v79-approval-download') || btn.hasAttribute('data-v71-download')) return window.v71DownloadApprovedHtml(id);
-    return window.v71PrintApprovedReport(id);
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.classList.add('is-loading');
+    btn.textContent = (btn.hasAttribute('data-v80-approval-download') || btn.hasAttribute('data-v79-approval-download') || btn.hasAttribute('data-v71-download')) ? 'HTML készítése...' : 'PDF készítése...';
+    try{
+      if(btn.hasAttribute('data-v80-approval-download') || btn.hasAttribute('data-v79-approval-download') || btn.hasAttribute('data-v71-download')) await window.v71DownloadApprovedHtml(id);
+      else await window.v71PrintApprovedReport(id);
+    }catch(err){
+      alert('Riport hiba: ' + (err.message || err));
+    }finally{
+      btn.disabled = false;
+      btn.classList.remove('is-loading');
+      btn.textContent = originalText;
+    }
   }, true);
   document.addEventListener('DOMContentLoaded', () => setTimeout(renderApprovals, 1200));
   setTimeout(renderApprovals, 1900);
