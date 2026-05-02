@@ -1,0 +1,10 @@
+V72 stabil verzió
+
+Alap: V69 működő design.
+Rátéve:
+- ügyfél jóváhagyás PRO logika a V71-ből
+- jóváhagyott HTML letöltése / PDF nyomtatás
+- V71 SQL fájl mellékelve
+- riport/ügyfél képek javítása úgy, hogy a főoldali design ne essen szét
+
+Fontos: futtasd le Supabase-ben a supabase-pro-v71-jovahagyott-riport-pro.sql fájlt, ha még nem futott le.
