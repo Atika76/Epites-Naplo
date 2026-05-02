@@ -4620,3 +4620,137 @@ document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeReportCe
     }catch(e){ alert(e.message || e); }
   };
 })();
+
+
+// ===== V100 FINAL: saját példány gomb loading + jóváhagyott riport kis/kattintható képek =====
+(function(){
+  if(window.__v100FinalApprovedReportPatch) return;
+  window.__v100FinalApprovedReportPatch = true;
+
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const safeName = v => String(v || 'epitesi-naplo').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,90) || 'epitesi-naplo';
+  const state = () => (typeof detailState !== 'undefined' ? detailState : (window.detailState || {}));
+  const projectId = () => state()?.project?.id || new URLSearchParams(location.search).get('id') || '';
+  const projectTitle = () => state()?.project?.name || 'Építési napló';
+  const decisionOf = row => String(row?.decision || row?.status || (row?.approved ? 'accepted' : 'viewed')).toLowerCase();
+  const labelOf = d => (d === 'accepted' || d === 'approved') ? 'Elfogadva / jóváhagyva' : d === 'question' ? 'Kérdése van' : 'Megtekintve';
+  const messageOf = row => String(row?.client_comment || row?.message || row?.client_message || row?.approval_message || row?.question || row?.question_text || row?.note || row?.comment || '').trim();
+  const rowDate = row => (typeof formatDate === 'function' ? formatDate(row?.approved_at || row?.created_at || '') : String(row?.approved_at || row?.created_at || '').replace('T',' ').slice(0,19));
+  function toast(msg,type){ try{ if(typeof showToast === 'function') showToast(msg,type||'ok'); else console.log(msg); }catch(_){} }
+  function setBtnLoading(btn, text){
+    if(!btn) return () => {};
+    const old = btn.innerText;
+    btn.disabled = true;
+    btn.classList.add('is-loading');
+    btn.innerText = text || 'Dolgozom...';
+    return () => { btn.disabled = false; btn.classList.remove('is-loading'); btn.innerText = old; };
+  }
+  function findButton(id, type){
+    const attr = type === 'print' ? 'data-v79-approval-print' : 'data-v79-approval-download';
+    return document.querySelector(`[${attr}="${CSS.escape(String(id))}"]`) || document.querySelector(`[data-v71-${type === 'print' ? 'print' : 'download'}="${CSS.escape(String(id))}"]`);
+  }
+  function isBadSnapshot(html){
+    const text = String(html || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    return !text.trim() || text.length < 500 || text.includes('jovahagyott riport tartalma nem talalhato') || text.includes('de a jovahagyas rekordja elerheto') || text.includes('a riport adatai nem tolthetok') || text.includes('hianyzo riport azonosito');
+  }
+  function normalizeMaterial(m){
+    if(!m) return null;
+    const name = String(m.name || m.material || m.title || '').trim();
+    const unit = String(m.unit || m.unit_name || 'db').trim();
+    const q = Number(String(m.quantity ?? m.qty ?? m.amount ?? '').replace(',', '.'));
+    if(!name || !Number.isFinite(q) || q <= 0) return null;
+    return { name, unit, quantity:q };
+  }
+  function materialList(entries, extra){
+    const map = new Map();
+    (Array.isArray(entries) ? entries : []).forEach(e => (Array.isArray(e?.materials_json) ? e.materials_json : []).forEach(raw => {
+      const m = normalizeMaterial(raw); if(!m) return;
+      const key = `${m.name.toLowerCase()}|${m.unit.toLowerCase()}`;
+      const p = map.get(key) || {name:m.name, unit:m.unit, quantity:0}; p.quantity += m.quantity; map.set(key,p);
+    }));
+    if(!map.size) (Array.isArray(extra) ? extra : []).forEach(raw => {
+      const m = normalizeMaterial(raw); if(!m) return;
+      const key = `${m.name.toLowerCase()}|${m.unit.toLowerCase()}`;
+      const p = map.get(key) || {name:m.name, unit:m.unit, quantity:0}; p.quantity += m.quantity; map.set(key,p);
+    });
+    return Array.from(map.values()).map(m => `<li><b>${esc(m.name)}</b>: ${Number(m.quantity.toFixed(2))} ${esc(m.unit)}</li>`).join('') || '<li>Nincs rögzített anyag.</li>';
+  }
+  function fixMaterialSummary(html, entries, options){
+    const list = materialList(entries, options?.materials || []);
+    return String(html || '').replace(/(<h2[^>]*>\s*Anyagösszesítő\s*<\/h2>\s*)<ul>[\s\S]*?<\/ul>/i, `$1<ul>${list}</ul>`);
+  }
+  function reportCss(){ return `<style id="v100-approved-report-css">
+    body{background:#f8fafc!important;color:#111827!important;font-family:Arial,Helvetica,sans-serif!important;margin:0!important;padding:28px!important;line-height:1.45!important}.doc,.reportDoc,.publicReportCard{max-width:980px!important;margin:0 auto!important;background:#fff!important;color:#111827!important}.v100ApprovalStamp{border:2px solid #22c55e;background:#ecfdf5;color:#111827;padding:18px 20px;margin:0 0 22px;border-radius:14px;break-inside:avoid;page-break-inside:avoid}.v100ApprovalStamp h1{font-size:26px;margin:0 0 10px}.v100Grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.v100Grid p{margin:0;background:#fff;border:1px solid #bbf7d0;border-radius:10px;padding:10px}.v100Question{margin-top:12px;background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:12px}.photos,.entryImageGrid,.reportImageGrid,.v68ReportPhotos{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(112px,112px))!important;gap:12px!important;align-items:start!important;justify-content:start!important}.v67ReportPhoto,.photos figure,figure{width:112px!important;max-width:112px!important;background:#fff!important;border:1px solid #d1d5db!important;border-radius:12px!important;padding:6px!important;margin:0!important;box-sizing:border-box!important;break-inside:avoid!important;page-break-inside:avoid!important}.v67ReportPhoto a,.photos figure a,figure a{display:block!important;width:100%!important;height:104px!important}.v67ReportPhoto img,.photos img,.entryImageGrid img,.reportImageGrid img,figure img,img.reportPhoto{width:100%!important;height:104px!important;max-width:100%!important;object-fit:cover!important;border-radius:8px!important;display:block!important;cursor:zoom-in!important;background:#f8fafc!important}body > img,img:not(.brandIcon):not(.logo):not(.paypal-logo):not(.v100LightboxImg){max-width:120px!important;max-height:120px!important;width:120px!important;height:120px!important;object-fit:cover!important;border-radius:10px!important;cursor:zoom-in!important;display:inline-block!important;margin:6px!important}.v100Lightbox{position:fixed;inset:0;background:rgba(2,6,23,.92);display:flex;align-items:center;justify-content:center;z-index:999999;padding:20px}.v100LightboxImg{max-width:94vw!important;max-height:88vh!important;width:auto!important;height:auto!important;object-fit:contain!important;border-radius:12px!important;background:#111}.v100Lightbox button{position:fixed;right:16px;top:16px;border:0;border-radius:999px;background:#fbbf24;color:#111827;font-weight:800;padding:10px 14px;cursor:pointer}@media(max-width:720px){body{padding:12px!important}.v100Grid{grid-template-columns:1fr}.photos,.entryImageGrid,.reportImageGrid,.v68ReportPhotos{grid-template-columns:repeat(2,112px)!important}h1{font-size:30px!important;line-height:1.08!important}h2{font-size:23px!important}table{display:block!important;max-width:100%!important;overflow-x:auto!important;white-space:nowrap!important}}@media print{.v100Lightbox{display:none!important}body{padding:18px!important}.v100ApprovalStamp{break-inside:avoid;page-break-inside:avoid}}
+  </style>`; }
+  function lightboxScript(){ return `<script>(function(){function list(){return Array.from(document.querySelectorAll('img')).filter(function(i){return i.src&&!i.closest('.v100Lightbox')})}function openAt(n){var imgs=list();if(!imgs.length)return;var idx=Math.max(0,Math.min(n,imgs.length-1));var d=document.createElement('div');d.className='v100Lightbox';function render(){d.innerHTML='<button type="button">Bezárás</button><img class="v100LightboxImg" src="'+imgs[idx].src.replace(/"/g,'&quot;')+'">';d.querySelector('button').onclick=function(){d.remove()}}render();d.onclick=function(e){if(e.target===d)d.remove()};document.addEventListener('keydown',function key(e){if(!document.body.contains(d)){document.removeEventListener('keydown',key);return}if(e.key==='Escape')d.remove();if(e.key==='ArrowRight'){idx=(idx+1)%imgs.length;render()}if(e.key==='ArrowLeft'){idx=(idx-1+imgs.length)%imgs.length;render()}});document.body.appendChild(d)}document.addEventListener('click',function(e){var img=e.target.closest('img');if(!img||img.closest('.v100Lightbox'))return;e.preventDefault();openAt(list().indexOf(img))},true);})();<\/script>`; }
+  function injectHead(html){
+    let out = String(html || '');
+    if(!/<!doctype|<html/i.test(out)) out = `<!doctype html><html lang="hu"><head><meta charset="utf-8"><title>${esc(projectTitle())}</title></head><body>${out}</body></html>`;
+    if(!out.includes('v100-approved-report-css')) out = out.includes('</head>') ? out.replace('</head>', `${reportCss()}</head>`) : out.replace(/<body/i, `<head><meta charset="utf-8">${reportCss()}</head><body`);
+    if(!out.includes('v100Lightbox')) out = out.includes('</body>') ? out.replace('</body>', `${lightboxScript()}</body>`) : out + lightboxScript();
+    return out;
+  }
+  function stamp(html,row){
+    let out = injectHead(html);
+    const msg = messageOf(row);
+    const questionBlock = msg ? `<section class="v100Question"><b>Ügyfél kérdése / észrevétele:</b><br>${esc(msg).replace(/\n/g,'<br>')}</section>` : '';
+    if(msg && !out.includes('Ügyfél kérdése / észrevétele')){
+      out = out.replace(/(<h2[^>]*>\s*Anyagösszesítő\s*<\/h2>)/i, `${questionBlock}$1`);
+    }
+    const stampHtml = `<section class="v100ApprovalStamp"><h1>Jóváhagyott ügyfélpéldány</h1><div class="v100Grid"><p><b>Állapot:</b><br>${esc(labelOf(decisionOf(row)))}</p><p><b>Dátum:</b><br>${esc(rowDate(row))}</p><p><b>Ügyfél:</b><br>${esc(row?.client_name || row?.client_email || 'Nincs megadva')}</p></div>${questionBlock}</section>`;
+    if(!out.includes('v100ApprovalStamp')) out = out.replace(/<body[^>]*>/i, m => `${m}${stampHtml}`);
+    return out;
+  }
+  async function approvalRow(id){
+    try{ const row = await window.EpitesNaploAPI?.getApprovedReportHtml?.(id); if(row) return row; }catch(_){ }
+    try{ const rows = await window.EpitesNaploAPI?.getReportApprovals?.(projectId()); return (rows || []).find(r => String(r.id) === String(id)) || null; }catch(_){ return null; }
+  }
+  async function currentReportHtml(){
+    const data = await window.EpitesNaploAPI?.getProjectCloseData?.(projectId()).catch(() => null);
+    const entries = data?.entries || state()?.entries || [];
+    const builder = window.buildProReportHtml || (typeof buildProReportHtml === 'function' ? buildProReportHtml : null);
+    return builder ? builder(entries, `${projectTitle()} – jóváhagyott riport`, data || {}) : `<!doctype html><html lang="hu"><head><meta charset="utf-8"><title>${esc(projectTitle())}</title></head><body><h1>${esc(projectTitle())}</h1><p>A riport pillanatnyilag nem építhető újra.</p></body></html>`;
+  }
+  async function fullHtml(id){
+    const row = await approvalRow(id);
+    if(!row) throw new Error('Nem találom az ügyfél jóváhagyást. Frissítsd az oldalt.');
+    let html = row.approved_report_html || row.report_html_snapshot || row.report_html || '';
+    if(isBadSnapshot(html)){
+      try{ const doc = await window.EpitesNaploAPI?.getReportDocumentByApproval?.(id); if(doc?.html_content && !isBadSnapshot(doc.html_content)) html = doc.html_content; }catch(_){ }
+    }
+    if(isBadSnapshot(html)) html = await currentReportHtml();
+    try{ const data = await window.EpitesNaploAPI?.getProjectCloseData?.(projectId()); html = fixMaterialSummary(html, data?.entries || state()?.entries || [], data || {}); }catch(_){ html = fixMaterialSummary(html, state()?.entries || [], {}); }
+    return {row, html:stamp(html,row)};
+  }
+  function downloadFile(name, html){
+    const blob = new Blob([html || ''], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 1200);
+  }
+
+  window.v71DownloadApprovedHtml = async function(id){
+    const done = setBtnLoading(findButton(id,'download'), 'Letöltés...');
+    try{
+      const r = await fullHtml(id);
+      downloadFile(`${safeName(projectTitle())}-${safeName(labelOf(decisionOf(r.row)))}-jovahagyott-riport.html`, r.html);
+      toast('Saját példány HTML elkészült.', 'ok');
+    }catch(e){
+      alert('HTML riport hiba: ' + (e.message || e));
+    }finally{ done(); }
+  };
+
+  window.v71PrintApprovedReport = async function(id){
+    const done = setBtnLoading(findButton(id,'print'), 'PDF készül...');
+    try{
+      const r = await fullHtml(id);
+      const w = window.open('', '_blank');
+      if(!w) return alert('A böngésző blokkolta az új ablakot.');
+      w.document.open(); w.document.write(r.html); w.document.close();
+      setTimeout(()=>{ try{ w.focus(); w.print(); }catch(_){} }, 800);
+      toast('PDF / nyomtatási nézet megnyitva.', 'ok');
+    }catch(e){
+      alert('PDF/nyomtatási hiba: ' + (e.message || e));
+    }finally{ done(); }
+  };
+})();
