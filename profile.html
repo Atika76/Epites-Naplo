@@ -1,0 +1,89 @@
+﻿<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fiókom – ÉpítésNapló AI PRO</title>
+  <meta name="description" content="ÉpítésNapló AI PRO fiókkezelés, adatvédelem és fiók törlése." />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="style.css?v=76" />
+</head>
+<body class="auth-loading">
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <img src="favicon.svg" alt="ÉpítésNapló ikon" class="brandIcon" />
+      <div>
+        <strong>ÉpítésNapló AI PRO</strong>
+        <span>fiók • adatvédelem • GDPR</span>
+      </div>
+    </a>
+    <nav id="nav">
+      <a href="index.html">Vissza a naplóhoz</a>
+      <button id="logoutBtn" class="btn small ghost hidden" onclick="window.location.href='logout.html'">Kilépés</button>
+    </nav>
+  </header>
+
+  <main class="grid profilePage">
+    <section class="card wide">
+      <h1>Fiókom</h1>
+      <p class="muted">Itt kezelheted a fiókodat, megnézheted az adataidat, és kérheted a fiók végleges törlését.</p>
+
+      <div class="profileBox accountDetails">
+        <b id="profileName">Betöltés...</b>
+        <span id="profileEmail">Betöltés...</span>
+        <small id="profilePlan">Csomag: betöltés...</small>
+      </div>
+
+      <div class="checkGrid">
+        <div>✅ saját projektek</div>
+        <div>✅ naplóbejegyzések</div>
+        <div>✅ ügyfélriport linkek</div>
+        <div>✅ AI elemzési adatok</div>
+      </div>
+    </section>
+
+    <section class="card wide">
+      <h2>Adatvédelem és fiók törlése</h2>
+      <p class="muted">
+        Ha már nem szeretnéd használni a rendszert, kérheted a fiókod végleges törlését.
+        A törlés után a belépésed, projektjeid, naplóbejegyzéseid, ügyfélriportjaid, értesítéseid és kapcsolódó adataid törlésre vagy anonimizálásra kerülnek.
+      </p>
+
+      <div class="dangerZone">
+        <h3>Végleges fióktörlés</h3>
+        <p>Ez a művelet nem visszavonható. Biztonság miatt írd be pontosan: <b>TÖRLÉS</b></p>
+        <input id="deleteConfirm" placeholder="Írd be: TÖRLÉS" />
+        <label class="checkboxLine"><input id="deleteAgreement" type="checkbox" /> Megértettem, hogy a fiók törlése végleges.</label>
+        <button class="btn dangerBtn full" onclick="requestAccountDelete()">Fiókom végleges törlése</button>
+        <div id="deleteResult" class="notice hidden"></div>
+      </div>
+    </section>
+
+    <section class="card wide">
+      <h2>Mit töröl a rendszer?</h2>
+      <div class="checkGrid">
+        <div>🗑️ profiladatok</div>
+        <div>🗑️ projektek</div>
+        <div>🗑️ naplóbejegyzések</div>
+        <div>🗑️ teendők</div>
+        <div>🗑️ publikus ügyfélriportok</div>
+        <div>🗑️ értesítések</div>
+        <div>🗑️ push feliratkozások</div>
+        <div>🗑️ AI fotóelemzések</div>
+      </div>
+      <p class="muted smallText">A fizetési bizonylatok és jogszabály szerint kötelezően megőrzendő adatok külön számlázó rendszerben kezelendők, a webes rendszerben pedig anonimizálhatók.</p>
+    </section>
+  </main>
+
+  <footer>
+    <strong>ÉpítésNapló AI PRO</strong>
+    <p>Fiókkezelés és GDPR-barát törlési folyamat.</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-adapter.js?v=76"></script>
+  <script src="header-v40.js?v=76"></script>
+  <script src="profile.js?v=76"></script>
+<script>window.addEventListener("DOMContentLoaded",()=>setTimeout(()=>document.body.classList.remove("auth-loading"),500));</script>
+</body>
+</html>

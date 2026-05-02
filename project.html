@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Projekt napló – ÉpítésNapló AI PRO</title>
+  <meta name="description" content="Külön projekt napló oldal napi bejegyzésekkel, időjárással, anyagfelhasználással és számla összesítéssel." />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="style.css?v=80" />
+</head>
+<body class="auth-loading">
+  <header class="topbar">
+    <a class="brand" href="index.html#home">
+      <img src="favicon.svg" alt="ÉpítésNapló ikon" class="brandIcon" />
+      <div>
+        <strong>ÉpítésNapló AI PRO</strong>
+        <span>projekt napló • napi folytatás • fotós dokumentáció</span>
+      </div>
+    </a>
+    <nav id="nav">
+      <a href="index.html#naplo">Főoldal</a>
+      <a href="index.html#riport">Riport</a>
+      <a href="profile.html">Fiókom</a>
+      <button id="projectLogoutBtn" class="btn small ghost" type="button">Kilépés</button>
+    </nav>
+  </header>
+
+  <main class="projectPageShell">
+    <section class="projectHero card">
+      <div>
+        <p class="badge">Külön projekt munkanapló</p>
+        <h1 id="projectTitle">Projekt betöltése...</h1>
+        <p class="lead" id="projectSubtitle">Itt tudod naponta folytatni ugyanannak az építkezésnek a naplóját. A régi bejegyzések megmaradnak, az új leírások, képek, anyagok és időjárási adatok külön napi bejegyzésként mentődnek.</p>
+        <div class="projectStatusStrip">
+          <span id="projectStatusPill" class="statusBadge status-folyamatban">Folyamatban</span>
+          <div class="progressWrap"><span id="projectProgressLabel">Haladás: 0%</span><div class="progressBar"><i id="projectProgressBar"></i></div></div>
+          <div id="projectSmartSignal" class="projectSmartSignal">Nincs még naplójelzés.</div>
+        </div>
+        <div class="heroActions proActionPanel v69ActionPanel" aria-label="Projekt műveletek">
+          <a class="proActionCard backAction" href="index.html#naplo"><span>Vissza</span><b>Főoldal</b><small>Projektlista és gyors indítás</small></a>
+          <button class="proActionCard primaryAction" type="button" onclick="scrollToDailyForm()"><span>Napló</span><b>Mai bejegyzés írása</b><small>Munka, fotó, videó, anyag</small></button>
+          <button class="proActionCard v69ReportAction" type="button" onclick="openReportCenterV69()"><span>Riport</span><b>Riportok és átadás</b><small>Heti, lezáró, PDF/HTML, ügyfél link</small></button>
+          <a id="financeLink" class="proActionCard" href="#"><span>Ft</span><b>Számlák és költségek</b><small>Anyagok, számlák, összesítés</small></a>
+          <button class="proActionCard" type="button" onclick="scrollToProjectStorageV69()"><span>Mentés</span><b>Projekt mentés / lezárás</b><small>Saját ZIP példány, lezárt állapot, törlés</small></button>
+        </div>
+      </div>
+      <div class="projectStatsBox">
+        <div><b id="projectEntryCount">0</b><span>bejegyzés</span></div>
+        <div><b id="projectPhotoCount">0</b><span>fotó</span></div>
+        <div><b id="projectRiskCount">0</b><span>kockázat</span></div>
+      </div>
+    </section>
+
+    <section class="projectTwoCol">
+      <section class="card" id="dailyFormCard">
+        <h2>Mai napló folytatása <button class="infoDot" type="button" data-help="daily" aria-label="Magyarázat">?</button></h2>
+        <p class="muted">Írd hozzá, mi történt ma ezen a projekten. Több képet is feltölthetsz, a rendszer pedig AI előszűrést és időjárási adatot is kezel.</p>
+
+        <div class="formGrid compactForm">
+          <select id="projectStatusSelect">
+            <option value="folyamatban">Projekt státusz: folyamatban</option>
+            <option value="ellenorzesre_var">Projekt státusz: ellenőrzésre vár</option>
+            <option value="elkeszult">Projekt státusz: elkészült</option>
+            <option value="lezarva">Projekt státusz: lezárva</option>
+          </select>
+          <input id="projectProgressInput" type="number" min="0" max="100" placeholder="Haladás %" />
+          <button class="btn ghost" type="button" onclick="saveProjectStatus()">Státusz mentése</button>
+          <button class="btn ghost" type="button" onclick="fillWeatherAndGps()">Automatikus időjárás/GPS</button>
+          <button class="btn ghost" type="button" onclick="captureGpsOnly()">Csak GPS mentése</button>
+          <label class="autoCheck"><input id="autoWeatherGpsCheck" type="checkbox" /> Mentés előtt kérdezzen rá a jelenlegi GPS hely mentésére</label>
+
+          <select id="detailWorkPhase">
+            <option>Alapozás</option><option>Falazás</option><option>Betonozás</option><option>Vakolás</option><option>Festés</option><option>Burkolás</option><option>Gépészet</option><option>Villanyszerelés</option><option>Egyéb</option>
+          </select>
+          <input id="detailCustomWorkPhase" class="v34CustomWorkPhase hidden" type="text" placeholder="Saját munkafázis, pl. zsaluzás, bontás, tető javítás..." />
+          <select id="detailStatus"><option>Normál</option><option>Ellenőrzésre vár</option><option>Javítás szükséges</option><option>Kész</option></select>
+          <select id="detailPriority"><option>Alacsony</option><option>Közepes</option><option>Magas</option></select>
+          <input id="detailResponsible" placeholder="Felelős / brigád" />
+          <input id="detailWeather" data-tooltip="Ide kerül az időjárás. Automatikusan is kitölthető GPS alapján, vagy kézzel beírható." placeholder="Időjárás / helyszíni körülmény" />
+          <input id="detailDate" type="date" />
+          <input id="detailWorkAddress" data-tooltip="Ide írd a munka tényleges helyszínét vagy címét. Ez akkor is pontos marad, ha otthon írod be utólag a naplót." placeholder="Munka helyszíne / cím (kézzel beírható)" />
+          <input id="detailGps" data-tooltip="GPS koordináta csak külön gombbal vagy megerősítés után kerüljön mentésre. Utólagos otthoni naplózásnál ne ezt használd cím helyett." placeholder="GPS koordináta (csak ha helyszínen rögzíted)" />
+          <small class="siteAddressHint">Tipp: ha utólag írod be a naplót, a címet használd. GPS-t csak a munkaterületen rögzíts.</small>
+          <input id="weatherAutoText" data-tooltip="Open-Meteo időjárási adat: hőmérséklet, csapadék, szél. API-kulcs nélkül működik." placeholder="Automatikus időjárás eredménye" readonly />
+        </div>
+
+        <div class="textNoteBlock">
+          <label for="detailNote"><b>Szöveges leírás</b><span>Írd le rövid, külön sorokban: mi készült el, hol történt, volt-e hiba vagy ellenőrzési pont.</span></label>
+          <textarea id="detailNote" rows="8" placeholder="Példa:
+- Mai munka: tükör elkészítése viakolor alá
+- Helyszín: udvar / bejárat
+- Anyag: zúzottkő, homok, szegély
+- Ellenőrzés: szint, lejtés, tömörítés"></textarea>
+        </div>
+        <div class="dailyActionRow">
+          <button class="btn ghost" type="button" onclick="generateDailyAiText()">AI napi jelentés generálása</button>
+          <button class="btn ghost" type="button" onclick="openHelpVideo()">Videó feltöltés infó</button>
+        </div>
+
+        <div class="subCard">
+          <div class="sectionTop slim">
+            <div><h3>Anyagfelhasználás ma</h3><p class="muted">Több anyagsort is felvehetsz. Ezekből automatikus projekt összesítés készül.</p></div>
+            <button class="btn ghost small" type="button" onclick="addMaterialRow()">+ Anyag sor</button>
+          </div>
+          <div id="materialsRows" class="materialsRows"></div>
+        </div>
+
+        <div class="beforeAfterGrid">
+          <label class="uploadBox"><b>Előtte fotó</b><span>Állapot munka előtt</span><input id="beforeFiles" type="file" accept="image/*" multiple /></label>
+          <label class="uploadBox"><b>Utána fotó</b><span>Állapot munka után</span><input id="afterFiles" type="file" accept="image/*" multiple /></label>
+        </div>
+        <label class="uploadBox videoUploadBox">
+          <b>Munkavideó feltöltése</b>
+          <span>Telefonos videó a munkáról. Nem YouTube, nem nyilvános poszt: a videó a naplóbejegyzéshez és az ügyfélriporthoz kerül.</span>
+          <input id="detailVideos" type="file" accept="video/*" multiple />
+        </label>
+        <input id="detailFiles" type="file" accept="image/*" multiple />
+        <small class="muted">Általános képek + előtte/utána fotók + munkavideók is menthetők. Mobilon kamerából is választhatsz. Javasolt rövid, 10–60 mp-es videókat feltölteni.</small>
+
+        <div id="detailAiPreview" class="aiBox hidden"></div>
+        <button class="btn primary full" type="button" onclick="saveDailyEntry()">Napi bejegyzés mentése ehhez a projekthez</button>
+      </section>
+
+      <section class="card">
+        <h2>Projekt összefoglaló <button class="infoDot" type="button" data-help="summary" aria-label="Magyarázat">?</button></h2>
+        <div id="projectSummaryBox" class="summaryList"></div>
+        <div id="materialSummaryBox" class="materialSummaryBox"></div>
+        <div id="smartNotificationBox" class="smartNotificationBox"></div>
+        <button class="btn ghost full" type="button" onclick="copyProjectSummary()">Összefoglaló másolása</button>
+        <button class="btn ghost full" type="button" onclick="openFinancePage()">Számlák és költségek megnyitása</button>
+        <button class="btn danger full" type="button" onclick="deleteCurrentProject()">Projekt törlése</button>
+      </section>
+    </section>
+
+    <section class="card">
+      <div class="sectionTop">
+        <div><h2>Napi bejegyzések idővonala</h2><p class="muted">Itt átláthatóan látod, melyik napon mi történt, milyen képek készültek, milyen anyagokat használtatok és milyen AI jelzések voltak.</p></div>
+        <select id="timelineRiskFilter" onchange="renderProjectTimeline()"><option value="all">Összes bejegyzés</option><option value="Magas">Magas kockázat</option><option value="Közepes">Közepes kockázat</option><option value="Alacsony">Alacsony kockázat</option></select>
+      </div>
+      <div id="projectTimeline" class="projectTimeline"></div>
+    </section>
+  </main>
+
+  <div id="onboardingModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+    <div class="modalContent onboardingContent">
+      <button class="closeBtn" type="button" onclick="closeOnboarding(false)">×</button>
+      <p class="badge">Első belépési útmutató</p>
+      <h2 id="onboardingTitle">Így használd a projekt naplót</h2>
+      <div id="onboardingBody" class="onboardingBody"></div>
+      <label class="checkLine"><input id="dontShowOnboarding" type="checkbox" /> Ne mutasd többet ezen a gépen</label>
+      <div class="featureHelpActions">
+        <button class="btn ghost" type="button" onclick="prevOnboardingStep()">Vissza</button>
+        <button class="btn primary" type="button" onclick="nextOnboardingStep()">Tovább</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="projectHelpModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="projectHelpTitle">
+    <div class="modalContent featureHelpContent">
+      <button class="closeBtn" type="button" onclick="closeProjectHelp()">×</button>
+      <p class="badge">Rendszer magyarázat</p>
+      <h2 id="projectHelpTitle">Magyarázat</h2>
+      <div id="projectHelpBody" class="featureHelpBody"></div>
+    </div>
+  </div>
+
+  <div id="videoHelpModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="videoHelpTitle">
+    <div class="modalContent featureHelpContent">
+      <button class="closeBtn" type="button" onclick="closeHelpVideo()">×</button>
+      <p class="badge">Privát munkavideó</p>
+      <h2 id="videoHelpTitle">Videó az ügyfélriporthoz</h2>
+      <div class="videoPlaceholder"><b>Nem YouTube-videó kell.</b><span>A telefonoddal készített rövid munkavideót a napi bejegyzésnél tudod feltölteni. Az ügyfél a megosztott riportban látja, másnak nem kell publikusan feltölteni.</span></div>
+      <p class="muted">Javaslat: 10–60 másodperces videókat használj. Nagy, több perces telefonos videóknál érdemes előtte kisebb méretre tömöríteni, hogy gyorsan betöltődjön.</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-adapter.js?v=96"></script>
+  <script src="header-v40.js?v=76"></script>
+  <script src="v19-pro-features.js?v=76"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="project.js?v=96"></script>
+  <script src="project-v77-final-fix.js?v=78"></script>
+  <script src="project-v87-client-question-ai-report-fix.js?v=87"></script>
+  <script src="project-v88-client-question-mobile-report-fix.js?v=88"></script>
+  <div id="reportCenterV69" class="v69Modal hidden" role="dialog" aria-modal="true" aria-labelledby="reportCenterTitleV69">
+    <div class="v69ModalBackdrop" onclick="closeReportCenterV69()"></div>
+    <div class="v69ModalCard">
+      <div class="v69ModalHead">
+        <div>
+          <p class="badge">PRO riport központ</p>
+          <h2 id="reportCenterTitleV69">Riportok és átadás</h2>
+          <p>Nem töröltünk funkciót: csak egy helyre rendeztük, hogy egy kivitelező is azonnal értse, mit mikor kell használni.</p>
+        </div>
+        <button class="v69ModalClose" type="button" onclick="closeReportCenterV69()" aria-label="Bezárás">×</button>
+      </div>
+      <div class="v69ReportGrid">
+        <section class="v69ReportBox"><h3>Heti riport</h3><p>A jelenlegi hét / utolsó 7 nap dokumentációja. Folyamat közbeni ügyféltájékoztatáshoz való.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="closeReportCenterV69(); printWeeklyReport();">PDF / nyomtatás</button><button class="btn ghost" type="button" onclick="closeReportCenterV69(); downloadWeeklyReportHtml();">HTML letöltés</button></div></section>
+        <section class="v69ReportBox important"><h3>Lezáró riport</h3><p>A teljes projekt egyben: minden addigi napló, fotó, anyag, időjárás és ellenőrzési adat.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="closeReportCenterV69(); printClosingDocument();">Lezáró PDF / nyomtatás</button><button class="btn ghost" type="button" onclick="closeReportCenterV69(); downloadClosingReportHtml();">Lezáró HTML</button></div></section>
+        <section class="v69ReportBox"><h3>Ügyfél átadás</h3><p>Olvasható ügyfélriport, megtekintés és elfogadás nyomával.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="closeReportCenterV69(); createProjectClientLinkV25();">Ügyfél link + jóváhagyás</button><button class="btn ghost" type="button" onclick="closeReportCenterV69(); exportClosingPdfV25();">Profi PDF export</button></div></section>
+        <section class="v69ReportBox archive"><h3>Saját mentés</h3><p>Saját példány a projektről: riport, adatok, képek és videók egy ZIP-ben.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="closeReportCenterV69(); v68DownloadProjectZip();">Projekt mentése ZIP-be</button><button class="btn ghost" type="button" onclick="closeReportCenterV69(); v33ArchiveProject();">Projekt lezárása</button></div></section>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

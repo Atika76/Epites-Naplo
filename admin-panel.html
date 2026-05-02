@@ -1,0 +1,80 @@
+﻿<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin panel – ÉpítésNapló AI PRO</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="style.css?v=76" />
+</head>
+<body class="auth-loading">
+  <header class="topbar">
+    <a class="brand" href="index.html#home">
+      <img src="favicon.svg" alt="ÉpítésNapló ikon" class="brandIcon" />
+      <div><strong>ÉpítésNapló AI PRO</strong><span>admin panel • felhasználók • kreditek • csomagok</span></div>
+    </a>
+    <nav id="nav" class="navOpen">
+      <a href="index.html">Főoldal</a>
+      <a href="admin-messages.html">Admin inbox</a>
+      <a href="profile.html">Fiókom</a>
+      <button id="logoutBtn" class="btn small ghost" onclick="window.location.href='logout.html'">Kilépés</button>
+    </nav>
+  </header>
+
+  <main class="adminPage">
+    <section class="card wide adminHero">
+      <div>
+        <p class="badge">Admin központ</p>
+        <h1>Felhasználók, csomagok és AI kreditek kezelése</h1>
+        <p class="muted">Itt tudsz csomagot állítani, kreditet adni, felhasználót megnyitni tesztnézetben és admin jogosultságot kezelni.</p>
+      </div>
+      <div class="adminKpiGrid">
+        <div><b id="kpiUsers">0</b><span>felhasználó</span></div>
+        <div><b id="kpiBusiness">0</b><span>Business/Pro</span></div>
+        <div><b id="kpiCredits">0</b><span>AI kredit</span></div>
+        <div><b id="kpiPayments">0</b><span>fizetés</span></div>
+      </div>
+    </section>
+
+    <section id="adminAccessBox" class="card wide">
+      <h2>Betöltés...</h2>
+      <p class="muted">Ellenőrzöm az admin jogosultságot.</p>
+    </section>
+
+    <section id="adminPanelContent" class="hidden">
+      <section class="card wide">
+        <h2>Felhasználók kezelése</h2>
+        <div class="adminToolbar">
+          <input id="userSearch" placeholder="Keresés név vagy email alapján" oninput="renderUsers()" />
+          <select id="planFilter" onchange="renderUsers()">
+            <option value="all">Összes csomag</option>
+            <option value="trial">Próba</option>
+            <option value="starter">Starter</option>
+            <option value="pro">Pro</option>
+            <option value="business">Business</option>
+          </select>
+          <button class="btn primary" onclick="refreshAdminPanel()">Frissítés</button>
+        </div>
+        <div id="userList" class="adminUserGrid"></div>
+      </section>
+
+      <section class="card wide">
+        <h2>Gyors admin műveletek</h2>
+        <div class="checkGrid">
+          <div>✅ Adminnak nincs fizetés és nincs kredit levonás</div>
+          <div>✅ Csomag kézzel állítható teszthez vagy ügyfélszolgálathoz</div>
+          <div>✅ AI kredit jóváírható kézzel</div>
+          <div>✅ Felhasználó projektjei megnyithatók tesztnézetben</div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-adapter.js?v=76"></script>
+  <script src="header-v40.js?v=76"></script>
+  <script src="admin-panel.js?v=76"></script>
+<script>window.addEventListener("DOMContentLoaded",()=>setTimeout(()=>document.body.classList.remove("auth-loading"),500));</script>
+</body>
+</html>

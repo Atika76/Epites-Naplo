@@ -1,0 +1,32 @@
+﻿<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Számlák és költségek – ÉpítésNapló AI PRO</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="style.css?v=76" />
+</head>
+<body class="auth-loading">
+  <header class="topbar">
+    <a class="brand" href="index.html#home"><img src="favicon.svg" alt="ikon" class="brandIcon" /><div><strong>ÉpítésNapló AI PRO</strong><span>számlák • anyagösszesítő • költségkontroll</span></div></a>
+    <nav id="nav"><a id="backProjectLink" href="project.html">Projekt napló</a><a href="index.html#naplo">Főoldal</a><button id="financeLogoutBtn" class="btn small ghost" type="button">Kilépés</button></nav>
+  </header>
+  <main class="projectPageShell">
+    <section class="projectHero card">
+      <div><p class="badge">Projekt pénzügyi melléklet</p><h1 id="financeTitle">Számlák és költségek</h1><p class="lead">Itt tudod csatolni a számlákat, fotókat, PDF-eket és összegezni az anyagköltségeket. Nem zsúfolja a napi napló oldalt, külön mellékletként működik.</p></div>
+      <div class="projectStatsBox"><div><b id="invoiceCount">0</b><span>számla</span></div><div><b id="invoiceTotal">0</b><span>Ft</span></div><div><b id="materialCount">0</b><span>anyag sor</span></div></div>
+    </section>
+    <section class="projectTwoCol">
+      <section class="card"><h2>Új számla / bizonylat csatolása</h2><div class="formGrid compactForm"><input id="invoiceTitle" placeholder="Megnevezés pl. Beton számla" /><input id="invoiceAmount" type="number" placeholder="Összeg Ft" /><input id="invoiceNote" placeholder="Megjegyzés" /><input id="invoiceFile" type="file" accept="image/*,.pdf" /></div><button class="btn primary full" type="button" onclick="saveInvoice()">Számla mentése</button><p class="muted">PDF vagy kép is feltölthető. Nagy fájloknál érdemes tömörített PDF-et használni.</p></section>
+      <section class="card"><h2>Anyagösszesítő</h2><div id="financeMaterialSummary" class="materialSummaryBox"></div><button class="btn ghost full" onclick="copyFinanceSummary()">Költségösszesítő másolása</button></section>
+    </section>
+    <section class="card"><div class="sectionTop"><div><h2>Számlák listája</h2><p class="muted">A projekt lezáró dokumentumába ezek az adatok is bekerülhetnek.</p></div><button class="btn ghost" onclick="printFinanceReport()">Költség PDF</button><button class="btn ghost" onclick="downloadFinanceReportHtml()">Költség riport letöltés</button></div><div id="invoiceList" class="invoiceList"></div></section>
+  </main>
+  <div id="toast" class="toast hidden"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-adapter.js?v=76"></script>
+  <script src="header-v40.js?v=76"></script><script src="v19-pro-features.js?v=91"></script><script src="project-finance.js?v=91"></script>
+<script>window.addEventListener("DOMContentLoaded",()=>setTimeout(()=>document.body.classList.remove("auth-loading"),500));</script>
+</body>
+</html>

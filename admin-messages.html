@@ -1,0 +1,120 @@
+﻿<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Inbox – ÉpítésNapló AI PRO</title>
+  <link rel="stylesheet" href="style.css?v=76" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+</head>
+<body class="auth-loading">
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <img src="favicon.svg" alt="ÉpítésNapló ikon" class="brandIcon" />
+      <div><strong>Admin Inbox</strong><span>üzenetek • teendők • válasz</span></div>
+    </a>
+    <nav id="nav">
+      <a href="index.html">Főoldal</a>
+      <button id="loginBtn" class="btn small" onclick="openAuthModal()">Belépés</button>
+      <button id="logoutBtn" class="btn small ghost hidden" onclick="window.location.href='logout.html'">Kilépés</button>
+    </nav>
+  </header>
+
+  <main class="inboxShell">
+    <div class="inboxHeader">
+      <div>
+        <p class="badge">Cégweb26 admin központ</p>
+        <h1>Beérkezett admin üzenetek</h1>
+        <p class="muted">Itt látod a felhasználók támogatási kéréseit és kérdéseit. A válasz gomb a saját leveleződet nyitja meg.</p>
+      </div>
+      <button class="btn primary" onclick="loadInbox()">Frissítés</button>
+    </div>
+
+    <section class="card wide">
+      <div class="adminToolbar">
+        <input id="inboxSearch" placeholder="Keresés név, email, tárgy vagy üzenet alapján" oninput="renderInbox()" />
+        <select id="inboxFilter" onchange="renderInbox()">
+          <option value="all">Összes</option>
+          <option value="new">Csak új</option>
+          <option value="read">Elolvasott</option>
+        </select>
+      </div>
+      <div id="inboxList" class="inboxGrid"><p class="muted">Betöltés...</p></div>
+    </section>
+  </main>
+
+  <div id="authModal" class="modal hidden">
+    <div class="modalContent">
+      <button class="closeBtn" onclick="closeAuthModal()">×</button>
+      <h2>Admin belépés</h2>
+      <p class="muted">Admin email: cegweb26@gmail.com</p>
+      <input id="authName" placeholder="Név / cégnév" />
+      <input id="authEmail" placeholder="Email cím" type="email" />
+      <button class="btn primary full" onclick="loginUser()">Belépési link kérése</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-adapter.js?v=76"></script>
+  <script src="header-v40.js?v=76"></script>
+  <script>
+    let inboxUser = null;
+    let inboxMessages = [];
+
+    function safeEl(id){return document.getElementById(id)}
+    function openAuthModal(){safeEl('authModal').classList.remove('hidden')}
+    function closeAuthModal(){safeEl('authModal').classList.add('hidden')}
+    async function loginUser(){
+      const name = safeEl('authName').value.trim() || 'Admin';
+      const email = safeEl('authEmail').value.trim();
+      if(!email) return alert('Adj meg email címet.');
+      await window.EpitesNaploAPI.signInOrSignUp(email,name);
+    }
+    async function logoutUser(){ window.location.href='logout.html'; }
+    function escapeHtml(str){return String(str ?? '').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]))}
+    function formatDate(value){try{return new Date(value).toLocaleString('hu-HU')}catch{return value||''}}
+
+    async function initInbox(){
+      inboxUser = await window.EpitesNaploAPI.getCurrentUser();
+      safeEl('loginBtn').classList.toggle('hidden', !!inboxUser);
+      safeEl('logoutBtn').classList.toggle('hidden', !inboxUser);
+      if(!inboxUser){ safeEl('inboxList').innerHTML='<p class="muted">Belépés szükséges.</p>'; return; }
+      if(inboxUser.email !== window.EPITESNAPLO_CONFIG.adminEmail){
+        safeEl('inboxList').innerHTML='<p class="muted">Ez az oldal csak adminnak látható.</p>';
+        return;
+      }
+      await loadInbox();
+    }
+
+    async function loadInbox(){
+      inboxMessages = await window.EpitesNaploAPI.getAdminSupportMessages();
+      renderInbox();
+    }
+
+    function renderInbox(){
+      const q=(safeEl('inboxSearch')?.value||'').toLowerCase();
+      const f=safeEl('inboxFilter')?.value||'all';
+      let list=[...inboxMessages];
+      if(f!=='all') list=list.filter(m=>(m.status||'new')===f);
+      if(q) list=list.filter(m=>[m.name,m.email,m.subject,m.message].join(' ').toLowerCase().includes(q));
+      safeEl('inboxList').innerHTML = list.map(m=>`
+        <article class="inboxMessage ${(m.status||'new')==='new'?'new':''}">
+          <span class="statusPill">${escapeHtml(m.status||'new')}</span>
+          <h3>${escapeHtml(m.subject||'Üzenet')}</h3>
+          <div class="messageMeta">${escapeHtml(m.name||'')} • ${escapeHtml(m.email||'')} • ${formatDate(m.created_at)}</div>
+          <p>${escapeHtml(m.message||'')}</p>
+          <button class="btn small ghost" onclick="markRead('${m.id}')">Elolvasva</button>
+          <a class="btn small primary replyLink" href="mailto:${escapeHtml(m.email||'')}?subject=${encodeURIComponent('Válasz: '+(m.subject||'Üzenet'))}">Válasz emailben</a>
+        </article>`).join('') || '<p class="muted">Nincs ilyen üzenet.</p>';
+    }
+
+    async function markRead(id){
+      await window.EpitesNaploAPI.markSupportMessageRead(id);
+      await loadInbox();
+    }
+
+    initInbox();
+  </script>
+<script>window.addEventListener("DOMContentLoaded",()=>setTimeout(()=>document.body.classList.remove("auth-loading"),500));</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+﻿{
+  "name": "ÉpítésNapló AI PRO",
+  "short_name": "ÉpítésNapló",
+  "description": "Építési napló fotós dokumentációval, AI előszűréssel, ügyfélriporttal és értesítésekkel.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#06111f",
+  "theme_color": "#f59e0b",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

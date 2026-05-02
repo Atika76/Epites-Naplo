@@ -1,0 +1,36 @@
+﻿<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kilépés – ÉpítésNapló AI PRO</title>
+  <link rel="stylesheet" href="style.css?v=76" />
+</head>
+<body>
+  <main class="projectPageShell">
+    <section class="card">
+      <p class="badge">Kilépés</p>
+      <h1 style="font-size:clamp(36px,7vw,72px);line-height:.95">Kijelentkeztetés folyamatban...</h1>
+      <p class="lead">Törlöm a böngészőben maradt bejelentkezési adatokat is, hogy ne kelljen kézzel frissíteni az oldalt.</p>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-adapter.js?v=76"></script>
+  <script>
+    (async function(){
+      try { await window.EpitesNaploAPI.signOut({ silent: true }); } catch(e) { console.warn(e); }
+      try {
+        Object.keys(localStorage).forEach(k => { if (k.startsWith('sb-') || k.toLowerCase().includes('supabase') || k.toLowerCase().includes('epitesnaplo')) localStorage.removeItem(k); });
+        Object.keys(sessionStorage).forEach(k => { if (k.startsWith('sb-') || k.toLowerCase().includes('supabase') || k.toLowerCase().includes('epitesnaplo')) sessionStorage.removeItem(k); });
+      } catch(e) {}
+      try {
+        if ('caches' in window) {
+          const names = await caches.keys();
+          await Promise.all(names.filter(n => n.toLowerCase().includes('epitesnaplo')).map(n => caches.delete(n)));
+        }
+      } catch(e) {}
+      window.location.replace('index.html?logout=' + Date.now() + '#home');
+    })();
+  </script>
+</body>
+</html>
