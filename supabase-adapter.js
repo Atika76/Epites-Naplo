@@ -1627,3 +1627,74 @@ window.EpitesNaploAPI = {
     return true;
   };
 })();
+
+// ===== V117: riport képek lekérése + report_events takarítás + teljes projekt törlés bővítés =====
+(function(){
+  const api = window.EpitesNaploAPI;
+  const db = window.supabaseDirect;
+  if(!api || !db || api.__v117ReportMediaCleanup) return;
+  api.__v117ReportMediaCleanup = true;
+  const missing = e => /does not exist|schema cache|not found|relation .* does not exist|function .* does not exist|column .* does not exist|42P01|42703/i.test(String(e?.message || e || ''));
+  const uniq = arr => [...new Set((arr||[]).map(x=>String(x||'').trim()).filter(Boolean))];
+  function collect(value,out){
+    if(!value) return;
+    if(Array.isArray(value)){ value.forEach(v=>collect(v,out)); return; }
+    if(typeof value === 'object'){
+      ['url','src','href','path','image','image_url','publicUrl','public_url','signedUrl','signed_url','storage_path','file_path','full_path'].forEach(k=>collect(value[k],out));
+      ['images','imageUrls','image_urls','photos','files','media','beforeImages','afterImages','generalImages','before_images_json','after_images_json','general_images_json'].forEach(k=>collect(value[k],out));
+      return;
+    }
+    const s=String(value||'').trim();
+    if(/^data:image\//i.test(s) || /^https?:\/\//i.test(s) || /\.(jpe?g|png|webp|gif|avif)(\?|#|$)/i.test(s)) out.push(s);
+  }
+  async function signedMaybe(bucket,path){
+    if(!bucket || !path || /^https?:|^data:image\//i.test(path)) return path;
+    try{ const r=await db.storage.from(bucket).createSignedUrl(path, 60*60*24*7); if(r.data?.signedUrl) return r.data.signedUrl; }catch(_){ }
+    try{ const r=db.storage.from(bucket).getPublicUrl(path); if(r.data?.publicUrl) return r.data.publicUrl; }catch(_){ }
+    return '';
+  }
+  api.getProjectMediaForReport = async function(projectId){
+    const user = await this.getCurrentUser?.();
+    if(!user || !projectId) return [];
+    const out=[];
+    try{
+      const { data, error } = await db.from('diary_entries').select('*').eq('project_id', projectId).eq('user_id', user.id).order('created_at',{ascending:true});
+      if(!error) (data||[]).forEach(r=>collect(r,out));
+    }catch(e){ if(!missing(e)) console.warn('diary_entries média hiba',e); }
+    try{
+      const { data, error } = await db.from('entries').select('*').eq('project_id', projectId).eq('user_id', user.id).order('created_at',{ascending:true});
+      if(!error) (data||[]).forEach(r=>collect(r,out));
+    }catch(e){ if(!missing(e)) console.warn('entries média hiba',e); }
+    try{
+      const { data, error } = await db.from('media_files').select('*').eq('project_id', projectId);
+      if(!error){
+        for(const r of (data||[])){
+          collect(r,out);
+          const bucket = r.bucket || r.bucket_id || r.storage_bucket || r.bucket_name || 'project-media';
+          const p = r.path || r.storage_path || r.file_path || r.full_path || '';
+          const u = await signedMaybe(bucket,p); if(u) out.push(u);
+        }
+      }
+    }catch(e){ if(!missing(e)) console.warn('media_files média hiba',e); }
+    return uniq(out).filter(x=>!/(\.mp4|\.mov|\.webm)(\?|#|$)/i.test(x));
+  };
+
+  api.cleanupReportEvents = async function(days=14){
+    try{ const { error } = await db.rpc('cleanup_report_events_v117', { p_days: days }); if(error && !missing(error)) throw error; return true; }
+    catch(e){
+      if(!missing(e)) console.warn('report_events takarítás RPC hiba:', e.message||e);
+      try{ const cutoff = new Date(Date.now()-Number(days||14)*86400000).toISOString(); await db.from('report_events').delete().lt('created_at', cutoff); }catch(_){ }
+      return true;
+    }
+  };
+
+  const oldDeleteProject = api.deleteProject?.bind(api);
+  api.deleteProject = async function(projectId){
+    const user = await this.getCurrentUser?.(); if(!user) throw new Error('Nincs bejelentkezve.'); if(!projectId) throw new Error('Hiányzó projekt azonosító.');
+    try{ const { data, error } = await db.rpc('delete_project_full_v117', { p_project_id: projectId }); if(!error && data !== false) return true; if(error && !missing(error)) throw error; }catch(e){ if(!missing(e)) console.warn('V117 RPC projekt törlés nem sikerült:', e.message||e); }
+    try{ await db.from('report_events').delete().eq('report_id', projectId); }catch(_){ }
+    try{ await db.from('report_events').delete().eq('project_id', projectId); }catch(_){ }
+    if(oldDeleteProject) return oldDeleteProject(projectId);
+    throw new Error('Projekt törlés nem sikerült. Futtasd a supabase-pro-v117-cleanup-and-fast-delete.sql fájlt.');
+  };
+})();
