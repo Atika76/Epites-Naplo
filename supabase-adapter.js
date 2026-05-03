@@ -444,7 +444,7 @@ window.EpitesNaploAPI = {
     const cleanToken = String(token || "").trim();
     try { if (cleanToken) localStorage.setItem("epitesnaplo_last_report_token", cleanToken); } catch (_) {}
     const current = new URL(window.location.href);
-    const viewUrl = new URL("view.html", current.href);
+    const viewUrl = new URL("share.html", current.href);
     viewUrl.search = "";
     viewUrl.hash = "";
     viewUrl.searchParams.set("riport", cleanToken);

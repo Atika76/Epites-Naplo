@@ -107,7 +107,35 @@
   window.downloadWeeklyReportHtml = () => busy(async()=>{ const html=await makeHtml('heti építési napló',true); await saveDoc(`${projectTitle()} – heti HTML`,'weekly_html_v121',html); downloadHtml(`${safeName(projectTitle())}-heti-riport.html`,html); toast('Heti HTML elkészült.'); },'Heti HTML készül...');
   window.printWeeklyReport = () => busy(async()=>{ const html=await makeHtml('heti PRO építési napló',true); await saveDoc(`${projectTitle()} – heti PDF`,'weekly_pdf_v121',html); await printHtml(html); toast('Heti PDF/nyomtatás megnyitva.'); },'Heti PDF készül...');
   window.exportWeeklyPdfV25 = window.printWeeklyReport;
-  window.createProjectClientLinkV25 = () => busy(async()=>{ if(!projectId()) return alert('Nincs projekt.'); const html=await makeHtml('ügyfélriport',false); const saved=await window.EpitesNaploAPI.createPublicReport({projectId:projectId(),projectName:projectTitle(),reportHtml:html,reportText:(new DOMParser().parseFromString(html,'text/html').body?.innerText||projectTitle()).slice(0,200000)}); await saveDoc(`${projectTitle()} – ügyfélriport link`,'client_report_v121',html); const link=window.EpitesNaploAPI.createClientShareUrl(saved.token); try{await navigator.clipboard.writeText(link);}catch(_){} if(typeof showProjectHelp==='function') showProjectHelp('Ügyfél link elkészült', `<div class="featureHelpBox"><b>Biztonságos ügyfél link</b><p>A riport ugyanazzal a V121 riportmotorral készült: leírás + összes fotó + nagyítható képek.</p><p><a class="btn primary" target="_blank" href="${esc(link)}">Ügyfélriport megnyitása</a></p><p class="muted">${esc(link)}</p></div>`); else alert('Ügyfél link elkészült: '+link); },'Ügyfél link készül...');
+  window.createProjectClientLinkV25 = () => busy(async()=>{
+    if(!projectId()) return alert('Nincs projekt.');
+    const html = await makeHtml('ügyfélriport', false);
+    const payload = {
+      projectId: projectId(),
+      projectName: projectTitle(),
+      reportHtml: html,
+      reportText: (new DOMParser().parseFromString(html,'text/html').body?.innerText || projectTitle()).slice(0,200000)
+    };
+    const createPromise = window.EpitesNaploAPI.createPublicReport(payload);
+    const timeoutPromise = new Promise((_, rej)=>setTimeout(()=>rej(new Error('A riport mentése túl sokáig tartott. Ellenőrizd az internetet / Supabase kapcsolatot, majd próbáld újra.')), 30000));
+    const saved = await Promise.race([createPromise, timeoutPromise]);
+    await saveDoc(`${projectTitle()} – ügyfélriport link`, 'client_report_v124', html);
+    const link = window.EpitesNaploAPI.createClientShareUrl(saved.token);
+    const safeLink = esc(link);
+    const box = `<div class="featureHelpBox v124ClientLinkBox">
+      <b>✅ Ügyfél link elkészült</b>
+      <p>A PRO ügyfélriport elkészült: kártyás Messenger/Facebook előnézet + leírás + összes fotó + nagyítható képek.</p>
+      <p><a class="btn primary" target="_blank" rel="noopener" href="${safeLink}">Ügyfélriport megnyitása</a></p>
+      <p class="muted" style="word-break:break-all;user-select:all;">${safeLink}</p>
+      <div class="v124ClientLinkActions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button class="btn ghost" type="button" onclick="navigator.clipboard.writeText('${safeLink}').then(()=>alert('Link kimásolva'))">Link másolása</button>
+        <button class="btn ghost" type="button" onclick="if(navigator.share){navigator.share({title:'Ügyfélriport – ÉpítésNapló AI PRO',text:'Fotókkal igazolt, csak olvasható építési riport.',url:'${safeLink}'})}else{navigator.clipboard.writeText('${safeLink}');alert('Link kimásolva')}}">Megosztás</button>
+      </div>
+    </div>`;
+    try { await navigator.clipboard.writeText(link); } catch(_) {}
+    if(typeof showProjectHelp === 'function') showProjectHelp('Ügyfél link elkészült', box);
+    else alert('Ügyfél link elkészült: ' + link);
+  }, 'Ügyfél link készül...');
   window.v71DownloadApprovedHtml = async function(){ const html=await makeHtml('saját ügyfélpéldány',false); downloadHtml(`${safeName(projectTitle())}-sajat-ugyfelpeldany.html`,html); };
   window.v71PrintApprovedReport = async function(){ const html=await makeHtml('saját ügyfélpéldány',false); await printHtml(html); };
 

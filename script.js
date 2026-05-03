@@ -1295,8 +1295,28 @@ function displayedPlanLabel() {
   return limit.label;
 }
 
+
+// ===== V124: előfizetőknél csomag/fizetés elrejtése mobilon is =====
+function applyPaidSubscriptionVisibilityV124(limit) {
+  try {
+    const paid = !!(isAdmin && isAdmin()) || !!(limit && (limit.canClientReport || limit.canPdf || limit.canUseAI) && limit.label && !String(limit.label).toLowerCase().includes('ingyen'));
+    const sub = document.getElementById('subscription');
+    const publicNotice = document.getElementById('publicPlanNotice');
+    const paypalBoxes = document.querySelectorAll('.paypalBox');
+    if (sub) {
+      sub.classList.toggle('v124PaidHiddenSubscription', paid);
+      sub.style.display = paid ? 'none' : '';
+    }
+    if (publicNotice && paid) publicNotice.style.display = 'none';
+    paypalBoxes.forEach(box => { if (paid) box.style.display = 'none'; });
+  } catch (e) {
+    console.warn('V124 csomag/fizetés elrejtés hiba:', e);
+  }
+}
+
 function render() {
   const limit = currentLimit();
+  applyPaidSubscriptionVisibilityV124(limit);
 
   document.getElementById('accountBadge').textContent = state.user ? 'Belépve' : 'Vendég mód';
   document.getElementById('currentUserName').textContent = state.user ? `Üdv, ${firstNameFromProfile()}!` : 'Vendég felhasználó';
