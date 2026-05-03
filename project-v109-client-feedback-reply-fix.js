@@ -417,3 +417,152 @@
     wrapped.__v114Images=true; window.buildProReportHtml=wrapped; try{ buildProReportHtml=wrapped; }catch(_){ }
   }
 })();
+
+// ===== V115 VALÓDI RIPORT KÉP JAVÍTÁS: nem csak DB mezőből, hanem a látható napló képeiből is épít =====
+(function(){
+  'use strict';
+  if(window.__v115RealReportImagesFix) return; window.__v115RealReportImagesFix = true;
+
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const state = () => (typeof detailState !== 'undefined' ? detailState : (window.detailState || {}));
+  const pid = () => state()?.project?.id || new URLSearchParams(location.search).get('id') || '';
+  const projectTitle = () => state()?.project?.name || 'Építési napló projekt';
+  const uniq = arr => [...new Set((arr || []).map(x => String(x || '').trim()).filter(Boolean))];
+  function isImgUrl(s){
+    s = String(s || '').trim();
+    if(!s) return false;
+    if(/^(javascript:|blob:|function\s*\(|\(function|window\.|document\.|const\s+|let\s+|var\s+)/i.test(s)) return false;
+    return /^data:image\//i.test(s) || /^https?:\/\//i.test(s) || /^\.\//.test(s) || /^\//.test(s) || /\.(jpe?g|png|webp|gif|avif)(\?|#|$)/i.test(s);
+  }
+  function collect(value, out){
+    if(!value) return;
+    if(Array.isArray(value)){ value.forEach(v => collect(v,out)); return; }
+    if(typeof value === 'object'){
+      const o=value;
+      ['url','src','href','path','image','image_url','storage_path','file_path','publicUrl','signedUrl','dataUrl'].forEach(k => collect(o[k], out));
+      ['images','imageUrls','image_urls','photos','beforeImages','afterImages','generalImages','before_images_json','after_images_json','general_images_json','media','ai_json','analysis'].forEach(k => collect(o[k], out));
+      return;
+    }
+    const s=String(value||'').trim(); if(isImgUrl(s)) out.push(s);
+  }
+  function entryImages(e){ const out=[]; collect(e,out); return uniq(out); }
+  function domImages(){
+    const roots = [document.getElementById('projectTimeline'), document.getElementById('timelineList'), document.querySelector('.timeline'), document.querySelector('main')].filter(Boolean);
+    const out=[];
+    roots.forEach(root => root.querySelectorAll('img').forEach(img => {
+      const alt=(img.alt||'').toLowerCase();
+      const cls=(img.className||'').toString().toLowerCase();
+      if(alt.includes('ikon') || cls.includes('brand') || cls.includes('logo')) return;
+      const src = img.getAttribute('data-full-src') || img.getAttribute('data-src') || img.currentSrc || img.src || '';
+      if(isImgUrl(src)) out.push(src);
+    }));
+    return uniq(out);
+  }
+  function allImages(entries){
+    const fromEntries = uniq((entries||[]).flatMap(entryImages));
+    const fromDom = domImages();
+    return uniq([...fromEntries, ...fromDom]);
+  }
+  function imgGrid(imgs){
+    return `<div class="photos v115Photos">${imgs.map((src,i)=>`<figure class="v67ReportPhoto"><img src="${esc(src)}" data-full-src="${esc(src)}" alt="Napló fotó ${i+1}" loading="lazy" decoding="async"><figcaption>Nagyítás</figcaption></figure>`).join('')}</div>`;
+  }
+  function countImgs(html){ try{ return new DOMParser().parseFromString(String(html||''),'text/html').querySelectorAll('img[src],img[data-full-src],img[data-src]').length; }catch(_){ return 0; } }
+  function css(){ return `<style id="v115-real-report-images-css">
+    .photos,.v115Photos,.entryImageGrid,.reportImageGrid{display:grid!important;grid-template-columns:repeat(auto-fill,112px)!important;gap:10px!important;align-items:start!important;justify-content:start!important;margin:12px 0!important}.v67ReportPhoto,.photos figure,figure.photo{width:112px!important;max-width:112px!important;min-height:132px!important;border:1px solid #d1d5db!important;border-radius:12px!important;background:#fff!important;padding:5px!important;margin:0!important;box-sizing:border-box!important;overflow:hidden!important;break-inside:avoid!important;page-break-inside:avoid!important}.v67ReportPhoto img,.photos img,.v115Photos img,.entryImageGrid img,.reportImageGrid img{width:102px!important;height:102px!important;max-width:102px!important;max-height:102px!important;object-fit:cover!important;border-radius:9px!important;display:block!important;cursor:zoom-in!important;background:#f8fafc!important}.v67ReportPhoto figcaption,.photos figcaption{font-size:11px!important;color:#64748b!important;line-height:1.2!important;margin-top:4px!important}.v115Lightbox{position:fixed;inset:0;z-index:999999;background:rgba(2,6,23,.94);display:flex;align-items:center;justify-content:center;padding:70px 60px 30px}.v115Lightbox img{max-width:96vw!important;max-height:86vh!important;width:auto!important;height:auto!important;object-fit:contain!important;border-radius:14px!important;background:#000}.v115Lightbox button{position:fixed;border:0;border-radius:999px;background:#fbbf24;color:#111827;font-weight:900;cursor:pointer}.v115Close{top:14px;right:14px;padding:10px 14px}.v115Prev,.v115Next{top:50%;transform:translateY(-50%);width:46px;height:70px;font-size:34px}.v115Prev{left:12px}.v115Next{right:12px}@media(max-width:760px){.photos,.v115Photos,.entryImageGrid,.reportImageGrid{grid-template-columns:repeat(3,92px)!important}.v67ReportPhoto,.photos figure,figure.photo{width:92px!important;min-height:112px!important}.v67ReportPhoto img,.photos img,.v115Photos img,.entryImageGrid img,.reportImageGrid img{width:82px!important;height:82px!important}.v115Lightbox{padding:62px 8px 20px}.v115Prev,.v115Next{width:38px;height:56px;font-size:28px}}@media print{.v115Lightbox{display:none!important}.photos,.v115Photos{grid-template-columns:repeat(4,30mm)!important}.v67ReportPhoto{width:30mm!important;min-height:34mm!important}.v67ReportPhoto img{width:28mm!important;height:28mm!important}}
+  </style>`; }
+  function script(){ return `<script>(function(){var idx=0;function imgs(){return Array.prototype.slice.call(document.querySelectorAll('.photos img,.v115Photos img,.entryImageGrid img,.reportImageGrid img')).filter(function(i){return i.src&&!i.closest('.v115Lightbox')});}function open(n){var list=imgs();if(!list.length)return;idx=Math.max(0,Math.min(n,list.length-1));var d=document.querySelector('.v115Lightbox');if(!d){d=document.createElement('div');d.className='v115Lightbox';document.body.appendChild(d);}function draw(){d.innerHTML='<button class="v115Close" type="button">Bezárás ×</button><button class="v115Prev" type="button">‹</button><img src="'+list[idx].src.replace(/"/g,'&quot;')+'" alt="Napló fotó"><button class="v115Next" type="button">›</button>';d.querySelector('.v115Close').onclick=function(){d.remove()};d.querySelector('.v115Prev').onclick=function(e){e.stopPropagation();idx=(idx-1+list.length)%list.length;draw()};d.querySelector('.v115Next').onclick=function(e){e.stopPropagation();idx=(idx+1)%list.length;draw()};}draw();d.onclick=function(e){if(e.target===d)d.remove();};}document.addEventListener('click',function(e){var img=e.target.closest&&e.target.closest('.photos img,.v115Photos img,.entryImageGrid img,.reportImageGrid img');if(!img)return;e.preventDefault();e.stopPropagation();open(imgs().indexOf(img));},true);document.addEventListener('keydown',function(e){var d=document.querySelector('.v115Lightbox');if(!d)return;if(e.key==='Escape')d.remove();if(e.key==='ArrowLeft')d.querySelector('.v115Prev')?.click();if(e.key==='ArrowRight')d.querySelector('.v115Next')?.click();});})();<\/script>`; }
+  function ensureFull(html){
+    let out=String(html||'');
+    if(!/<!doctype|<html/i.test(out)) out=`<!doctype html><html lang="hu"><head><meta charset="utf-8"><title>${esc(projectTitle())}</title><link rel="icon" href="https://epitesi-naplo.eu/favicon.png"></head><body>${out}</body></html>`;
+    if(!out.includes('v115-real-report-images-css')) out = out.includes('</head>') ? out.replace('</head>', css()+'</head>') : css()+out;
+    if(!out.includes('v115Lightbox')) out = out.includes('</body>') ? out.replace('</body>', script()+'</body>') : out+script();
+    return out;
+  }
+  function injectImages(html, imgs){
+    if(!imgs.length) return ensureFull(html);
+    let out=String(html||'');
+    if(countImgs(out) >= imgs.length) return ensureFull(out);
+    const block = `<h3>Munka közben / dokumentáció</h3><p>Kattints bármelyik fotóra a nagyításhoz.</p>${imgGrid(imgs)}`;
+    if(/Kattints bármelyik fotóra a nagyításhoz\.?/i.test(out)) out = out.replace(/(<p[^>]*>\s*Kattints bármelyik fotóra a nagyításhoz\.?\s*<\/p>)/i, `$1${imgGrid(imgs)}`);
+    else if(/(<h3[^>]*>\s*Munka közben[\s\S]*?<\/h3>)/i.test(out)) out = out.replace(/(<h3[^>]*>\s*Munka közben[\s\S]*?<\/h3>)/i, `$1<p>Kattints bármelyik fotóra a nagyításhoz.</p>${imgGrid(imgs)}`);
+    else if(/<\/section>/i.test(out)) out = out.replace(/<\/section>/i, `${block}</section>`);
+    else out += block;
+    return ensureFull(out);
+  }
+  function fallback(entries,title,options){
+    const all=allImages(entries);
+    const entry = (entries||[])[0] || {};
+    const inv = Array.isArray(options?.invoices)?options.invoices:[];
+    const sum=inv.reduce((s,x)=>s+(Number(x.amount||0)||0),0);
+    const date = entry?.created_at ? new Date(entry.created_at).toLocaleString('hu-HU') : '';
+    const note = entry?.note || '';
+    return ensureFull(`<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title||projectTitle()+' – ügyfélriport')}</title><link rel="icon" href="https://epitesi-naplo.eu/favicon.png"><style>body{font-family:Arial,Helvetica,sans-serif;color:#111827;background:#fff;margin:0;padding:24px;line-height:1.45}.doc{max-width:980px;margin:auto}.cover{border-bottom:4px solid #f5a400;margin-bottom:20px;padding-bottom:16px}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.stat{background:#f3f4f6;border-radius:10px;padding:12px}.stat b{display:block;color:#d97706;font-size:22px}.entry{border-left:4px solid #f5a400;background:#fafafa;margin:18px 0;padding:16px 18px}</style></head><body><div class="doc"><div class="cover"><h1>${esc(title||projectTitle()+' – ügyfélriport')}</h1><p>Generálva: ${new Date().toLocaleString('hu-HU')} • ÉpítésNapló AI PRO</p><div class="stats"><div class="stat"><b>${(entries||[]).length}</b>bejegyzés</div><div class="stat"><b>${all.length}</b>fotó</div><div class="stat"><b>0</b>videó</div><div class="stat"><b>0</b>magas kockázat</div><div class="stat"><b>${sum.toLocaleString('hu-HU')} Ft</b>számlák</div></div></div><h2>Rövid összegzés</h2><p>A dokumentum az ügyfélnek átadható, rendezett építési napló.</p><section class="entry"><h2>${esc(date)} – ${esc(entry?.phase||'Napi bejegyzés')}</h2><p>${esc(note).replace(/\n/g,'<br>')}</p><p><b>Dokumentáció:</b> ${all.length} fotó, 0 videó.</p><h3>Munka közben / dokumentáció</h3><p>Kattints bármelyik fotóra a nagyításhoz.</p>${imgGrid(all)}</section></div></body></html>`);
+  }
+  const oldBuild = window.buildProReportHtml || (typeof buildProReportHtml === 'function' ? buildProReportHtml : null);
+  if(typeof oldBuild === 'function' && !oldBuild.__v115RealImages){
+    const wrapped = function(entries,title,options){
+      const imgs = allImages(entries);
+      let html=''; try{ html=oldBuild(entries,title,options); }catch(e){ console.warn('V115 riportépítő fallback:', e); }
+      if(!html || (imgs.length && countImgs(html) < imgs.length)) return injectImages(html || fallback(entries,title,options||{}), imgs);
+      return ensureFull(html);
+    };
+    wrapped.__v115RealImages=true; window.buildProReportHtml=wrapped; try{ buildProReportHtml=wrapped; }catch(_){ }
+  }
+
+  async function closeDataWithDom(){
+    let data=null; try{ data = await window.EpitesNaploAPI?.getProjectCloseData?.(pid()); }catch(_){ }
+    data = data || {};
+    const entries = (Array.isArray(data.entries) && data.entries.length) ? data.entries : (state()?.entries || []);
+    const imgs = allImages(entries);
+    if(imgs.length){
+      const copy = entries.length ? entries.map((e,i)=> i===0 ? {...e, images: uniq([...entryImages(e), ...imgs]), image_urls: uniq([...entryImages(e), ...imgs]), generalImages: uniq([...entryImages(e), ...imgs])} : e) : [{ phase:'Napi dokumentáció', note:'Fotódokumentáció', images:imgs, image_urls:imgs, generalImages:imgs, created_at:new Date().toISOString() }];
+      data.entries = copy;
+    } else data.entries = entries;
+    return data;
+  }
+
+  // A legfontosabb: az ügyfél linket és riportokat már a képekkel feltöltött adatból készítjük.
+  window.createProjectClientLinkV25 = async function(){
+    if(!state()?.project) return alert('Nincs projekt.');
+    const btn = document.activeElement;
+    const old = btn && btn.tagName==='BUTTON' ? btn.innerText : '';
+    try{
+      if(btn && old){ btn.disabled=true; btn.innerText='Ügyfél link készül...'; }
+      const data = await closeDataWithDom();
+      const title = `${projectTitle()} – ügyfélriport`;
+      const builder = window.buildProReportHtml || (typeof buildProReportHtml === 'function' ? buildProReportHtml : null);
+      const html = builder ? builder(data.entries || [], title, data) : fallback(data.entries||[], title, data);
+      const text = `${title}\nBejegyzések: ${(data.entries||[]).length}\nFotók: ${allImages(data.entries||[]).length}`;
+      const saved = await window.EpitesNaploAPI.createPublicReport({ projectId: pid(), projectName: projectTitle(), reportHtml: html, reportText: text });
+      const link = window.EpitesNaploAPI.createClientShareUrl(saved.token);
+      try{ await navigator.clipboard.writeText(link); }catch(_){ }
+      if(typeof showProjectHelp === 'function') showProjectHelp('Ügyfél link elkészült', `<div class="featureHelpBox"><b>Biztonságos ügyfél link</b><p>A link kimásolva. A riportban a fotók is benne vannak, kattintható kisképként.</p><p><a class="btn primary" target="_blank" href="${esc(link)}">Ügyfélriport megnyitása</a></p><p class="muted">${esc(link)}</p></div>`);
+      else alert('Ügyfél link elkészült: '+link);
+    }catch(e){ console.error(e); alert('Ügyfél link létrehozási hiba: ' + (e.message || e)); }
+    finally{ if(btn && old){ btn.disabled=false; btn.innerText=old; } }
+  };
+
+  async function buildCurrentHtml(titleSuffix){
+    const data = await closeDataWithDom();
+    const title = `${projectTitle()} – ${titleSuffix || 'riport'}`;
+    const builder = window.buildProReportHtml || (typeof buildProReportHtml === 'function' ? buildProReportHtml : null);
+    return builder ? builder(data.entries || [], title, data) : fallback(data.entries || [], title, data);
+  }
+  const oldV71Html = window.v71DownloadApprovedHtml;
+  const oldV71Pdf = window.v71PrintApprovedReport;
+  function download(name, html){ const blob=new Blob([html],{type:'text/html;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1200); }
+  function safeName(s){ return String(s||'riport').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)||'riport'; }
+  window.v71DownloadApprovedHtml = async function(id){
+    try{
+      let html = await buildCurrentHtml('saját ügyfélpéldány');
+      download(`${safeName(projectTitle())}-sajat-ugyfelpeldany.html`, html);
+    }catch(e){ if(oldV71Html) return oldV71Html(id); alert('HTML riport hiba: '+(e.message||e)); }
+  };
+  window.v71PrintApprovedReport = async function(id){
+    try{
+      const html = await buildCurrentHtml('saját ügyfélpéldány');
+      const w=window.open('', '_blank'); if(!w) return alert('A böngésző blokkolta az új ablakot.');
+      w.document.open(); w.document.write(html); w.document.close(); setTimeout(()=>{try{w.focus();w.print();}catch(_){ }},800);
+    }catch(e){ if(oldV71Pdf) return oldV71Pdf(id); alert('PDF/nyomtatási hiba: '+(e.message||e)); }
+  };
+})();
