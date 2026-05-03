@@ -109,6 +109,37 @@
   }
   document.addEventListener('keydown', e=>{ const g=$('v110Gallery'); if(!g || !g.classList.contains('open')) return; if(e.key==='Escape') closeGallery(); if(e.key==='ArrowLeft') showGallery(galleryIndex-1); if(e.key==='ArrowRight') showGallery(galleryIndex+1); });
 
+
+
+  function expectedPhotoCount(){
+    const txt = (($('publicReportContent')||document).innerText || '');
+    const m = txt.match(/(\d+)\s*fot[óo]/i);
+    return m ? Number(m[1]) : 0;
+  }
+  function visiblePhotoCount(){
+    const root = $('publicReportContent') || document;
+    return [...root.querySelectorAll('img')].filter(img=>!img.closest('.v110Gallery') && !(img.alt||'').toLowerCase().includes('ikon') && img.src && img.naturalWidth !== 0).length;
+  }
+  async function injectMissingPublicImages(){
+    const root = $('publicReportContent');
+    if(!root || !window.EpitesNaploAPI?.getPublicReportAllMedia) return;
+    const expected = expectedPhotoCount();
+    if(expected && visiblePhotoCount() >= expected) return;
+    let media = [];
+    try { media = await window.EpitesNaploAPI.getPublicReportAllMedia(currentToken); } catch(e){ console.warn('Publikus képek betöltése nem sikerült:', e); }
+    const images = (media || []).filter(x => (x.type || 'image') === 'image' && x.url);
+    if(!images.length) return;
+    const existing = new Set([...root.querySelectorAll('img')].map(i=>i.src));
+    const fresh = images.filter(x => !existing.has(x.url));
+    if(!fresh.length && visiblePhotoCount()) return;
+    const html = `<div class="photos v113InjectedPhotos">${(fresh.length?fresh:images).map((x,i)=>`<figure class="v67ReportPhoto"><img src="${safe(x.url)}" alt="Napló fotó ${i+1}" loading="lazy" decoding="async"><figcaption>Nagyítás</figcaption></figure>`).join('')}</div>`;
+    const headings = [...root.querySelectorAll('h2,h3,h4,p')];
+    let target = headings.find(el => /munka közben|fot[oó]dokument|dokumentáció|kattints/i.test(el.textContent || ''));
+    if(target) target.insertAdjacentHTML('afterend', html);
+    else root.insertAdjacentHTML('beforeend', `<h3>Munka közben / dokumentáció</h3>${html}`);
+    cleanupReport(root);
+  }
+
   async function load(){
     ensureThumbCss();
     currentToken = tokenFromUrl();
@@ -121,6 +152,7 @@
       const html = window.EpitesNaploAPI?.sanitizeReportHtml ? window.EpitesNaploAPI.sanitizeReportHtml(report.report_html || '') : (report.report_html || '');
       box.innerHTML = '<div class="reportOpenedBox"><b>Riport megnyitva.</b><br>Az oldal csak olvasásra szolgál.</div>' + (html || '<p>A riport üres.</p>');
       try{ await window.EpitesNaploAPI.hydratePublicReportMedia(currentToken, box); }catch(e){ console.warn(e); }
+      try{ await injectMissingPublicImages(); }catch(e){ console.warn(e); }
       cleanupReport(box); wireGallery();
       document.title = (report.project_name ? report.project_name + ' – ' : '') + 'ÉpítésNapló ügyfélriport';
       $('approvalBox').classList.remove('hidden');
