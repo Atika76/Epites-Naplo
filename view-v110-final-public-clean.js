@@ -63,3 +63,150 @@
   window.copyReportLink=async function(btn){ try{ await navigator.clipboard.writeText(location.href); const old=btn.innerText; btn.innerText='Link másolva'; setTimeout(()=>btn.innerText=old,1500); }catch(_){ prompt('Másold ki a linket:',location.href); } };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load); else load();
 })();
+
+
+
+// ===== V133: publikus ügyfélriport fotó-visszatöltés + üres PDF javítás =====
+(function(){
+  if (window.__v133PublicReportMediaPdfFix) return;
+  window.__v133PublicReportMediaPdfFix = true;
+
+  function esc(v){
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
+    });
+  }
+  function token(){
+    try{
+      const p = new URLSearchParams(location.search);
+      return String(p.get('riport') || p.get('token') || p.get('report') || p.get('id') || '').trim();
+    }catch(_){ return ''; }
+  }
+  function realPhotoCount(root){
+    root = root || document.getElementById('publicReportContent') || document;
+    return Array.from(root.querySelectorAll('img')).filter(function(img){
+      const s = String(img.currentSrc || img.src || img.getAttribute('data-path') || img.getAttribute('data-image-path') || '').toLowerCase();
+      return s && !s.includes('favicon') && !s.includes('epitesi-naplo.eu/favicon');
+    }).length;
+  }
+  function mediaKey(m){
+    return String(m && (m.path || m.url || m.src) || '').trim();
+  }
+  function addFallbackGallery(media){
+    const box = document.getElementById('publicReportContent');
+    if(!box || !Array.isArray(media) || !media.length) return;
+    if(box.querySelector('.v133FallbackGallery')) return;
+
+    const existing = new Set(Array.from(box.querySelectorAll('img,video')).map(function(el){
+      return String(el.getAttribute('data-path') || el.getAttribute('data-image-path') || el.getAttribute('data-media-path') || el.getAttribute('data-video-path') || el.currentSrc || el.src || '').trim();
+    }).filter(Boolean));
+
+    const images = media.filter(function(m){ return String(m.type || '').toLowerCase() !== 'video' && (m.url || m.path); });
+    const videos = media.filter(function(m){ return String(m.type || '').toLowerCase() === 'video' && (m.url || m.path); });
+    const missingImages = images.filter(function(m){ return !existing.has(mediaKey(m)) && !existing.has(String(m.url || '').trim()); });
+    const missingVideos = videos.filter(function(m){ return !existing.has(mediaKey(m)) && !existing.has(String(m.url || '').trim()); });
+
+    if(!missingImages.length && !missingVideos.length) return;
+
+    const htmlImages = missingImages.map(function(m, i){
+      const url = esc(m.url || '');
+      const path = esc(m.path || '');
+      return '<figure class="v67ReportPhoto v133FallbackPhoto">'+
+        '<img src="'+url+'" data-path="'+path+'" alt="Napló fotó '+(i+1)+'" loading="lazy" decoding="async" onclick="window.open(this.currentSrc || this.src, \'_blank\')">'+
+        '<figcaption>'+(i+1)+'. kép – nagyítás</figcaption>'+
+      '</figure>';
+    }).join('');
+
+    const htmlVideos = missingVideos.map(function(m, i){
+      const url = esc(m.url || '');
+      const path = esc(m.path || '');
+      return '<figure class="v67ReportPhoto v133FallbackVideo">'+
+        '<video controls playsinline preload="metadata" src="'+url+'" data-video-path="'+path+'"></video>'+
+        '<figcaption>'+(i+1)+'. videó</figcaption>'+
+      '</figure>';
+    }).join('');
+
+    const section = document.createElement('section');
+    section.className = 'entry v133FallbackGallery';
+    section.innerHTML =
+      '<h2>Fotódokumentáció</h2>'+
+      '<p><b>A riporthoz tartozó feltöltött képek és videók.</b></p>'+
+      (htmlImages ? '<div class="photos">'+htmlImages+'</div>' : '')+
+      (htmlVideos ? '<h3>Munkavideók</h3><div class="photos">'+htmlVideos+'</div>' : '');
+    box.appendChild(section);
+  }
+
+  async function hydrateMissingPhotos(){
+    const t = token();
+    const box = document.getElementById('publicReportContent');
+    if(!t || !box || !window.EpitesNaploAPI || typeof window.EpitesNaploAPI.getPublicReportAllMedia !== 'function') return;
+    if(box.dataset.v133Hydrated === '1') return;
+    box.dataset.v133Hydrated = '1';
+    try{
+      const media = await window.EpitesNaploAPI.getPublicReportAllMedia(t);
+      if(Array.isArray(media) && media.length){
+        // Ha a mentett HTML-ből a képek hiányoznak vagy kevesebb látszik, a teljes projektmédia visszakerül a riport aljára.
+        if(realPhotoCount(box) < media.filter(function(m){ return String(m.type || '').toLowerCase() !== 'video'; }).length){
+          addFallbackGallery(media);
+        }
+      }
+    }catch(err){
+      console.warn('V133 publikus fotó visszatöltés hiba:', err);
+    }
+  }
+
+  function reportContentHtml(){
+    const box = document.getElementById('publicReportContent');
+    if(!box) return '<h1>Ügyfélriport</h1><p>Nincs betöltött riport.</p>';
+    const clone = box.cloneNode(true);
+    clone.querySelectorAll('.reportOpenedBox,.v110Gallery,.hidden,script').forEach(function(x){ x.remove(); });
+    return clone.innerHTML || '<h1>Ügyfélriport</h1><p>Nincs betöltött riport.</p>';
+  }
+
+  function printCss(){
+    return '<style>'+
+      '*{box-sizing:border-box} body{margin:0;background:#fff;color:#111827;font-family:Arial,Helvetica,sans-serif;line-height:1.45;padding:24px}'+
+      'h1{font-size:30px;margin:12px 0} h2{font-size:22px;margin:22px 0 10px} h3{font-size:18px;margin:18px 0 8px} p{margin:8px 0}'+
+      '.cover{border-bottom:4px solid #f59e0b;margin-bottom:20px;padding-bottom:16px}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:14px 0}.stat{background:#f3f4f6;border-radius:10px;padding:10px}.stat b{display:block;color:#d97706;font-size:20px}'+
+      '.entry{break-inside:avoid;border-left:4px solid #f59e0b;background:#fafafa;margin:14px 0;padding:14px;border-radius:12px}.photos{display:grid;grid-template-columns:repeat(auto-fill,105px);gap:10px;margin:12px 0}.v67ReportPhoto,figure{margin:0;border:1px solid #e5e7eb;border-radius:10px;padding:5px;background:#fff;break-inside:avoid}.v67ReportPhoto img,figure img{width:95px;height:95px;object-fit:cover;border-radius:8px;display:block}.v67ReportPhoto video,figure video{width:160px;max-width:100%;border-radius:8px}figcaption,.v67ReportPhoto span{font-size:10px;color:#64748b;display:block;margin-top:4px}'+
+      'table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #e5e7eb;padding:7px;text-align:left}'+
+      '@media print{body{padding:8mm}.entry,.v67ReportPhoto,figure{break-inside:avoid;page-break-inside:avoid}.photos{grid-template-columns:repeat(4,28mm)}.v67ReportPhoto img,figure img{width:26mm;height:26mm}}'+
+    '</style>';
+  }
+
+  async function waitImgs(doc){
+    const imgs = Array.from((doc || document).querySelectorAll('img')).filter(function(img){ return img.src; });
+    await Promise.race([
+      Promise.all(imgs.map(function(img){ return img.complete ? Promise.resolve() : new Promise(function(res){ img.onload=res; img.onerror=res; }); })),
+      new Promise(function(res){ setTimeout(res, 3500); })
+    ]);
+  }
+
+  // A régi html2pdf-es rejtett export helyett látható nyomtatási/PDF ablakot használunk, így nem lesz üres.
+  window.downloadPublicPdfV110 = async function(btn){
+    const old = btn ? btn.innerText : '';
+    if(btn){ btn.disabled = true; btn.classList.add('is-loading'); btn.innerText = 'PDF készül...'; }
+    try{
+      await hydrateMissingPhotos();
+      const w = window.open('', '_blank');
+      if(!w){
+        alert('A böngésző blokkolta az új ablakot. Engedélyezd az előugró ablakot.');
+        return;
+      }
+      const html = '<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ÉpítésNapló ügyfélriport PDF</title>'+printCss()+'</head><body>'+reportContentHtml()+'<script>function wi(){var imgs=Array.prototype.slice.call(document.images||[]);return Promise.race([Promise.all(imgs.map(function(i){return i.complete?Promise.resolve():new Promise(function(r){i.onload=r;i.onerror=r;});})),new Promise(function(r){setTimeout(r,3500);})]);}window.addEventListener("load",function(){wi().then(function(){setTimeout(function(){window.focus();window.print();},500);});});<\/script></body></html>';
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+    }finally{
+      if(btn){ btn.disabled = false; btn.classList.remove('is-loading'); btn.innerText = old || 'PDF letöltés'; }
+    }
+  };
+
+  // Többször próbáljuk, mert a Supabase riport betöltése aszinkron.
+  document.addEventListener('DOMContentLoaded', function(){
+    [700, 1500, 3000, 5000].forEach(function(ms){ setTimeout(hydrateMissingPhotos, ms); });
+  });
+  if(document.readyState !== 'loading'){
+    [700, 1500, 3000, 5000].forEach(function(ms){ setTimeout(hydrateMissingPhotos, ms); });
+  }
+})();
