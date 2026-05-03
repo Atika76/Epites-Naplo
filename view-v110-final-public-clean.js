@@ -34,7 +34,17 @@
   document.addEventListener('keydown',e=>{ const g=$('v110Gallery'); if(!g||!g.classList.contains('open'))return; if(e.key==='Escape')closeGallery(); if(e.key==='ArrowLeft')showGallery(galleryIndex-1); if(e.key==='ArrowRight')showGallery(galleryIndex+1); });
   async function load(){
     currentToken=tokenFromUrl(); const box=$('publicReportContent');
-    if(!currentToken){ box.innerHTML='<h2>Hiányzó riport azonosító.</h2><p>A linkből hiányzik a riport azonosító.</p>'; return; }
+    if(!currentToken){
+      try{
+        const pid = localStorage.getItem('epitesnaplo_last_project_id') || localStorage.getItem('epitesnaplo_current_project_id') || '';
+        if(pid){
+          window.location.replace('project.html?id=' + encodeURIComponent(pid) + '&openReport=1');
+          return;
+        }
+      }catch(_){}
+      box.innerHTML='<h2>Hiányzó riport azonosító.</h2><p>A linkből hiányzik a riport azonosító. Nyisd meg a projektet, majd a Riport gombbal a Riportok és átadás ablakot.</p>';
+      return;
+    }
     try{
       const report=await window.EpitesNaploAPI.getPublicReport(currentToken);
       if(!report){ box.innerHTML='<h2>A riport nem található vagy lejárt.</h2><p>Kérj új linket a kivitelezőtől.</p>'; return; }
