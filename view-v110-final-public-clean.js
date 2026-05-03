@@ -6,6 +6,15 @@
   const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const label = d => ({viewed:'Megnéztem',accepted:'Elfogadom',approved:'Elfogadom',question:'Kérdésem van'}[String(d||'').toLowerCase()] || 'Megnéztem');
 
+
+  function ensureThumbCss(){
+    if(document.getElementById('v112-public-thumb-css')) return;
+    const st=document.createElement('style');
+    st.id='v112-public-thumb-css';
+    st.textContent='.photos,.entryImageGrid,.reportImageGrid,.v67ReportPhotos,.v68ReportPhotos,.v74Photos,.v77Photos{display:grid!important;grid-template-columns:repeat(auto-fill,112px)!important;gap:10px!important;align-items:start!important;justify-content:start!important}.reportMediaTile,.v67ReportPhoto,.v74Photo,.v77Photo,.photos figure,figure.photo,.photo{width:112px!important;max-width:112px!important;min-height:132px!important;overflow:hidden!important}.reportMediaTile img,.v67ReportPhoto img,.v74Photo img,.v77Photo img,.photos img,.entryImageGrid img,.reportImageGrid img,figure img,img.reportPhoto{width:102px!important;max-width:102px!important;height:102px!important;max-height:102px!important;object-fit:cover!important;cursor:zoom-in!important}';
+    document.head.appendChild(st);
+  }
+
   function tokenFromUrl(){
     const p = new URLSearchParams(location.search);
     let t = p.get('riport') || p.get('token') || p.get('report') || p.get('id') || '';
@@ -18,21 +27,49 @@
   }
   function cleanupReport(root){
     if(!root) return;
-    root.querySelectorAll('script,style,.mediaViewerModal,.v74Lightbox,.v108Gallery,.v110Gallery').forEach(el=>el.remove());
-    // Régi hibás kódszöveg vagy debug blokk eltávolítása, ha véletlenül a riport HTML-be került.
-    [...root.childNodes].forEach(n=>{
-      if(n.nodeType === 3 && /function\s+|const\s+|window\.EpitesNaploAPI|document\.getElementById|<\/script>/i.test(n.textContent||'')) n.remove();
+    const codeRe = /function\s*\(|=>\s*\{|window\.|document\.|querySelector|addEventListener|EpitesNaploAPI|supabase|<\/script>|const\s+|let\s+|var\s+/i;
+    root.querySelectorAll('script,style,.mediaViewerModal,.v74Lightbox,.v108Gallery,.v110Gallery,.reportMediaPending').forEach(el=>el.remove());
+    root.querySelectorAll('*').forEach(el=>{
+      [...el.attributes].forEach(a=>{ if(/^on/i.test(a.name)) el.removeAttribute(a.name); });
+    });
+    root.querySelectorAll('img').forEach(img=>{
+      const src = img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-full-src') || '';
+      const alt = img.getAttribute('alt') || '';
+      if(!src || codeRe.test(src) || codeRe.test(alt) || src.length > 2200){
+        const tile = img.closest('figure,.photo,.reportMediaTile,.v67ReportPhoto,.v74Photo,.v77Photo,li,div') || img;
+        tile.remove();
+        return;
+      }
+      img.removeAttribute('srcset');
+      img.loading='lazy'; img.decoding='async';
+      img.style.width='102px'; img.style.maxWidth='102px'; img.style.height='102px'; img.style.maxHeight='102px'; img.style.objectFit='cover'; img.style.cursor='zoom-in';
+    });
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const bad = [];
+    while(walker.nextNode()){
+      const n = walker.currentNode;
+      if(codeRe.test(n.textContent || '')) bad.push(n);
+    }
+    bad.forEach(n=>{
+      const p = n.parentElement;
+      if(!p) return n.remove();
+      if(!p.querySelector('img,video') && p.children.length < 3) p.remove(); else n.remove();
     });
     root.querySelectorAll('*').forEach(el=>{
-      if((el.textContent||'').length > 1200 && /window\.EpitesNaploAPI|approvePublicReport|loadPublicReport|document\.getElementById/i.test(el.textContent||'')) el.remove();
-      [...el.attributes].forEach(a=>{ if(/^on/i.test(a.name)) el.removeAttribute(a.name); });
+      const txt = (el.textContent || '').trim();
+      if(txt.length > 300 && codeRe.test(txt) && !el.querySelector('img,video') && el.children.length < 4) el.remove();
     });
     root.querySelectorAll('a').forEach(a=>{
       if(a.querySelector('img,video') || /index\.html|project\.html/i.test(a.getAttribute('href')||'')){
         a.removeAttribute('href'); a.removeAttribute('target'); a.style.cursor='zoom-in';
       }
     });
-    root.querySelectorAll('img').forEach(img=>{ img.loading='lazy'; img.decoding='async'; img.style.maxWidth='100%'; img.style.height='auto'; });
+    root.querySelectorAll('figure,.photo,.reportMediaTile,.v67ReportPhoto,.v74Photo,.v77Photo').forEach(t=>{
+      t.style.width='112px'; t.style.maxWidth='112px'; t.style.minHeight='132px'; t.style.overflow='hidden';
+    });
+    root.querySelectorAll('.photos,.entryImageGrid,.reportImageGrid,.v67ReportPhotos,.v68ReportPhotos,.v74Photos,.v77Photos').forEach(g=>{
+      g.style.display='grid'; g.style.gridTemplateColumns='repeat(auto-fill,112px)'; g.style.gap='10px';
+    });
     root.querySelectorAll('video').forEach(v=>{ v.controls=true; v.playsInline=true; v.preload='metadata'; });
   }
 
@@ -73,6 +110,7 @@
   document.addEventListener('keydown', e=>{ const g=$('v110Gallery'); if(!g || !g.classList.contains('open')) return; if(e.key==='Escape') closeGallery(); if(e.key==='ArrowLeft') showGallery(galleryIndex-1); if(e.key==='ArrowRight') showGallery(galleryIndex+1); });
 
   async function load(){
+    ensureThumbCss();
     currentToken = tokenFromUrl();
     const box = $('publicReportContent');
     if(!currentToken){ box.innerHTML = '<h2>Hiányzó riport azonosító.</h2><p>A linkből hiányzik a riport azonosító.</p>'; return; }
