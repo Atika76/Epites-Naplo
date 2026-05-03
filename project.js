@@ -4804,3 +4804,199 @@ document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeReportCe
     setTimeout(openV130ReportCenterFromUrl, 350);
   });
 })();
+
+
+
+// ===== V133: ügyfélriport linkhez biztos fotós HTML + gombállapot =====
+(function(){
+  if (window.__v133ProjectClientReportPhotoFix) return;
+  window.__v133ProjectClientReportPhotoFix = true;
+
+  function esc(v){
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
+    });
+  }
+  function money(v){ return Number(v || 0).toLocaleString('hu-HU') + ' Ft'; }
+  function fmtDate(v){
+    try{ return new Date(v || Date.now()).toLocaleString('hu-HU'); }catch(_){ return String(v || ''); }
+  }
+  function asMediaValue(item){
+    if(!item) return '';
+    if(typeof item === 'string') return item;
+    return item.url || item.src || item.signedUrl || item.path || item.storage_path || item.file_path || item.image_path || '';
+  }
+  function asMediaPath(item){
+    if(!item || typeof item === 'string') return '';
+    return item.path || item.storage_path || item.file_path || item.image_path || '';
+  }
+  function isDirectUrl(s){
+    s = String(s || '').trim().toLowerCase();
+    return s.startsWith('http://') || s.startsWith('https://') || s.startsWith('data:image/') || s.startsWith('data:video/') || s.startsWith('./') || s.startsWith('/');
+  }
+  function imageTag(item, i){
+    const value = asMediaValue(item);
+    const path = asMediaPath(item) || (!isDirectUrl(value) ? value : '');
+    const srcAttr = isDirectUrl(value) ? ' src="'+esc(value)+'"' : '';
+    const pathAttr = path ? ' data-path="'+esc(path)+'" data-image-path="'+esc(path)+'"' : '';
+    return '<figure class="v67ReportPhoto v133ReportPhoto">'+
+      '<img crossorigin="anonymous" loading="lazy" decoding="async"'+srcAttr+pathAttr+' alt="Napló fotó '+(i+1)+'">'+
+      '<figcaption>'+(i+1)+'. kép – nagyítás</figcaption>'+
+    '</figure>';
+  }
+  function videoTag(item, i){
+    const value = asMediaValue(item);
+    const path = asMediaPath(item) || (!isDirectUrl(value) ? value : '');
+    const srcAttr = isDirectUrl(value) ? ' src="'+esc(value)+'"' : '';
+    const pathAttr = path ? ' data-video-path="'+esc(path)+'" data-path="'+esc(path)+'"' : '';
+    return '<figure class="v67ReportPhoto v133ReportVideo">'+
+      '<video controls playsinline preload="metadata"'+srcAttr+pathAttr+'></video>'+
+      '<figcaption>'+(i+1)+'. videó</figcaption>'+
+    '</figure>';
+  }
+  function imagesOf(entry){
+    try{
+      if(typeof getEntryImages === 'function') return (getEntryImages(entry) || []).filter(Boolean);
+    }catch(_){}
+    return []
+      .concat(Array.isArray(entry && entry.images) ? entry.images : [])
+      .concat(Array.isArray(entry && entry.image_urls) ? entry.image_urls : [])
+      .concat(entry && entry.image_url ? [entry.image_url] : [])
+      .filter(Boolean);
+  }
+  function videosOf(entry){
+    try{
+      if(typeof getEntryVideos === 'function') return (getEntryVideos(entry) || []).filter(Boolean);
+    }catch(_){}
+    return []
+      .concat(Array.isArray(entry && entry.videos) ? entry.videos : [])
+      .concat(Array.isArray(entry && entry.video_urls) ? entry.video_urls : [])
+      .concat(entry && entry.video_url ? [entry.video_url] : [])
+      .filter(Boolean);
+  }
+  function materialRows(materials){
+    const totals = {};
+    (materials || []).forEach(function(m){
+      const key = String((m && m.name) || 'Anyag') + '|' + String((m && m.unit) || 'db');
+      totals[key] = (totals[key] || 0) + Number((m && m.quantity) || 0);
+    });
+    const html = Object.entries(totals).map(function(pair){
+      const parts = pair[0].split('|');
+      return '<li><b>'+esc(parts[0])+'</b>: '+Number(Number(pair[1]).toFixed(2))+' '+esc(parts[1] || '')+'</li>';
+    }).join('');
+    return html || '<li>Nincs rögzített anyag.</li>';
+  }
+  function invoiceRows(invoices){
+    const html = (invoices || []).map(function(i){
+      return '<tr><td>'+esc(i.title || i.name || 'Számla')+'</td><td>'+money(i.amount)+'</td><td>'+esc(i.note || '')+'</td></tr>';
+    }).join('');
+    return html || '<tr><td colspan="3">Nincs csatolt számla.</td></tr>';
+  }
+  function buildHtml(data, title){
+    data = data || {};
+    const entries = Array.isArray(data.entries) ? data.entries : [];
+    const materials = Array.isArray(data.materials) ? data.materials : [];
+    const invoices = Array.isArray(data.invoices) ? data.invoices : [];
+    const imageCount = entries.reduce(function(s,e){ return s + imagesOf(e).length; }, 0);
+    const videoCount = entries.reduce(function(s,e){ return s + videosOf(e).length; }, 0);
+    const invoiceSum = invoices.reduce(function(s,i){ return s + Number(i.amount || 0); }, 0);
+    const entriesHtml = entries.map(function(e){
+      const imgs = imagesOf(e);
+      const vids = videosOf(e);
+      const weather = e.weather_json ? (esc(e.weather_json.temperature)+' °C, '+esc(e.weather_json.text || '')+', szél: '+esc(e.weather_json.wind || '')+' km/h, csapadék: '+esc(e.weather_json.rain || e.weather_json.precipitation || 0)+' mm') : esc(e.weather || 'nincs adat');
+      const gps = (e.gps_json && (e.gps_json.text || e.gps_json.address)) || (e.gps_json && e.gps_json.lat ? (e.gps_json.lat + ', ' + e.gps_json.lon) : '') || e.location_address || '';
+      const mats = Array.isArray(e.materials_json) ? e.materials_json : [];
+      const note = esc(e.note || '').replace(/\n/g,'<br>');
+      return '<section class="entry v133Entry">'+
+        '<h2>'+fmtDate(e.created_at)+' – '+esc(e.phase || 'Napi bejegyzés')+'</h2>'+
+        '<p>'+note+'</p>'+
+        '<p><b>Dokumentáció:</b> '+imgs.length+' fotó, '+vids.length+' videó.</p>'+
+        (weather ? '<p><b>Időjárás:</b> '+weather+'</p>' : '')+
+        (gps ? '<p><b>GPS/helyadat:</b> '+esc(gps)+'</p>' : '')+
+        (mats.length ? '<p><b>Napi anyag:</b> '+mats.map(function(m){ return esc(m.name || 'Anyag')+' '+esc(m.quantity || '')+' '+esc(m.unit || ''); }).join(', ')+'</p>' : '')+
+        (imgs.length ? '<h3>Munka közben / dokumentáció</h3><div class="photos">'+imgs.map(imageTag).join('')+'</div>' : '<p><b>Fotók:</b> nincs csatolt fotó ehhez a bejegyzéshez.</p>')+
+        (vids.length ? '<h3>Munkavideók</h3><div class="photos">'+vids.map(videoTag).join('')+'</div>' : '')+
+      '</section>';
+    }).join('') || '<p>Nincs bejegyzés.</p>';
+
+    return '<div class="cover">'+
+      '<span class="badge">Átadásra kész dokumentáció</span>'+
+      '<h1>'+esc(title)+'</h1>'+
+      '<p class="muted">Generálva: '+fmtDate(new Date())+' • ÉpítésNapló AI PRO</p>'+
+      '<div class="stats"><div class="stat"><b>'+entries.length+'</b>bejegyzés</div><div class="stat"><b>'+imageCount+'</b>fotó</div><div class="stat"><b>'+videoCount+'</b>videó</div><div class="stat"><b>0</b>magas kockázat</div><div class="stat"><b>'+money(invoiceSum)+'</b>számlák</div></div>'+
+      '</div>'+
+      '<section><h2>Rövid összegzés</h2><p>A dokumentum az ügyfélnek átadható, rendezett építési napló: napi munka, fotódokumentáció, anyagok, időjárás/GPS és nyitott ellenőrzések egy helyen.</p></section>'+
+      '<section><h2>Anyagösszesítő</h2><ul>'+materialRows(materials)+'</ul></section>'+
+      '<section><h2>Számlák</h2><table><tr><th>Megnevezés</th><th>Összeg</th><th>Megjegyzés</th></tr>'+invoiceRows(invoices)+'</table></section>'+
+      '<section class="v67AiBox"><h2>Vezetői AI összefoglaló</h2><p>Állapot: rendezett dokumentáció. Bejegyzések: '+entries.length+', fotók: '+imageCount+', videók: '+videoCount+'. A napi bejegyzések és fotók alapján az ügyfél számára átadható dokumentáció készült.</p></section>'+
+      '<h2>Napi bejegyzések</h2>'+entriesHtml+
+      '<div class="signatureBox"><b>Ügyfél megtekintés / jóváhagyás:</b><br><br><span>............................................................</span></div>';
+  }
+  function busy(btn, text){
+    btn = btn || (document.activeElement && document.activeElement.tagName === 'BUTTON' ? document.activeElement : null);
+    if(!btn) return null;
+    if(!btn.dataset.v133OldText) btn.dataset.v133OldText = btn.innerText || btn.textContent || '';
+    btn.disabled = true;
+    btn.classList.add('is-loading');
+    btn.innerText = text || 'Link készül...';
+    return btn;
+  }
+  function restore(btn, text){
+    if(!btn) return;
+    btn.disabled = false;
+    btn.classList.remove('is-loading');
+    btn.innerText = btn.dataset.v133OldText || text || 'Ügyfél link + jóváhagyás';
+    delete btn.dataset.v133OldText;
+  }
+  function done(btn){
+    if(!btn) return;
+    btn.disabled = false;
+    btn.classList.remove('is-loading');
+    btn.innerText = 'Link elkészült';
+    setTimeout(function(){ restore(btn, 'Ügyfél link + jóváhagyás'); }, 1600);
+  }
+
+  window.createProjectClientLinkV25 = async function(btn){
+    const b = busy(btn, 'Ügyfél link készül...');
+    try{
+      if(typeof requirePaidPlanV27 === 'function'){
+        const ok = await requirePaidPlanV27('Ügyfél link + jóváhagyás');
+        if(!ok){ restore(b); return; }
+      }
+      if(!window.detailState || !detailState.project){
+        alert('Nincs projekt.');
+        restore(b);
+        return;
+      }
+      const data = await window.EpitesNaploAPI.getProjectCloseData(detailState.project.id);
+      const title = (detailState.project.name || 'Projekt') + ' – ügyfélriport';
+      const html = buildHtml(data, title);
+      const imageCount = (data.entries || []).reduce(function(s,e){ return s + imagesOf(e).length; }, 0);
+      const text = title + '\nBejegyzések: ' + ((data.entries || []).length) + '\nFotók: ' + imageCount + '\nSzámlák: ' + money((data.invoices || []).reduce(function(s,i){return s+Number(i.amount||0);},0));
+      const saved = await window.EpitesNaploAPI.createPublicReport({
+        projectId: detailState.project.id,
+        projectName: detailState.project.name || '',
+        reportHtml: html,
+        reportText: text
+      });
+      const link = window.EpitesNaploAPI.createClientShareUrl(saved.token);
+      window.lastClientReportLinkV67 = link;
+      try{
+        localStorage.setItem('epitesnaplo_last_project_id', detailState.project.id);
+        localStorage.setItem('epitesnaplo_current_project_id', detailState.project.id);
+        localStorage.setItem('epitesnaplo:lastReportLink:' + detailState.project.id, link);
+      }catch(_){}
+      try{ await navigator.clipboard.writeText(link); }catch(_){}
+      if(typeof showProjectHelp === 'function'){
+        showProjectHelp('Ügyfél link elkészült', '<div class="featureHelpBox"><b>Biztonságos ügyfél link</b><p>A link kimásolva a vágólapra. Az ügyfél látni fogja a fotókat is, PDF-et nyomtathat/menthet, és jóváhagyhatja a riportot.</p><p><a class="btn primary" target="_blank" href="'+esc(link)+'">Ügyfélriport megnyitása</a></p><p class="muted">'+esc(link)+'</p></div>');
+      }else{
+        alert('Ügyfél link elkészült és kimásolva.');
+      }
+      done(b);
+    }catch(err){
+      console.error('V133 ügyfél link hiba:', err);
+      restore(b);
+      alert('Ügyfél link létrehozási hiba: ' + (err.message || err));
+    }
+  };
+})();

@@ -24,7 +24,7 @@
   <meta name="twitter:image" content="https://epitesi-naplo.eu/og-epitesi-naplo-v106.png" />
 
   <meta name="description" content="Építőipari ügyfélriport rendszer fotós dokumentációval, AI jelentéssel, PDF exporttal és PayPal fizetéssel." />
-  <link rel="stylesheet" href="style.css?v=76" />
+  <link rel="stylesheet" href="style.css?v=133" />
 </head>
 
 <body class="auth-loading">
@@ -290,23 +290,23 @@
 
       <div class="formGrid">
         <select id="clientReportProject"></select>
-        <button class="btn primary" onclick="generateClientReport()">Riport előkészítése</button>
+        <button class="btn primary" onclick="generateClientReport(this)">Riport előkészítése</button>
       </div>
 
       <div id="clientReportPreview" class="reportText">
         <p class="muted">Még nincs előkészített ügyfélriport.</p>
       </div>
 
-      <button class="btn ghost full" onclick="copyClientReport()">Ügyfélriport szöveg másolása</button>
-      <button class="btn primary full" onclick="downloadClientReportPdf()">PDF jelentés letöltése</button>
-      <button class="btn ghost full" onclick="createAndCopyClientLink()">Biztonságos ügyfél link létrehozása</button>
-      <button class="btn ghost full" onclick="copyClientShareLink()">Utolsó ügyfél link másolása</button>
+      <button class="btn ghost full" onclick="copyClientReport(this)">Ügyfélriport szöveg másolása</button>
+      <button class="btn primary full" onclick="downloadClientReportPdf(this)">PDF jelentés letöltése</button>
+      <button class="btn ghost full" onclick="createAndCopyClientLink(this)">Biztonságos ügyfél link létrehozása</button>
+      <button class="btn ghost full" onclick="copyClientShareLink(this)">Utolsó ügyfél link másolása</button>
       <div class="formGrid notificationGrid">
         <input id="clientEmail" type="email" placeholder="Ügyfél email címe (opcionális)" />
         <input id="clientPhone" placeholder="Ügyfél telefonszáma SMS-hez (opcionális)" />
       </div>
-      <button class="btn ghost full" onclick="createShareText()">Megosztható üzenet készítése</button>
-      <button class="btn primary full" onclick="sendClientNotification()">Email értesítés küldése / SMS szöveg előkészítése</button>
+      <button class="btn ghost full" onclick="createShareText(this)">Megosztható üzenet készítése</button>
+      <button class="btn primary full" onclick="sendClientNotification(this)">Email értesítés küldése / SMS szöveg előkészítése</button>
       <div id="clientNotifyResult" class="notice hidden"></div>
     </section>
 
@@ -444,8 +444,8 @@
   <script src="https://www.paypal.com/sdk/js?client-id=AQsaQCLj0og2wsfMoDKAqxJieD2cgXwWq5cssAJCJbO2KoYE8LGHCREyR4vMzMfKZK68qw6EY7IAxMYF&currency=HUF"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="supabase-adapter.js?v=110"></script>
-  <script src="header-v40.js?v=130"></script>
-  <script src="script.js?v=131"></script>
+  <script src="header-v40.js?v=133"></script>
+  <script src="script.js?v=133"></script>
   <div id="toast" class="toast hidden"></div>
 </body>
 </html>

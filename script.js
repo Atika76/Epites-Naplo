@@ -3113,3 +3113,290 @@ function requireLoginV38(message){
     }
   }, true);
 })();
+
+
+// ===== V132 HOTFIX: főoldali ügyfélriport PDF ne legyen üres + látható gomb-visszajelzés =====
+(function(){
+  if (window.__v132ClientReportMainFix) return;
+  window.__v132ClientReportMainFix = true;
+
+  const originalGenerateClientReport = window.generateClientReport;
+  const originalCreateAndCopyClientLink = window.createAndCopyClientLink;
+  const originalCreateShareText = window.createShareText;
+  const originalSendClientNotification = window.sendClientNotification;
+
+  function btnFrom(btn){
+    if(btn && btn.tagName === 'BUTTON') return btn;
+    const active = document.activeElement;
+    return active && active.tagName === 'BUTTON' ? active : null;
+  }
+  function busy(btn, text){
+    btn = btnFrom(btn);
+    if(!btn) return null;
+    if(!btn.dataset.v132OriginalText) btn.dataset.v132OriginalText = btn.textContent || '';
+    btn.disabled = true;
+    btn.classList.add('is-loading');
+    btn.textContent = text || 'Dolgozom…';
+    return btn;
+  }
+  function restore(btn, fallback){
+    btn = btnFrom(btn);
+    if(!btn) return;
+    btn.disabled = false;
+    btn.classList.remove('is-loading');
+    btn.textContent = btn.dataset.v132OriginalText || fallback || btn.textContent || 'Kész';
+    delete btn.dataset.v132OriginalText;
+  }
+  function done(btn, text, fallback, ms){
+    btn = btnFrom(btn);
+    if(!btn) return;
+    const old = btn.dataset.v132OriginalText || fallback || btn.textContent || '';
+    btn.disabled = false;
+    btn.classList.remove('is-loading');
+    btn.textContent = text || 'Kész';
+    setTimeout(function(){ try{ btn.textContent = old; delete btn.dataset.v132OriginalText; }catch(_){} }, ms || 1500);
+  }
+  function tick(){ return new Promise(resolve => setTimeout(resolve, 90)); }
+  function previewReady(preview){
+    return !!(preview && preview.innerText && preview.innerText.trim() && !preview.innerText.includes('Még nincs előkészített'));
+  }
+
+  window.generateClientReport = function(btn){
+    const b = busy(btn, 'Riport készül…');
+    try{
+      const ret = typeof originalGenerateClientReport === 'function' ? originalGenerateClientReport() : undefined;
+      const preview = document.getElementById('clientReportPreview');
+      if(previewReady(preview)) done(b, 'Riport elkészült', 'Riport előkészítése');
+      else restore(b, 'Riport előkészítése');
+      return ret;
+    }catch(err){
+      restore(b, 'Riport előkészítése');
+      throw err;
+    }
+  };
+
+  window.copyClientReport = function(btn){
+    const b = busy(btn, 'Szöveg másolása…');
+    const preview = document.getElementById('clientReportPreview');
+    if(!previewReady(preview)){
+      restore(b, 'Ügyfélriport szöveg másolása');
+      alert('Előbb készíts ügyfélriportot.');
+      return;
+    }
+    navigator.clipboard.writeText(preview.innerText || '').then(function(){
+      done(b, 'Szöveg kimásolva', 'Ügyfélriport szöveg másolása');
+      alert('Ügyfélriport szöveg kimásolva.');
+    }).catch(function(){
+      restore(b, 'Ügyfélriport szöveg másolása');
+      alert('Nem sikerült másolni.');
+    });
+  };
+
+  function openPrintWindow(project, previewHtml, filename){
+    const w = window.open('', '_blank');
+    if(!w){
+      alert('A böngésző blokkolta az új ablakot. Engedélyezd az előugró ablakot, és próbáld újra.');
+      return false;
+    }
+    const css = typeof clientReportPrintCss === 'function' ? clientReportPrintCss() : '<style>body{font-family:Arial,sans-serif;background:#fff;color:#111827;padding:24px}img{max-width:100%;height:auto}</style>';
+    const body = typeof buildClientReportPrintableHtml === 'function'
+      ? buildClientReportPrintableHtml(project, previewHtml)
+      : '<main>'+previewHtml+'</main>';
+    const safeTitle = (filename || 'epitesi-naplo-ugyfelriport.pdf').replace(/[<>]/g,'');
+    const html = `<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safeTitle}</title>${css}</head><body>${body}<script>
+      function waitImages(){
+        var imgs = Array.prototype.slice.call(document.images || []);
+        if(!imgs.length) return Promise.resolve();
+        return Promise.race([
+          Promise.all(imgs.map(function(img){ return img.complete ? Promise.resolve() : new Promise(function(res){ img.onload=res; img.onerror=res; }); })),
+          new Promise(function(res){ setTimeout(res, 3000); })
+        ]);
+      }
+      window.addEventListener('load', function(){ waitImages().then(function(){ setTimeout(function(){ try{ window.focus(); window.print(); }catch(e){} }, 500); }); });
+    <\/script></body></html>`;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    return true;
+  }
+
+  // Direkt letöltős html2pdf helyett stabil nyomtatási/PDF mentési ablakot nyitunk, mert a rejtett html2pdf néha üres PDF-et generált.
+  window.downloadClientReportPdf = async function(btn){
+    const b = busy(btn, 'PDF készül…');
+    await tick();
+    try{
+      const limit = typeof currentLimit === 'function' ? currentLimit() : {canPdf:true};
+      if(!limit.canPdf){
+        restore(b, 'PDF jelentés letöltése');
+        alert('PDF export fizetős funkció. Válassz Starter, Pro vagy Business csomagot.');
+        return;
+      }
+      const projectId = typeof selectedClientProjectId === 'function' ? selectedClientProjectId() : '';
+      if(!projectId){
+        restore(b, 'PDF jelentés letöltése');
+        alert('Előbb válassz projektet.');
+        return;
+      }
+      let preview = document.getElementById('clientReportPreview');
+      if(!previewReady(preview) && typeof originalGenerateClientReport === 'function'){
+        originalGenerateClientReport();
+        await tick();
+        preview = document.getElementById('clientReportPreview');
+      }
+      if(!previewReady(preview)){
+        restore(b, 'PDF jelentés letöltése');
+        alert('Előbb készíts ügyfélriportot.');
+        return;
+      }
+      const project = (typeof state !== 'undefined' && Array.isArray(state.projects)) ? state.projects.find(p => p.id === projectId) : null;
+      const filename = typeof clientReportPdfFileName === 'function' ? clientReportPdfFileName(project) : 'epitesi-naplo-ugyfelriport.pdf';
+      const ok = openPrintWindow(project, preview.innerHTML, filename);
+      if(ok) done(b, 'PDF nézet megnyitva', 'PDF jelentés letöltése', 1800);
+      else restore(b, 'PDF jelentés letöltése');
+    }catch(err){
+      console.error('V132 PDF hiba:', err);
+      restore(b, 'PDF jelentés letöltése');
+      alert('PDF/nyomtatási hiba: ' + (err.message || err));
+    }
+  };
+
+  window.createAndCopyClientLink = async function(btn){
+    const b = busy(btn, 'Link készül…');
+    await tick();
+    try{
+      if(typeof originalCreateAndCopyClientLink === 'function') await originalCreateAndCopyClientLink();
+      if(typeof state !== 'undefined' && state.lastClientReportLink) done(b, 'Link elkészült', 'Biztonságos ügyfél link létrehozása', 1700);
+      else restore(b, 'Biztonságos ügyfél link létrehozása');
+    }catch(err){
+      console.error(err);
+      restore(b, 'Biztonságos ügyfél link létrehozása');
+      alert('Nem sikerült létrehozni az ügyfél linket.');
+    }
+  };
+
+  window.copyClientShareLink = function(btn){
+    const b = busy(btn, 'Link másolása…');
+    if(typeof state === 'undefined' || !state.lastClientReportLink){
+      restore(b, 'Utolsó ügyfél link másolása');
+      alert('Még nincs létrehozott ügyfél link. Előbb nyomd meg: Működő ügyfél link létrehozása.');
+      return;
+    }
+    navigator.clipboard.writeText(state.lastClientReportLink).then(function(){
+      done(b, 'Link kimásolva', 'Utolsó ügyfél link másolása', 1600);
+      alert('Ügyfél link kimásolva: ' + state.lastClientReportLink);
+    }).catch(function(){
+      restore(b, 'Utolsó ügyfél link másolása');
+      prompt('Másold ki a linket:', state.lastClientReportLink);
+    });
+  };
+
+  window.createShareText = function(btn){
+    const b = busy(btn, 'Üzenet készül…');
+    try{
+      const ret = typeof originalCreateShareText === 'function' ? originalCreateShareText() : undefined;
+      done(b, 'Üzenet kimásolva', 'Megosztható üzenet készítése', 1600);
+      return ret;
+    }catch(err){
+      restore(b, 'Megosztható üzenet készítése');
+      throw err;
+    }
+  };
+
+  window.sendClientNotification = async function(btn){
+    const b = busy(btn, 'Értesítés készül…');
+    await tick();
+    try{
+      if(typeof originalSendClientNotification === 'function') await originalSendClientNotification();
+      done(b, 'Értesítés előkészítve', 'Email értesítés küldése / SMS szöveg előkészítése', 1800);
+    }catch(err){
+      console.error(err);
+      restore(b, 'Email értesítés küldése / SMS szöveg előkészítése');
+      alert('Értesítés előkészítési hiba: ' + (err.message || err));
+    }
+  };
+})();
+
+
+
+// ===== V133: főoldali ügyfélriport PDF stabil nyomtatási nézet =====
+(function(){
+  if (window.__v133MainClientPdfFix) return;
+  window.__v133MainClientPdfFix = true;
+
+  function esc(v){
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
+    });
+  }
+  function btnBusy(btn, text){
+    btn = btn || (document.activeElement && document.activeElement.tagName === 'BUTTON' ? document.activeElement : null);
+    if(!btn) return null;
+    if(!btn.dataset.v133OldText) btn.dataset.v133OldText = btn.innerText || btn.textContent || '';
+    btn.disabled = true;
+    btn.classList.add('is-loading');
+    btn.innerText = text || 'Dolgozom...';
+    return btn;
+  }
+  function btnRestore(btn, fallback){
+    if(!btn) return;
+    btn.disabled = false;
+    btn.classList.remove('is-loading');
+    btn.innerText = btn.dataset.v133OldText || fallback || btn.innerText || 'Kész';
+    delete btn.dataset.v133OldText;
+  }
+  function ready(preview){
+    return !!(preview && preview.innerText && preview.innerText.trim() && !preview.innerText.includes('Még nincs előkészített'));
+  }
+  function printCss(){
+    if(typeof clientReportPrintCss === 'function') return clientReportPrintCss();
+    return '<style>body{font-family:Arial,Helvetica,sans-serif;background:#fff;color:#111827;padding:24px;line-height:1.45}img{max-width:100%;height:auto}.reportImageGrid{display:grid;grid-template-columns:repeat(auto-fill,105px);gap:10px}.reportImageGrid img{width:95px;height:95px;object-fit:cover;border-radius:8px}</style>';
+  }
+  function openPrint(project, html){
+    const w = window.open('', '_blank');
+    if(!w){
+      alert('A böngésző blokkolta az új ablakot. Engedélyezd az előugró ablakot.');
+      return false;
+    }
+    const title = typeof reportTitle === 'function' ? reportTitle() : 'ÉpítésNapló ügyfélriport';
+    const body = typeof buildClientReportPrintableHtml === 'function'
+      ? buildClientReportPrintableHtml(project, html)
+      : '<main>'+html+'</main>';
+    w.document.open();
+    w.document.write('<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title>'+printCss()+'</head><body>'+body+'<script>function wi(){var imgs=Array.prototype.slice.call(document.images||[]);return Promise.race([Promise.all(imgs.map(function(i){return i.complete?Promise.resolve():new Promise(function(r){i.onload=r;i.onerror=r;});})),new Promise(function(r){setTimeout(r,3500);})]);}window.addEventListener("load",function(){wi().then(function(){setTimeout(function(){window.focus();window.print();},500);});});<\/script></body></html>');
+    w.document.close();
+    return true;
+  }
+
+  window.downloadClientReportPdf = async function(btn){
+    const b = btnBusy(btn, 'PDF készül...');
+    try{
+      const limit = typeof currentLimit === 'function' ? currentLimit() : {canPdf:true};
+      if(!limit.canPdf){
+        alert('PDF export fizetős funkció. Válassz Starter, Pro vagy Business csomagot.');
+        return;
+      }
+      const projectId = typeof selectedClientProjectId === 'function' ? selectedClientProjectId() : '';
+      if(!projectId){
+        alert('Előbb válassz projektet.');
+        return;
+      }
+      let preview = document.getElementById('clientReportPreview');
+      if(!ready(preview) && typeof generateClientReport === 'function'){
+        generateClientReport();
+        await new Promise(function(r){ setTimeout(r, 150); });
+        preview = document.getElementById('clientReportPreview');
+      }
+      if(!ready(preview)){
+        alert('Előbb készíts ügyfélriportot.');
+        return;
+      }
+      const project = (typeof state !== 'undefined' && Array.isArray(state.projects)) ? state.projects.find(function(p){ return String(p.id) === String(projectId); }) : null;
+      openPrint(project, preview.innerHTML);
+    }catch(err){
+      console.error('V133 főoldali PDF hiba:', err);
+      alert('PDF/nyomtatási hiba: ' + (err.message || err));
+    }finally{
+      btnRestore(b, 'PDF jelentés letöltése');
+    }
+  };
+})();
