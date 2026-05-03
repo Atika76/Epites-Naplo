@@ -33,7 +33,7 @@
       [...el.attributes].forEach(a=>{ if(/^on/i.test(a.name)) el.removeAttribute(a.name); });
     });
     root.querySelectorAll('img').forEach(img=>{
-      const src = img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-full-src') || '';
+      const src = img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-full-src') || img.getAttribute('data-media-path') || img.getAttribute('data-image-path') || img.getAttribute('data-path') || '';
       const alt = img.getAttribute('alt') || '';
       if(!src || codeRe.test(src) || codeRe.test(alt) || src.length > 2200){
         const tile = img.closest('figure,.photo,.reportMediaTile,.v67ReportPhoto,.v74Photo,.v77Photo,li,div') || img;
@@ -118,7 +118,7 @@
   }
   function visiblePhotoCount(){
     const root = $('publicReportContent') || document;
-    return [...root.querySelectorAll('img')].filter(img=>!img.closest('.v110Gallery') && !(img.alt||'').toLowerCase().includes('ikon') && img.src && img.naturalWidth !== 0).length;
+    return [...root.querySelectorAll('img')].filter(img=>!img.closest('.v110Gallery') && !(img.alt||'').toLowerCase().includes('ikon') && (img.src || img.getAttribute('data-media-path') || img.getAttribute('data-image-path') || img.getAttribute('data-path'))).length;
   }
   async function injectMissingPublicImages(){
     const root = $('publicReportContent');
@@ -152,6 +152,16 @@
       const html = window.EpitesNaploAPI?.sanitizeReportHtml ? window.EpitesNaploAPI.sanitizeReportHtml(report.report_html || '') : (report.report_html || '');
       box.innerHTML = '<div class="reportOpenedBox"><b>Riport megnyitva.</b><br>Az oldal csak olvasásra szolgál.</div>' + (html || '<p>A riport üres.</p>');
       try{ await window.EpitesNaploAPI.hydratePublicReportMedia(currentToken, box); }catch(e){ console.warn(e); }
+      try{
+        box.querySelectorAll('img').forEach(img=>{
+          const alt=(img.getAttribute('alt')||'').toLowerCase();
+          if(alt.includes('ikon')) return;
+          const src=img.getAttribute('src')||'';
+          const full=img.getAttribute('data-full-src')||img.getAttribute('data-src')||'';
+          if((!src || /function\s*\(|window\.|document\.|const\s+|let\s+|var\s+/i.test(src)) && /^(https?:|data:image\/)/i.test(full)) img.setAttribute('src', full);
+        });
+      }catch(_){ }
+
       try{ await injectMissingPublicImages(); }catch(e){ console.warn(e); }
       cleanupReport(box); wireGallery();
       document.title = (report.project_name ? report.project_name + ' – ' : '') + 'ÉpítésNapló ügyfélriport';
