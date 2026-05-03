@@ -798,7 +798,7 @@ window.EpitesNaploAPI = {
     if (!input.trim()) return "";
     const allowedTags = new Set([
       "A", "B", "BR", "DIV", "EM", "H1", "H2", "H3", "H4", "HR", "I", "IMG",
-      "FIGURE", "LI", "OL", "P", "SECTION", "SMALL", "SPAN", "STRONG", "TABLE", "TBODY", "TD",
+      "FIGURE", "LI", "OL", "MAIN", "P", "SECTION", "SMALL", "SPAN", "STRONG", "TABLE", "TBODY", "TD",
       "TH", "THEAD", "TR", "U", "UL", "VIDEO"
     ]);
     const allowedAttrs = {
@@ -809,6 +809,7 @@ window.EpitesNaploAPI = {
       SPAN: new Set(["class"]),
       P: new Set(["class"]),
       SECTION: new Set(["class"]),
+      MAIN: new Set(["class"]),
       TABLE: new Set(["class"]),
       FIGURE: new Set(["class"]),
       UL: new Set(["class"]),
