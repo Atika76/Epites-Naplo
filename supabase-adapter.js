@@ -799,7 +799,7 @@ window.EpitesNaploAPI = {
     const allowedTags = new Set([
       "A", "B", "BR", "DIV", "EM", "H1", "H2", "H3", "H4", "HR", "I", "IMG",
       "FIGURE", "LI", "OL", "P", "SECTION", "SMALL", "SPAN", "STRONG", "TABLE", "TBODY", "TD",
-      "TH", "THEAD", "TR", "U", "UL", "VIDEO"
+      "TH", "THEAD", "TR", "U", "UL", "VIDEO", "MAIN"
     ]);
     const allowedAttrs = {
       A: new Set(["href", "target", "rel", "class"]),
@@ -810,6 +810,7 @@ window.EpitesNaploAPI = {
       P: new Set(["class"]),
       SECTION: new Set(["class"]),
       TABLE: new Set(["class"]),
+      MAIN: new Set(["class", "id"]),
       FIGURE: new Set(["class"]),
       UL: new Set(["class"]),
       OL: new Set(["class"]),
@@ -1680,7 +1681,7 @@ window.EpitesNaploAPI = {
   };
 
   api.cleanupReportEvents = async function(days=14){
-    try{ const { error } = await db.rpc('cleanup_report_events_v118', { p_days: days }); if(error && !missing(error)) throw error; return true; }
+    try{ const { error } = await db.rpc('cleanup_report_events_v117', { p_days: days }); if(error && !missing(error)) throw error; return true; }
     catch(e){
       if(!missing(e)) console.warn('report_events takarítás RPC hiba:', e.message||e);
       try{ const cutoff = new Date(Date.now()-Number(days||14)*86400000).toISOString(); await db.from('report_events').delete().lt('created_at', cutoff); }catch(_){ }
@@ -1691,7 +1692,7 @@ window.EpitesNaploAPI = {
   const oldDeleteProject = api.deleteProject?.bind(api);
   api.deleteProject = async function(projectId){
     const user = await this.getCurrentUser?.(); if(!user) throw new Error('Nincs bejelentkezve.'); if(!projectId) throw new Error('Hiányzó projekt azonosító.');
-    try{ const { data, error } = await db.rpc('delete_project_full_v118', { p_project_id: projectId }); if(!error && data !== false) return true; if(error && !missing(error)) throw error; }catch(e){ if(!missing(e)) console.warn('V118 RPC projekt törlés nem sikerült:', e.message||e); }
+    try{ const { data, error } = await db.rpc('delete_project_full_v117', { p_project_id: projectId }); if(!error && data !== false) return true; if(error && !missing(error)) throw error; }catch(e){ if(!missing(e)) console.warn('V117 RPC projekt törlés nem sikerült:', e.message||e); }
     try{ await db.from('report_events').delete().eq('report_id', projectId); }catch(_){ }
     try{ await db.from('report_events').delete().eq('project_id', projectId); }catch(_){ }
     if(oldDeleteProject) return oldDeleteProject(projectId);

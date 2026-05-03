@@ -2925,7 +2925,7 @@ function requireLoginV38(message){
     if(!target) return;
     if(target.closest('#authModal') || target.closest('#guestLockModalV38') || target.closest('#subscription') || target.id === 'heroRegisterBtn') return;
     const href = target.getAttribute && target.getAttribute('href');
-    if(href && (href.startsWith('#home') || href.startsWith('#subscription') || href.startsWith('index.html#home') || href.startsWith('index.html#subscription'))) return;
+    if(href && (href.startsWith('#') || href.startsWith('index.html#'))) return;
     if(target.matches('input, select, textarea') || target.onclick || target.tagName === 'BUTTON'){
       e.preventDefault();
       e.stopPropagation();

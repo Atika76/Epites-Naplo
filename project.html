@@ -190,17 +190,12 @@
 
   <div id="toast" class="toast hidden"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-adapter.js?v=118"></script>
+  <script src="supabase-adapter.js?v=121"></script>
   <script src="header-v40.js?v=76"></script>
   <script src="v19-pro-features.js?v=76"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="project.js?v=80"></script>
-  <script src="project-v77-final-fix.js?v=78"></script>
-  <script src="project-v87-client-question-ai-report-fix.js?v=87"></script>
-  <script src="project-v88-client-question-mobile-report-fix.js?v=88"></script>
-  <script src="project-v103-final-report-pdf-speed-lightbox-fix.js?v=103"></script>
-  <script src="project-v105-login-safe-weekly-lightbox-fix.js?v=105"></script>
-  <script src="project-v109-client-feedback-reply-fix.js?v=118"></script>
+  <script src="stable-report-engine.js?v=121"></script>
   <div id="reportCenterV69" class="v69Modal hidden" role="dialog" aria-modal="true" aria-labelledby="reportCenterTitleV69">
     <div class="v69ModalBackdrop" onclick="closeReportCenterV69()"></div>
     <div class="v69ModalCard">
@@ -213,9 +208,9 @@
         <button class="v69ModalClose" type="button" onclick="closeReportCenterV69()" aria-label="Bezárás">×</button>
       </div>
       <div class="v69ReportGrid">
-        <section class="v69ReportBox"><h3>Heti riport</h3><p>A jelenlegi hét / utolsó 7 nap dokumentációja. Folyamat közbeni ügyféltájékoztatáshoz való.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="closeReportCenterV69(); printWeeklyReport();">PDF / nyomtatás</button><button class="btn ghost" type="button" onclick="closeReportCenterV69(); downloadWeeklyReportHtml();">HTML letöltés</button></div></section>
-        <section class="v69ReportBox important"><h3>Lezáró riport</h3><p>A teljes projekt egyben: minden addigi napló, fotó, anyag, időjárás és ellenőrzési adat.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="closeReportCenterV69(); printClosingDocument();">Lezáró PDF / nyomtatás</button><button class="btn ghost" type="button" onclick="closeReportCenterV69(); downloadClosingReportHtml();">Lezáró HTML</button></div></section>
-        <section class="v69ReportBox"><h3>Ügyfél átadás</h3><p>Olvasható ügyfélriport, megtekintés és elfogadás nyomával.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="closeReportCenterV69(); createProjectClientLinkV25();">Ügyfél link + jóváhagyás</button><button class="btn ghost" type="button" onclick="closeReportCenterV69(); exportClosingPdfV25();">Profi PDF export</button></div></section>
+        <section class="v69ReportBox"><h3>Heti riport</h3><p>A jelenlegi hét / utolsó 7 nap dokumentációja. Folyamat közbeni ügyféltájékoztatáshoz való.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="printWeeklyReport(this);">PDF / nyomtatás</button><button class="btn ghost" type="button" onclick="downloadWeeklyReportHtml(this);">HTML letöltés</button></div></section>
+        <section class="v69ReportBox important"><h3>Lezáró riport</h3><p>A teljes projekt egyben: minden addigi napló, fotó, anyag, időjárás és ellenőrzési adat.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="printClosingDocument(this);">Lezáró PDF / nyomtatás</button><button class="btn ghost" type="button" onclick="downloadClosingReportHtml(this);">Lezáró HTML</button></div></section>
+        <section class="v69ReportBox"><h3>Ügyfél átadás</h3><p>Olvasható ügyfélriport, megtekintés és elfogadás nyomával.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="createProjectClientLinkV25(this);">Ügyfél link + jóváhagyás</button><button class="btn ghost" type="button" onclick="exportClosingPdfV25(this);">Profi PDF export</button></div></section>
         <section class="v69ReportBox archive"><h3>Saját mentés</h3><p>Saját példány a projektről: riport, adatok, képek és videók egy ZIP-ben.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="closeReportCenterV69(); v68DownloadProjectZip();">Projekt mentése ZIP-be</button><button class="btn ghost" type="button" onclick="closeReportCenterV69(); v33ArchiveProject();">Projekt lezárása</button></div></section>
       </div>
     </div>
