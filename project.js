@@ -4754,3 +4754,89 @@ document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeReportCe
     }finally{ done(); }
   };
 })();
+
+// ===== V123: FULL PRO ügyfélfelület - egységes, eladható riport nézet =====
+(function(){
+  if (window.__v123FullProClientReport) return;
+  window.__v123FullProClientReport = true;
+
+  const esc = (v)=>String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const plain = (v)=>String(v ?? '').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+  const dateHu = (v)=>{ try { return v ? new Date(v).toLocaleString('hu-HU') : new Date().toLocaleString('hu-HU'); } catch(_) { return String(v || ''); } };
+  const projectName = ()=> window.detailState?.project?.name || 'Építési napló projekt';
+
+  function uniq(arr){ return [...new Set((arr || []).filter(Boolean).map(String))]; }
+  function entryImages(e){
+    let arr=[];
+    try { if (typeof window.getEntryImages === 'function') arr = arr.concat(window.getEntryImages(e) || []); } catch(_) {}
+    try { if (typeof getEntryImages === 'function') arr = arr.concat(getEntryImages(e) || []); } catch(_) {}
+    arr = arr.concat(
+      Array.isArray(e?.images) ? e.images : [],
+      Array.isArray(e?.image_urls) ? e.image_urls : [],
+      Array.isArray(e?.photos) ? e.photos : [],
+      Array.isArray(e?.beforeImages) ? e.beforeImages : [],
+      Array.isArray(e?.afterImages) ? e.afterImages : [],
+      Array.isArray(e?.generalImages) ? e.generalImages : [],
+      Array.isArray(e?.media_urls) ? e.media_urls : [],
+      e?.image ? [e.image] : [],
+      e?.image_url ? [e.image_url] : [],
+      e?.photo_url ? [e.photo_url] : []
+    );
+    return uniq(arr);
+  }
+  function entryVideos(e){
+    let arr=[];
+    try { if (typeof window.getEntryVideos === 'function') arr = arr.concat(window.getEntryVideos(e) || []); } catch(_) {}
+    try { if (typeof getEntryVideos === 'function') arr = arr.concat(getEntryVideos(e) || []); } catch(_) {}
+    arr = arr.concat(Array.isArray(e?.videos) ? e.videos : [], Array.isArray(e?.videoUrls) ? e.videoUrls : [], Array.isArray(e?.video_urls) ? e.video_urls : [], e?.video ? [e.video] : []);
+    return uniq(arr.map(v => typeof v === 'string' ? v : (v?.url || v?.signedUrl || v?.src || v?.path || '')).filter(Boolean));
+  }
+  function materialsFrom(entries, extra=[]){
+    const map = {};
+    function add(m){ const name=plain(m?.name || m?.title || 'Anyag'); const unit=plain(m?.unit || 'db'); const qty=Number(m?.quantity || m?.qty || 0); const key=name+'|'+unit; map[key]=(map[key]||0)+(isFinite(qty)?qty:0); }
+    (extra || []).forEach(add);
+    (entries || []).forEach(e => {
+      (Array.isArray(e?.materials_json) ? e.materials_json : []).forEach(add);
+      (Array.isArray(e?.materials) ? e.materials : []).forEach(add);
+    });
+    return Object.entries(map).map(([k,q]) => { const [name, unit] = k.split('|'); return {name, unit, quantity: Number(Number(q).toFixed(2))}; }).filter(x => x.quantity || x.name !== 'Anyag');
+  }
+  function aiText(e){
+    const a = e?.ai_json || e?.analysis || {};
+    return plain(a.customerSummary || a.professionalSummary || a.photoTextCheck || a.nextStep || a.title || '');
+  }
+  function css(){ return `
+    *{box-sizing:border-box} body{margin:0;background:#eef4fb;color:#102033;font-family:Inter,Arial,Helvetica,sans-serif;line-height:1.55}.v123Page{max-width:1180px;margin:0 auto;padding:28px}.v123Hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#071527 0%,#102a44 55%,#f2a900 190%);color:#fff;border-radius:28px;padding:34px;box-shadow:0 22px 55px rgba(15,23,42,.20)}.v123Hero:after{content:"";position:absolute;right:-90px;top:-90px;width:260px;height:260px;border-radius:999px;background:rgba(245,166,0,.24)}.v123Badge{display:inline-flex;gap:8px;align-items:center;background:#fbbf24;color:#172033;border-radius:999px;padding:8px 13px;font-weight:900;font-size:13px}.v123Hero h1{font-size:42px;line-height:1.05;margin:18px 0 10px;max-width:820px}.v123Sub{color:#dbeafe;max-width:760px;margin:0}.v123Actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.v123Btn{border:0;border-radius:999px;padding:12px 16px;font-weight:900;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;background:#fff;color:#102033}.v123Btn.primary{background:#f2a900;color:#111827}.v123Stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:18px 0 0}.v123Stat{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:14px}.v123Stat b{display:block;font-size:28px;color:#fbbf24}.v123Grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;margin-top:18px}.v123Card{background:#fff;border:1px solid #dbe5f0;border-radius:24px;padding:22px;box-shadow:0 12px 35px rgba(15,23,42,.08)}.v123Card h2{margin:0 0 10px;font-size:24px;color:#0f172a}.v123Trust{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.v123Trust div{background:#ecfdf5;border:1px solid #bbf7d0;border-radius:16px;padding:14px;font-weight:800;color:#14532d}.v123Gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(146px,1fr));gap:12px}.v123Photo{display:block;background:#fff;border:1px solid #d8e2ee;border-radius:18px;padding:7px;text-decoration:none;color:#334155;box-shadow:0 8px 20px rgba(15,23,42,.07)}.v123Photo img{display:block;width:100%;height:132px;object-fit:cover;border-radius:13px;background:#e5e7eb}.v123Photo span{display:block;font-size:12px;font-weight:800;margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v123Entry{background:#fff;border:1px solid #dbe5f0;border-radius:24px;margin:18px 0;padding:22px;break-inside:avoid;page-break-inside:avoid}.v123EntryHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;border-bottom:1px solid #e5edf5;padding-bottom:12px;margin-bottom:14px}.v123Entry h3{margin:0;font-size:22px;color:#0f172a}.v123Pill{display:inline-flex;border-radius:999px;background:#fff7ed;color:#9a3412;padding:6px 10px;font-size:12px;font-weight:900}.v123Note{background:#f8fafc;border-left:4px solid #f2a900;border-radius:14px;padding:14px;margin:12px 0}.v123Meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.v123Meta p{margin:0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:11px}.v123Ai{background:#eefcf6;border:1px solid #bbf7d0;border-radius:16px;padding:14px;margin:12px 0;color:#14532d}.v123Videos{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.v123Videos video{width:100%;max-height:300px;background:#111;border-radius:16px}.v123Table{width:100%;border-collapse:collapse}.v123Table th,.v123Table td{border-bottom:1px solid #e5e7eb;padding:10px;text-align:left}.v123Footer{margin:22px 0;color:#475569;text-align:center}.v123Lightbox{position:fixed;inset:0;z-index:999999;background:rgba(2,6,23,.94);display:flex;align-items:center;justify-content:center;padding:18px}.v123Lightbox img{max-width:94vw!important;max-height:86vh!important;width:auto!important;height:auto!important;object-fit:contain!important;border-radius:16px;background:#000}.v123Lightbox button{position:fixed;top:16px;right:16px;background:#f2a900;color:#111827;border:0;border-radius:999px;padding:11px 15px;font-weight:900}.v123Empty{color:#64748b;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:16px;padding:14px}@media(max-width:800px){.v123Page{padding:14px}.v123Hero{padding:22px;border-radius:22px}.v123Hero h1{font-size:31px}.v123Grid{grid-template-columns:1fr}.v123Stats{grid-template-columns:repeat(2,minmax(0,1fr))}.v123Trust{grid-template-columns:1fr}.v123Meta{grid-template-columns:1fr}.v123Gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.v123Photo img{height:120px}}@media print{@page{size:A4;margin:10mm}body{background:#fff}.v123Page{max-width:none;padding:0}.v123Hero,.v123Card,.v123Entry{box-shadow:none}.v123Actions,.v123Lightbox{display:none!important}.v123Grid{grid-template-columns:1fr}.v123Stats{grid-template-columns:repeat(5,1fr)}.v123Gallery{grid-template-columns:repeat(4,1fr);gap:7mm}.v123Photo{box-shadow:none;break-inside:avoid;page-break-inside:avoid}.v123Photo img{height:30mm}.v123Entry{break-inside:avoid;page-break-inside:avoid}}
+  `; }
+  function script(){ return `<script>(function(){
+    function imgs(){return Array.from(document.querySelectorAll('.v123Photo img')).filter(function(i){return i.src})}
+    function openAt(idx){var list=imgs(); if(!list.length)return; idx=Math.max(0,Math.min(idx,list.length-1)); var d=document.createElement('div'); d.className='v123Lightbox'; function draw(){d.innerHTML='<button type="button">Bezárás ✕</button><img src="'+list[idx].src.replace(/"/g,'&quot;')+'">'; d.querySelector('button').onclick=function(){d.remove()};} draw(); d.onclick=function(e){if(e.target===d)d.remove()}; document.onkeydown=function(e){if(!document.body.contains(d))return; if(e.key==='Escape')d.remove(); if(e.key==='ArrowRight'){idx=(idx+1)%list.length;draw()} if(e.key==='ArrowLeft'){idx=(idx-1+list.length)%list.length;draw()}}; document.body.appendChild(d)}
+    document.addEventListener('click',function(e){var a=e.target.closest('.v123Photo'); if(!a)return; e.preventDefault(); openAt(imgs().indexOf(a.querySelector('img')));});
+  })();<\/script>`; }
+
+  function build(entries, title, options={}){
+    entries = Array.isArray(entries) ? entries : [];
+    const invoices = Array.isArray(options.invoices) ? options.invoices : [];
+    const mats = materialsFrom(entries, options.materials || []);
+    const allImages = entries.flatMap(entryImages);
+    const allVideos = entries.flatMap(entryVideos);
+    const invoiceSum = invoices.reduce((s,i)=>s+Number(i.amount||0),0);
+    const firstDate = entries.length ? dateHu(entries[entries.length-1]?.created_at || entries[0]?.created_at) : dateHu(new Date());
+    const lastDate = entries.length ? dateHu(entries[0]?.created_at || entries[entries.length-1]?.created_at) : dateHu(new Date());
+    const gallery = allImages.length ? allImages.map((src,i)=>`<a class="v123Photo" href="${esc(src)}"><img src="${esc(src)}" alt="Riport fotó ${i+1}" loading="eager"><span>${i+1}. fotó</span></a>`).join('') : '<div class="v123Empty">Még nincs csatolt fotó.</div>';
+    const matsHtml = mats.length ? `<ul>${mats.map(m=>`<li><b>${esc(m.name)}</b>: ${esc(m.quantity)} ${esc(m.unit)}</li>`).join('')}</ul>` : '<p class="v123Empty">Nincs rögzített anyagösszesítő.</p>';
+    const invHtml = invoices.length ? `<table class="v123Table"><thead><tr><th>Megnevezés</th><th>Összeg</th><th>Megjegyzés</th></tr></thead><tbody>${invoices.map(i=>`<tr><td>${esc(i.title||i.name||'Számla')}</td><td>${Number(i.amount||0).toLocaleString('hu-HU')} Ft</td><td>${esc(i.note||'')}</td></tr>`).join('')}</tbody></table>` : '<p class="v123Empty">Nincs csatolt számla.</p>';
+    const entriesHtml = entries.map((e,idx)=>{
+      const imgs = entryImages(e), vids = entryVideos(e), note = esc(e?.note || e?.description || '').replace(/\n/g,'<br>');
+      const w = e?.weather_json ? `${esc(e.weather_json.temperature ?? '')} °C, ${esc(e.weather_json.text || '')}, szél: ${esc(e.weather_json.wind ?? 0)} km/h, csapadék: ${esc(e.weather_json.rain ?? 0)} mm` : esc(e?.weather || 'nincs adat');
+      const gps = e?.gps_json?.address || e?.gps_json?.text || (e?.gps_json?.lat ? `${e.gps_json.lat}, ${e.gps_json.lon}` : 'nincs mentett GPS cím');
+      const a = aiText(e);
+      const mm = Array.isArray(e?.materials_json) ? e.materials_json : (Array.isArray(e?.materials) ? e.materials : []);
+      return `<section class="v123Entry"><div class="v123EntryHead"><div><h3>${esc(e?.phase || 'Napi bejegyzés')}</h3><p class="muted">${dateHu(e?.created_at)} • ${esc(e?.responsible || 'Felelős nincs megadva')}</p></div><span class="v123Pill">${imgs.length} fotó • ${vids.length} videó</span></div>${note?`<div class="v123Note"><b>Elvégzett munka:</b><br>${note}</div>`:''}<div class="v123Meta"><p><b>Állapot:</b><br>${esc(e?.status || 'rögzítve')}</p><p><b>Időjárás:</b><br>${w}</p><p><b>Helyszín/GPS:</b><br>${esc(gps)}</p><p><b>Napi anyag:</b><br>${mm.length ? mm.map(x=>`${esc(x.name)} ${esc(x.quantity)} ${esc(x.unit)}`).join(', ') : 'nincs külön rögzítve'}</p></div>${a?`<div class="v123Ai"><b>Ügyfélbarát összegzés:</b><br>${esc(a)}</div>`:''}${imgs.length?`<h4>Fotódokumentáció</h4><div class="v123Gallery">${imgs.map((src,i)=>`<a class="v123Photo" href="${esc(src)}"><img src="${esc(src)}" alt="${idx+1}. bejegyzés fotó ${i+1}" loading="eager"><span>${idx+1}/${i+1}. fotó</span></a>`).join('')}</div>`:''}${vids.length?`<h4>Videók</h4><div class="v123Videos">${vids.map(src=>`<video controls playsinline src="${esc(src)}"></video>`).join('')}</div>`:''}</section>`;
+    }).join('') || '<div class="v123Card"><p class="v123Empty">Még nincs naplóbejegyzés.</p></div>';
+    return `<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0f172a"><link rel="icon" type="image/svg+xml" href="favicon.svg"><title>${esc(title || projectName())}</title><style>${css()}</style></head><body><main class="v123Page"><section class="v123Hero"><span class="v123Badge">🏗️ PRO ügyfélriport</span><h1>${esc(title || projectName())}</h1><p class="v123Sub">Átlátható, fotókkal igazolt építési dokumentáció. A riport célja, hogy az ügyfél egy helyen lássa az elvégzett munkát, a képeket, az anyagokat és a következő lépéseket.</p><div class="v123Actions"><button class="v123Btn primary" onclick="window.print()">PDF / nyomtatás</button><a class="v123Btn" href="#fotok">Fotók megtekintése</a><a class="v123Btn" href="#bejegyzesek">Napi bejegyzések</a></div><div class="v123Stats"><div class="v123Stat"><b>${entries.length}</b>bejegyzés</div><div class="v123Stat"><b>${allImages.length}</b>fotó</div><div class="v123Stat"><b>${allVideos.length}</b>videó</div><div class="v123Stat"><b>${mats.length}</b>anyag tétel</div><div class="v123Stat"><b>${invoiceSum.toLocaleString('hu-HU')} Ft</b>számlák</div></div></section><section class="v123Grid"><div class="v123Card"><h2>Rövid vezetői összegzés</h2><p>A projekt dokumentációja átadható formában készült el. A fotók, napi leírások, időjárási adatok, GPS/helyszín információk és anyagadatok együtt segítik az átlátható elszámolást.</p><div class="v123Trust"><div>✔ Munkafolyamat dokumentálva</div><div>✔ Fotókkal igazolva</div><div>✔ Ügyfélnek áttekinthető</div></div></div><div class="v123Card"><h2>Projekt adatok</h2><p><b>Projekt:</b><br>${esc(projectName())}</p><p><b>Időszak:</b><br>${esc(firstDate)} – ${esc(lastDate)}</p><p><b>Generálva:</b><br>${dateHu(new Date())}</p></div></section><section class="v123Card" id="fotok" style="margin-top:18px"><h2>Fotógaléria</h2><p class="muted">A képekre kattintva nagyított nézet nyílik meg.</p><div class="v123Gallery">${gallery}</div></section><section class="v123Grid"><div class="v123Card"><h2>Anyagösszesítő</h2>${matsHtml}</div><div class="v123Card"><h2>Számlák / költség</h2>${invHtml}</div></section><section id="bejegyzesek"><h2 style="margin:26px 0 10px">Napi bejegyzések</h2>${entriesHtml}</section><p class="v123Footer">ÉpítésNapló AI PRO • ügyfélriport • ${dateHu(new Date())}</p></main>${script()}</body></html>`;
+  }
+
+  window.buildProReportHtml = build;
+  try { buildProReportHtml = build; } catch(_) {}
+})();
