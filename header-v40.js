@@ -1,4 +1,4 @@
-﻿(function(){
+(function(){
   const ADMIN_EMAILS = ['cegweb26@gmail.com','atika.76@windowslive.com'];
   function isAdminEmail(email){ return ADMIN_EMAILS.includes(String(email||'').toLowerCase()); }
   function page(){ return (location.pathname.split('/').pop() || 'index.html').toLowerCase(); }
@@ -61,11 +61,14 @@
     const logoutId = current === 'project.html' ? 'projectLogoutBtn' : (current === 'project-finance.html' ? 'financeLogoutBtn' : 'logoutBtn');
     const loginBtn = '<button id="loginBtn" class="btn small" type="button" onclick="window.v40OpenLogin()">Belépés / Regisztráció</button>';
     const logoutBtn = `<button id="${logoutId}" class="btn small ghost" type="button" onclick="window.location.href='logout.html'">Kilépés</button>`;
+    const reportNav = current === 'project.html'
+      ? `<a href="#reportCenterV69" onclick="event.preventDefault(); if(typeof window.openReportCenterV69 === 'function'){ window.openReportCenterV69(); }">Riport</a>`
+      : '<a href="view.html">Riport</a>';
     return `
       <a href="index.html#home">Főoldal</a>
       <a href="index.html#naplo">Napló</a>
       <a href="index.html#subscription">Csomagok</a>
-      <a href="view.html">Riport</a>
+      ${reportNav}
       ${logged ? '<a id="profileNavLink" href="profile.html">Fiókom</a>' : ''}
       ${isAdmin ? '<a id="adminMessagesNavLink" href="admin-messages.html">Admin inbox</a>' : ''}
       ${isAdmin ? '<a id="adminPanelNavLink" href="admin-panel.html">Admin panel</a>' : ''}
