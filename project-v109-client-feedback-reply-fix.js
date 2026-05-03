@@ -154,3 +154,176 @@
   setTimeout(render, 1600);
   window.v109RenderClientFeedback = render;
 })();
+
+// ===== V112: saját példány HTML tisztítás + kiskép fix (nem új logint érintő javítás) =====
+(function(){
+  'use strict';
+  if(window.__epitesNaploV112OwnCopyCleanFix) return;
+  window.__epitesNaploV112OwnCopyCleanFix = true;
+
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const safeName = v => String(v || 'epitesi-naplo-riport').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,90) || 'epitesi-naplo-riport';
+  const state = () => (typeof detailState !== 'undefined' ? detailState : (window.detailState || {}));
+  const projectId = () => state()?.project?.id || new URLSearchParams(location.search).get('id') || '';
+  const projectTitle = () => state()?.project?.name || 'Építési napló';
+  const decisionOf = row => String(row?.decision || row?.status || (row?.approved ? 'accepted' : 'viewed')).toLowerCase();
+  const labelOf = d => (d === 'accepted' || d === 'approved') ? 'Elfogadva / jóváhagyva' : d === 'question' ? 'Kérdése van' : 'Megtekintve';
+  const messageOf = row => String(row?.client_comment || row?.message || row?.client_message || row?.approval_message || row?.question || row?.question_text || row?.note || row?.comment || '').trim();
+  const isCode = txt => /function\s*\(|=>\s*\{|window\.|document\.|querySelector|addEventListener|EpitesNaploAPI|supabase|<\/script>|const\s+|let\s+|var\s+/i.test(String(txt || ''));
+
+  function ensureFullHtml(html){
+    let out = String(html || '');
+    if(!/<!doctype|<html/i.test(out)) out = `<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(projectTitle())}</title><link rel="icon" href="https://epitesi-naplo.eu/favicon.png"></head><body>${out}</body></html>`;
+    return out;
+  }
+
+  function cleanReportHtml(html){
+    html = ensureFullHtml(html);
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('script,.v77Lightbox,.v79ReportLightbox,.v86Lightbox,.v100Lightbox,.v102Lightbox,.v103Lightbox,.v105Lightbox,.v110Gallery,.mediaViewerModal,.reportMediaPending').forEach(el => el.remove());
+    doc.querySelectorAll('*').forEach(el => {
+      [...el.attributes].forEach(a => { if(/^on/i.test(a.name)) el.removeAttribute(a.name); });
+    });
+    // Ha egy kép src/alt mezőjébe véletlenül JS-kód került, az egész hibás csempét kivesszük.
+    doc.querySelectorAll('img').forEach(img => {
+      const src = img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-full-src') || '';
+      const alt = img.getAttribute('alt') || '';
+      if(!src || isCode(src) || isCode(alt) || src.length > 2200){
+        const tile = img.closest('figure,.photo,.reportMediaTile,.v67ReportPhoto,.v74Photo,.v77Photo,li,div') || img;
+        tile.remove();
+        return;
+      }
+      img.removeAttribute('srcset');
+      img.setAttribute('loading','lazy');
+      img.setAttribute('decoding','async');
+      img.style.removeProperty('width');
+      img.style.removeProperty('height');
+      img.style.cursor = 'zoom-in';
+    });
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+    const badTexts = [];
+    while(walker.nextNode()){
+      const n = walker.currentNode;
+      const t = n.textContent || '';
+      if(isCode(t)) badTexts.push(n);
+    }
+    badTexts.forEach(n => {
+      const p = n.parentElement;
+      if(!p) return n.remove();
+      // Ne töröljünk nagy teljes szekciót, csak a kódot tartalmazó levélelemet vagy magát a text node-ot.
+      if(!p.querySelector('img,video') && p.children.length < 3) p.remove(); else n.remove();
+    });
+    doc.querySelectorAll('a').forEach(a => {
+      if(a.querySelector('img,video') || /index\.html|project\.html/i.test(a.getAttribute('href') || '')){
+        a.removeAttribute('href'); a.removeAttribute('target'); a.style.cursor='zoom-in';
+      }
+    });
+    const old = doc.getElementById('v112-own-copy-css'); if(old) old.remove();
+    const css = doc.createElement('style');
+    css.id = 'v112-own-copy-css';
+    css.textContent = `
+      body{background:#fff!important;color:#111827!important;font-family:Arial,Helvetica,sans-serif!important;line-height:1.45!important}.photos,.entryImageGrid,.reportImageGrid,.v67ReportPhotos,.v68ReportPhotos,.v74Photos,.v77Photos{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(112px,112px))!important;gap:10px!important;align-items:start!important;justify-content:start!important}.reportMediaTile,.v67ReportPhoto,.v74Photo,.v77Photo,.photos figure,figure,.photo{width:112px!important;max-width:112px!important;min-height:132px!important;background:#fff!important;border:1px solid #d1d5db!important;border-radius:10px!important;padding:4px!important;margin:0!important;overflow:hidden!important;break-inside:avoid!important;page-break-inside:avoid!important}.reportMediaTile img,.v67ReportPhoto img,.v74Photo img,.v77Photo img,.photos img,.entryImageGrid img,.reportImageGrid img,figure img,img.reportPhoto{display:block!important;width:102px!important;max-width:102px!important;height:102px!important;max-height:102px!important;object-fit:cover!important;border-radius:8px!important;cursor:zoom-in!important;background:#f8fafc!important}.v112Lightbox{position:fixed!important;inset:0!important;background:rgba(2,6,23,.92)!important;display:flex!important;align-items:center!important;justify-content:center!important;z-index:999999!important;padding:56px 18px 28px!important}.v112Lightbox img{max-width:94vw!important;max-height:84vh!important;width:auto!important;height:auto!important;object-fit:contain!important;border-radius:12px!important;background:#111!important}.v112Close,.v112Prev,.v112Next{position:fixed!important;border:0!important;border-radius:999px!important;background:#fbbf24!important;color:#111827!important;font-weight:900!important;cursor:pointer!important}.v112Close{right:16px!important;top:14px!important;padding:9px 13px!important}.v112Prev,.v112Next{top:50%!important;transform:translateY(-50%)!important;width:42px!important;height:42px!important;font-size:28px!important}.v112Prev{left:12px!important}.v112Next{right:12px!important}@media(max-width:720px){body{padding:12px!important}.photos,.entryImageGrid,.reportImageGrid,.v67ReportPhotos,.v68ReportPhotos,.v74Photos,.v77Photos{grid-template-columns:repeat(2,112px)!important}}@media print{.v112Lightbox,.v112Close,.v112Prev,.v112Next{display:none!important}.photos,.entryImageGrid,.reportImageGrid,.v67ReportPhotos,.v68ReportPhotos,.v74Photos,.v77Photos{grid-template-columns:repeat(4,30mm)!important}.reportMediaTile,.v67ReportPhoto,.v74Photo,.v77Photo,.photos figure,figure,.photo{width:30mm!important;max-width:30mm!important;min-height:34mm!important}.reportMediaTile img,.v67ReportPhoto img,.v74Photo img,.v77Photo img,.photos img,.entryImageGrid img,.reportImageGrid img,figure img,img.reportPhoto{width:28mm!important;max-width:28mm!important;height:28mm!important;max-height:28mm!important}}
+    `;
+    doc.head.appendChild(css);
+    const lb = doc.createElement('script');
+    lb.textContent = `(function(){function imgs(){return Array.from(document.querySelectorAll('img')).filter(function(i){return i.src&&!i.closest('.v112Lightbox')})}function close(){document.querySelectorAll('.v112Lightbox').forEach(function(x){x.remove()})}function openAt(i){var list=imgs();if(!list.length)return;var idx=Math.max(0,Math.min(i,list.length-1));close();var box=document.createElement('div');box.className='v112Lightbox';function render(){box.innerHTML='<button class="v112Close" type="button">Bezárás ×</button>'+(list.length>1?'<button class="v112Prev" type="button">‹</button><button class="v112Next" type="button">›</button>':'')+'<img alt="Nagyított napló kép">';box.querySelector('img').src=list[idx].src;box.querySelector('.v112Close').onclick=function(e){e.preventDefault();e.stopPropagation();close()};var p=box.querySelector('.v112Prev'),n=box.querySelector('.v112Next');if(p)p.onclick=function(e){e.preventDefault();e.stopPropagation();idx=(idx-1+list.length)%list.length;render()};if(n)n.onclick=function(e){e.preventDefault();e.stopPropagation();idx=(idx+1)%list.length;render()};}render();box.onclick=function(e){if(e.target===box)close()};document.body.appendChild(box)}document.addEventListener('click',function(e){var img=e.target.closest&&e.target.closest('img');if(!img||img.closest('.v112Lightbox'))return;e.preventDefault();e.stopPropagation();openAt(imgs().indexOf(img))},true);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()});})();`;
+    doc.body.appendChild(lb);
+    return '<!doctype html>\n' + doc.documentElement.outerHTML;
+  }
+
+  function isBadSnapshot(html){
+    const s = String(html || '');
+    const plain = s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    return !plain.trim() || plain.length < 500 || isCode(s) || plain.includes('hianyzo riport azonosito') || plain.includes('a riport nem talalhato') || plain.includes('riport betoltesi hiba');
+  }
+
+  async function getApproval(id){
+    try{ const row = await window.EpitesNaploAPI?.getApprovedReportHtml?.(id); if(row) return row; }catch(_){ }
+    try{ const rows = await window.EpitesNaploAPI?.getReportApprovals?.(projectId()); return (rows || []).find(r => String(r.id) === String(id)) || null; }catch(_){ return null; }
+  }
+  async function buildFreshReport(){
+    const data = await window.EpitesNaploAPI?.getProjectCloseData?.(projectId()).catch(()=>null);
+    const entries = data?.entries || state()?.entries || [];
+    const builder = window.buildProReportHtml || (typeof buildProReportHtml === 'function' ? buildProReportHtml : null);
+    return builder ? builder(entries, `${projectTitle()} – ügyfélriport`, data || {}) : `<h1>${esc(projectTitle())}</h1><p>A riport most nem építhető újra.</p>`;
+  }
+  function stamp(html,row){
+    const msg = messageOf(row);
+    let out = cleanReportHtml(html);
+    const doc = new DOMParser().parseFromString(out, 'text/html');
+    if(!doc.querySelector('.v112ApprovalStamp')){
+      const stamp = doc.createElement('section');
+      stamp.className = 'v112ApprovalStamp';
+      stamp.setAttribute('style','border:2px solid #22c55e;background:#ecfdf5;color:#111827;padding:14px 16px;margin:0 0 18px;border-radius:14px;');
+      stamp.innerHTML = `<b>Jóváhagyott ügyfélpéldány</b><br>Állapot: ${esc(labelOf(decisionOf(row)))}<br>Ügyfél: ${esc(row?.client_name || row?.client_email || 'Nincs megadva')}${msg ? `<div style="margin-top:10px;background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:10px;"><b>Ügyfél kérdése / észrevétele:</b><br>${esc(msg).replace(/\n/g,'<br>')}</div>` : ''}`;
+      doc.body.insertBefore(stamp, doc.body.firstChild);
+    }
+    return '<!doctype html>\n' + doc.documentElement.outerHTML;
+  }
+  async function approvedHtml(id){
+    const row = await getApproval(id);
+    if(!row) throw new Error('Nem találom az ügyfél visszajelzést. Frissítsd az oldalt.');
+    let html = row.approved_report_html || row.report_html_snapshot || row.report_html || '';
+    if(isBadSnapshot(html)){
+      try{ const doc = await window.EpitesNaploAPI?.getReportDocumentByApproval?.(id); if(doc?.html_content && !isBadSnapshot(doc.html_content)) html = doc.html_content; }catch(_){ }
+    }
+    if(isBadSnapshot(html)) html = await buildFreshReport();
+    return { row, html: stamp(html,row) };
+  }
+  async function documentHtml(id){
+    let d = null;
+    try{ const docs = await window.EpitesNaploAPI?.listReportDocuments?.(projectId()); d = (docs || []).find(x => String(x.id) === String(id)); }catch(_){ }
+    if(!d){
+      for(const pref of ['v77_report_docs_','v75_report_docs_','v74_report_docs_']){
+        try{ const arr = JSON.parse(localStorage.getItem(pref + projectId()) || '[]'); d = arr.find(x => String(x.id) === String(id)); if(d) break; }catch(_){ }
+      }
+    }
+    if(!d) throw new Error('Nem találom a mentett riportot.');
+    let html = d.html_content || d.html || '';
+    if(isBadSnapshot(html)) html = await buildFreshReport();
+    return { doc:d, html: cleanReportHtml(html) };
+  }
+  function downloadFile(name, html){
+    const blob = new Blob([html || ''], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url); a.remove();}, 1200);
+  }
+  function openHtml(html, printNow){
+    const w = window.open('', '_blank');
+    if(!w) return alert('A böngésző blokkolta az új ablakot. Engedélyezd a felugró ablakokat.');
+    w.document.open(); w.document.write(html); w.document.close();
+    if(printNow) setTimeout(()=>{try{w.focus();w.print();}catch(_){ }}, 900);
+  }
+
+  window.v71DownloadApprovedHtml = async function(id){
+    try{ const r = await approvedHtml(id); downloadFile(`${safeName(projectTitle())}-${safeName(labelOf(decisionOf(r.row)))}-jovahagyott-riport.html`, r.html); }
+    catch(e){ alert('HTML riport hiba: ' + (e.message || e)); }
+  };
+  window.v71PrintApprovedReport = async function(id){
+    try{ const r = await approvedHtml(id); openHtml(r.html, true); }
+    catch(e){ alert('PDF/nyomtatási hiba: ' + (e.message || e)); }
+  };
+  window.v75DownloadSavedReport = async function(id){
+    try{ const r = await documentHtml(id); downloadFile(`${safeName(r.doc?.title || projectTitle())}.html`, r.html); }
+    catch(e){ alert('HTML mentési hiba: ' + (e.message || e)); }
+  };
+  window.v75PrintSavedReport = async function(id){
+    try{ const r = await documentHtml(id); openHtml(r.html, true); }
+    catch(e){ alert('PDF/nyomtatási hiba: ' + (e.message || e)); }
+  };
+
+  document.addEventListener('click', function(e){
+    const b = e.target.closest && e.target.closest('[data-v75-open],[data-v75-pdf],[data-v77-open],[data-v77-pdf],[data-v77-down],[data-v109-copy],[data-v109-pdf]');
+    if(!b) return;
+    // Csak a megnyitás/HTML/PDF saját példányokat vesszük át, törlést nem.
+    if(b.dataset.v77Down || b.dataset.v77Open || b.dataset.v75Open || b.dataset.v109Copy){
+      e.preventDefault(); e.stopImmediatePropagation();
+      return (b.dataset.v109Copy || b.dataset.v77Down) ? window.v71DownloadApprovedHtml(b.dataset.v109Copy || b.dataset.v77Down) : window.v75DownloadSavedReport(b.dataset.v77Open || b.dataset.v75Open);
+    }
+    if(b.dataset.v77Pdf || b.dataset.v75Pdf || b.dataset.v109Pdf){
+      e.preventDefault(); e.stopImmediatePropagation();
+      return (b.dataset.v109Pdf) ? window.v71PrintApprovedReport(b.dataset.v109Pdf) : window.v75PrintSavedReport(b.dataset.v77Pdf || b.dataset.v75Pdf);
+    }
+  }, true);
+})();
