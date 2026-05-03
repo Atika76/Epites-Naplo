@@ -1,502 +1,54 @@
 <!doctype html>
 <html lang="hu">
 <head>
-  <link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/favicon.png">
-  <link rel="icon" type="image/svg+xml" href="https://epitesi-naplo.eu/favicon.svg">
-  <link rel="shortcut icon" href="https://epitesi-naplo.eu/favicon.ico">
-  <link rel="apple-touch-icon" href="https://epitesi-naplo.eu/favicon.png">
-  <meta name="theme-color" content="#0f172a">
-
-  <meta property="og:title" content="Ügyfélriport – ÉpítésNapló AI PRO">
-  <meta property="og:description" content="Biztonságos, csak olvasható ügyfélriport ügyfél jóváhagyással.">
-  <meta property="og:type" content="website">
-  <meta property="og:image" content="https://epitesi-naplo.eu/og-epitesi-naplo-v108.png">
-  <meta property="og:image:secure_url" content="https://epitesi-naplo.eu/og-epitesi-naplo-v108.png">
-  <meta property="og:image:type" content="image/png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ügyfélriport – ÉpítésNapló AI PRO</title>
   <meta name="description" content="Biztonságos, csak olvasható ÉpítésNapló ügyfélriport ügyfél jóváhagyással." />
-  <!-- V106: Messenger/Facebook megosztási előnézet – nem fehér alap, hanem ÉpítésNapló arculat -->
+  <link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/favicon.png" />
+  <link rel="shortcut icon" href="https://epitesi-naplo.eu/favicon.ico" />
+  <link rel="apple-touch-icon" href="https://epitesi-naplo.eu/favicon.png" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta property="og:title" content="Ügyfélriport – ÉpítésNapló AI PRO" />
+  <meta property="og:description" content="Biztonságos, csak olvasható ÉpítésNapló ügyfélriport ügyfél jóváhagyással." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="ÉpítésNapló AI PRO" />
+  <meta property="og:url" content="https://epitesi-naplo.eu/view.html" />
+  <meta property="og:image" content="https://epitesi-naplo.eu/og-epitesi-naplo-v108.png" />
+  <meta property="og:image:secure_url" content="https://epitesi-naplo.eu/og-epitesi-naplo-v108.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Ügyfélriport – ÉpítésNapló AI PRO" />
-  <meta name="twitter:description" content="Átadható, csak olvasható építési dokumentáció naplóval, fotókkal és jóváhagyással." />
+  <meta name="twitter:description" content="Biztonságos, csak olvasható ÉpítésNapló ügyfélriport ügyfél jóváhagyással." />
   <meta name="twitter:image" content="https://epitesi-naplo.eu/og-epitesi-naplo-v108.png" />
-  <link rel="stylesheet" href="style.css?v=80" />
-  <style id="v88PublicReportMobileCss">
-    html,body{max-width:100%;overflow-x:hidden}.publicReportView{box-sizing:border-box}.publicReportCard{max-width:min(1050px,calc(100vw - 20px))!important;box-sizing:border-box!important;overflow:hidden!important}#publicReportContent,#publicReportContent *{box-sizing:border-box;max-width:100%}#publicReportContent{overflow-wrap:anywhere}#publicReportContent h1{font-size:clamp(30px,9vw,62px)!important;line-height:1.06!important;word-break:break-word}#publicReportContent h2{font-size:clamp(22px,6.5vw,34px)!important;line-height:1.15!important}#publicReportContent h3{font-size:clamp(18px,5vw,26px)!important;line-height:1.2!important}#publicReportContent p,#publicReportContent li,#publicReportContent td,#publicReportContent th{font-size:clamp(14px,3.8vw,17px)!important;line-height:1.42!important}#publicReportContent table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important}#publicReportContent th,#publicReportContent td{white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;padding:8px 6px!important;vertical-align:top!important}
-    @media(max-width:640px){body{padding:0!important}.publicHero{padding:22px 14px!important}.publicHero h1{font-size:clamp(30px,10vw,48px)!important}.publicActions{display:flex!important;gap:8px!important;flex-wrap:wrap!important}.publicReportView{padding:12px!important}.publicReportCard{padding:14px!important;border-radius:16px!important}#publicReportContent th:nth-child(3),#publicReportContent td:nth-child(3){display:none!important}}
-    @media print{html,body{overflow:visible!important}.publicReportCard{max-width:100%!important;overflow:visible!important}#publicReportContent th:nth-child(3),#publicReportContent td:nth-child(3){display:table-cell!important}}
+  <style>
+    :root{--bg:#07111f;--panel:#0f1f33;--text:#0f172a;--muted:#64748b;--brand:#fbbf24;--brand2:#f59e0b;--ok:#22c55e;--line:#e5e7eb}
+    *{box-sizing:border-box} body{margin:0;background:#07111f;font-family:Arial,Helvetica,sans-serif;color:var(--text)}
+    .top{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,#07111f,#10233c);color:#fff;padding:18px 20px;box-shadow:0 10px 28px rgba(0,0,0,.25)}
+    .topInner{max-width:1060px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:14px}.brand{display:flex;align-items:center;gap:12px}.brand img{width:44px;height:44px;border-radius:14px}.brand h1{font-size:26px;margin:0}.brand p{margin:3px 0 0;color:#b6c7d8}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:900;cursor:pointer;background:#e5e7eb;color:#111827}.btn.primary{background:linear-gradient(135deg,#fbbf24,#f59e0b)}.btn.ghost{background:#17263b;color:#fff;border:1px solid rgba(255,255,255,.14)}.btn:disabled{opacity:.65;cursor:wait}.btn.is-loading{position:relative;opacity:.72}
+    main{max-width:1060px;margin:24px auto;padding:0 16px 28px}.reportWrap{background:#fff;border-radius:18px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}.loading{padding:30px;border-radius:16px;background:#f8fafc;color:#334155;font-weight:800}.reportOpenedBox{margin:0 0 14px;padding:12px 14px;border-radius:12px;background:#dcfce7;color:#14532d;border:1px solid #bbf7d0}.muted{color:#64748b}.approvalBox{margin-top:22px;border:1px solid #f59e0b;background:#fff7ed;border-radius:16px;padding:18px}.approvalBox h2{margin:0 0 8px}.approvalBox input,.approvalBox textarea{width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:12px;margin:7px 0;font-size:15px}.approvalBox textarea{min-height:110px;resize:vertical}.checkLine{display:flex;gap:8px;align-items:center;margin:8px 0 12px;font-weight:700}.approvalActionGrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.hidden{display:none!important}
+    #publicReportContent img{max-width:100%;height:auto;cursor:zoom-in;border-radius:10px}#publicReportContent a:has(img){text-decoration:none!important;cursor:zoom-in!important}#publicReportContent video{max-width:100%;border-radius:10px;cursor:zoom-in}.clientFeedbackBlock,.aiProfessionalContextBlock{break-inside:avoid}
+    .v110Gallery{position:fixed;inset:0;z-index:999999;background:rgba(2,6,23,.93);display:none;align-items:center;justify-content:center;padding:76px 72px 34px}.v110Gallery.open{display:flex}.v110GalleryTop{position:absolute;top:0;left:0;right:0;height:58px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px}.v110GalleryClose{border:0;border-radius:999px;background:#fbbf24;color:#111827;font-weight:900;padding:10px 14px;cursor:pointer}.v110GalleryStage{display:grid;place-items:center;width:100%;height:100%}.v110GalleryStage img,.v110GalleryStage video{max-width:100%;max-height:calc(100vh - 125px);object-fit:contain;border-radius:14px;background:#000}.v110Nav{position:absolute;top:50%;transform:translateY(-50%);width:54px;height:76px;border:1px solid rgba(255,255,255,.22);border-radius:18px;background:rgba(15,23,42,.74);color:#fff;font-size:44px;cursor:pointer}.v110Nav.prev{left:14px}.v110Nav.next{right:14px}.v110Nav:hover{background:#fbbf24;color:#111827}
+    @media(max-width:760px){.topInner{align-items:flex-start;flex-direction:column}.brand h1{font-size:22px}.actions .btn{width:100%}.actions{width:100%}.reportWrap{padding:18px;border-radius:14px}.approvalActionGrid{grid-template-columns:1fr}.v110Gallery{padding:66px 12px 24px}.v110Nav{width:44px;height:58px;font-size:34px}.v110Nav.prev{left:6px}.v110Nav.next{right:6px}}
+    @media print{.top,.approvalBox,.v110Gallery{display:none!important}body{background:#fff}main{max-width:none;margin:0;padding:0}.reportWrap{box-shadow:none;border-radius:0;padding:0}}
   </style>
-
-<style id="v100-final-public-report-fix">
-  .publicReportCard .photos, .publicReportCard .entryImageGrid, .publicReportCard .reportImageGrid, .publicReportCard .v68ReportPhotos{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(112px,112px))!important;gap:12px!important;align-items:start!important;justify-content:start!important;}
-  .publicReportCard .v67ReportPhoto, .publicReportCard .photos figure{width:112px!important;max-width:112px!important;background:#fff!important;border:1px solid #d1d5db!important;border-radius:12px!important;padding:6px!important;margin:0!important;box-sizing:border-box!important;}
-  .publicReportCard .v67ReportPhoto img, .publicReportCard .photos img, .publicReportCard .entryImageGrid img, .publicReportCard .reportImageGrid img, .publicReportCard img.reportPhoto{width:100%!important;height:104px!important;max-width:100%!important;object-fit:cover!important;border-radius:8px!important;display:block!important;cursor:zoom-in!important;}
-  .publicReportCard img:not(.brandIcon):not(.logo):not(.paypal-logo){max-width:120px!important;max-height:120px!important;object-fit:cover!important;border-radius:10px!important;cursor:zoom-in!important;}
-  .approvalActionGrid .btn.is-loading, .btn.is-loading{opacity:.82!important;pointer-events:none!important;position:relative;}
-  .approvalActionGrid .btn.is-loading::after, .btn.is-loading::after{content:'';display:inline-block;width:13px;height:13px;margin-left:8px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-2px;animation:v100spin .75s linear infinite;}
-  @keyframes v100spin{to{transform:rotate(360deg)}}
-</style>
 </head>
 <body>
-  <section class="publicHero">
-    <div class="publicHeroInner">
-      <span class="statusPill">Csak olvasható ügyfélriport</span>
-      <h1>Építési napló ügyfél nézet</h1>
-      <p class="muted">Ez a link a kivitelező által megosztott jelentést mutatja. Szerkeszteni nem lehet.</p>
-      <div class="publicActions"><button class="btn primary" onclick="downloadPublicPdfV25()">PDF letöltés</button><button class="btn ghost" onclick="window.print()">Nyomtatás</button><button class="btn ghost" onclick="copyCurrentLink()">Link másolása</button></div>
+  <header class="top">
+    <div class="topInner">
+      <div class="brand"><img src="https://epitesi-naplo.eu/favicon.png" alt="ÉpítésNapló ikon"><div><h1>Építési napló ügyfél nézet</h1><p>Csak olvasható ügyfélriport. Szerkeszteni nem lehet.</p></div></div>
+      <div class="actions"><button class="btn primary" onclick="downloadPublicPdfV110(this)">PDF letöltés</button><button class="btn ghost" onclick="window.print()">Nyomtatás</button><button class="btn ghost" onclick="copyReportLink(this)">Link másolása</button></div>
     </div>
-  </section>
-  <section id="publicReportView" class="publicReportView"><div class="publicReportCard"><div id="publicReportContent"><p>Riport betöltése...</p></div><div id="approvalBox" class="approvalBox hidden"></div></div></section>
+  </header>
+  <main>
+    <section id="publicReportContent" class="reportWrap"><div class="loading">Riport betöltése...</div></section>
+    <section id="approvalBox" class="approvalBox hidden"></section>
+  </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-adapter.js?v=92"></script><script src="v19-pro-features.js?v=92"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script>
-    let currentToken = '';
-    function safeText(value){ return String(value || '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s])); }
-function ensureMediaViewerModal(){
-      let modal = document.getElementById('mediaViewerModal');
-      if(modal) return modal;
-      modal = document.createElement('div');
-      modal.id = 'mediaViewerModal';
-      modal.className = 'mediaViewerModal hidden';
-      modal.innerHTML = '<div class="mediaViewerTop"><strong id="mediaViewerTitle">Napló fotó</strong><div class="mediaViewerActions"><button class="btn small primary" type="button" onclick="closeMediaViewer()">Bezárás</button></div></div><div id="mediaViewerBody" class="mediaViewerBody"></div>';
-      modal.addEventListener('click', event => { if(event.target === modal) closeMediaViewer(); });
-      document.body.appendChild(modal);
-      return modal;
-    }
-    function openMediaViewer(src, type='image', title=''){
-      const mediaSrc = String(src || '');
-      if(!mediaSrc) return;
-      const mediaTitle = title || (type === 'video' ? 'Munkavideó' : 'Napló fotó');
-      const modal = ensureMediaViewerModal();
-      document.getElementById('mediaViewerTitle').textContent = mediaTitle;
-      document.getElementById('mediaViewerBody').innerHTML = type === 'video'
-        ? `<video id="mediaViewerItem" controls playsinline preload="auto" src="${safeText(mediaSrc)}"></video>`
-        : `<img id="mediaViewerItem" src="${safeText(mediaSrc)}" alt="${safeText(mediaTitle)}" />`;
-      modal.classList.remove('hidden');
-      document.body.classList.add('mediaViewerOpen');
-      const media = document.getElementById('mediaViewerItem');
-      if(media?.tagName === 'VIDEO'){ media.muted = false; media.defaultMuted = false; media.volume = 1; }
-    }
-    window.closeMediaViewer = function(){
-      const body = document.getElementById('mediaViewerBody');
-      if(body) body.innerHTML = '';
-      document.getElementById('mediaViewerModal')?.classList.add('hidden');
-      document.body.classList.remove('mediaViewerOpen');
-    };
-    function mediaDocumentHtml(src, type, title){
-      const safeSrc = safeText(src);
-      const safeTitle = safeText(title || (type === 'video' ? 'Munkavideó' : 'Napló fotó'));
-      const media = type === 'video'
-        ? `<video controls autoplay playsinline src="${safeSrc}"></video>`
-        : `<img src="${safeSrc}" alt="${safeTitle}" />`;
-      return `<!doctype html><html lang="hu"><head><link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/favicon.png"><link rel="shortcut icon" href="https://epitesi-naplo.eu/favicon.ico"><link rel="apple-touch-icon" href="https://epitesi-naplo.eu/favicon.png"><meta name="theme-color" content="#0f172a"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safeTitle}</title><style>body{margin:0;background:#020617;color:#fff;font-family:Arial,sans-serif}.top{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#0f172a}.top a{color:#fbbf24;font-weight:800}.stage{height:calc(100vh - 54px);display:grid;place-items:center;padding:12px;box-sizing:border-box}img,video{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;background:#000}</style>
-<style id="v100-final-public-report-fix">
-  .publicReportCard .photos, .publicReportCard .entryImageGrid, .publicReportCard .reportImageGrid, .publicReportCard .v68ReportPhotos{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(112px,112px))!important;gap:12px!important;align-items:start!important;justify-content:start!important;}
-  .publicReportCard .v67ReportPhoto, .publicReportCard .photos figure{width:112px!important;max-width:112px!important;background:#fff!important;border:1px solid #d1d5db!important;border-radius:12px!important;padding:6px!important;margin:0!important;box-sizing:border-box!important;}
-  .publicReportCard .v67ReportPhoto img, .publicReportCard .photos img, .publicReportCard .entryImageGrid img, .publicReportCard .reportImageGrid img, .publicReportCard img.reportPhoto{width:100%!important;height:104px!important;max-width:100%!important;object-fit:cover!important;border-radius:8px!important;display:block!important;cursor:zoom-in!important;}
-  .publicReportCard img:not(.brandIcon):not(.logo):not(.paypal-logo){max-width:120px!important;max-height:120px!important;object-fit:cover!important;border-radius:10px!important;cursor:zoom-in!important;}
-  .approvalActionGrid .btn.is-loading, .btn.is-loading{opacity:.82!important;pointer-events:none!important;position:relative;}
-  .approvalActionGrid .btn.is-loading::after, .btn.is-loading::after{content:'';display:inline-block;width:13px;height:13px;margin-left:8px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-2px;animation:v100spin .75s linear infinite;}
-  @keyframes v100spin{to{transform:rotate(360deg)}}
-</style>
-</head><body><div class="top"><b>${safeTitle}</b><a href="${safeSrc}" download>Letöltés</a></div><div class="stage">${media}</div>  <script src="view-v108-final-public-fix.js?v=108"></script>
-</body></html>`;
-    }
-    function openPublicMediaInNewTab(src, type='image', title=''){
-      const mediaSrc = String(src || '');
-      if(!mediaSrc) return false;
-      const tab = window.open('', '_blank', 'noopener,noreferrer');
-      if(!tab) {
-        alert('A böngésző blokkolta az új lapot. Engedélyezd a felugró ablakot ehhez az oldalhoz.');
-        return false;
-      }
-      tab.document.open();
-      tab.document.write(mediaDocumentHtml(mediaSrc, type, title));
-      tab.document.close();
-      return false;
-    }
-    async function resolvePublicVideoUrl(video){
-      const src = video?.currentSrc || video?.src || '';
-      if(src) return src;
-      const path = video?.getAttribute?.('data-video-path') || '';
-      if(!path || !window.EpitesNaploAPI?.getPublicReportMediaUrls) return '';
-      const urls = await window.EpitesNaploAPI.getPublicReportMediaUrls(currentToken, [path]);
-      const url = urls?.[path] || '';
-      if(url) {
-        video.src = url;
-      }
-      return url;
-    }
-    function wirePublicMediaClicks(root){
-      root.querySelectorAll('img').forEach(img => {
-        img.classList.add('openableMedia');
-        img.addEventListener('click', () => openMediaViewer(img.currentSrc || img.src, 'image', img.alt || 'Napló fotó'));
-        const tile = img.closest('.reportMediaTile');
-        const link = tile?.querySelector?.('.reportMediaOpen');
-        if(link) link.remove();
-      });
-      root.querySelectorAll('video').forEach(video => {
-        video.classList.add('openableMedia');
-        video.addEventListener('loadedmetadata', () => { video.muted = false; video.volume = 1; });
-        const syncLink = () => {
-          const tile = video.closest('.reportMediaTile');
-          let link = tile?.querySelector?.('.reportMediaOpen');
-          const pending = tile?.querySelector?.('.reportMediaPending');
-          if(link) link.remove();
-          if(pending) pending.remove();
-        };
-        video.addEventListener('loadedmetadata', syncLink);
-        syncLink();
-        const existingLink = video.closest('.reportMediaTile')?.querySelector?.('.reportMediaOpen');
-        if(existingLink) existingLink.remove();
-        video.addEventListener('click', () => openMediaViewer(video.currentSrc || video.src, 'video', 'Munkavideó'));
-      });
-    }
-    function normalizePublicReportNumbers(root){
-      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-      const nodes = [];
-      while(walker.nextNode()) nodes.push(walker.currentNode);
-      nodes.forEach(node => {
-        node.nodeValue = node.nodeValue
-          .replace(/NaN\s*Ft/g, '0 Ft')
-          .replace(/undefined/g, '')
-          .replace(/\s{2,}/g, ' ');
-      });
-    }
-    function formatLegacyDailyText(text){
-      const cleaned = String(text || '').replace(/\s+/g, ' ').trim();
-      if(!cleaned) return '';
-      const chunks = cleaned.split(/(?=20\d{2}\.\s*\d{2}\.\s*\d{2}\.\s*\d{2}:\d{2})/).map(x => x.trim()).filter(Boolean);
-      const items = (chunks.length ? chunks : [cleaned]).slice(0, 40);
-      return `<section class="publicDailyDocReadable">${items.map(item => {
-        const parts = item.split(/(?=\bDátum:|\bÁllapot:|\bAI jelzés:|\bÜgyfélbarát|\bJavítási|\bAnyag \/ eszköz|\bMunkavideó|\bElőtte|\bUtána)/g).map(x => x.trim()).filter(Boolean);
-        const title = parts.shift() || item.slice(0, 90);
-        return `<article class="publicDailyEntry"><b>${safeText(title)}</b>${parts.length ? `<ul>${parts.slice(0, 12).map(part => `<li>${safeText(part)}</li>`).join('')}</ul>` : ''}</article>`;
-      }).join('')}</section>`;
-    }
-    function improvePublicDailyDocumentation(root){
-      const headings = [...root.querySelectorAll('h3,h2')];
-      const dailyHead = headings.find(h => /napi dokument/i.test((h.textContent || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')));
-      if(!dailyHead || dailyHead.nextElementSibling?.classList?.contains('clientReportEntry') || dailyHead.nextElementSibling?.classList?.contains('publicDailyDocReadable')) return;
-      const nodes = [];
-      let node = dailyHead.nextSibling;
-      while(node && !(node.nodeType === 1 && (node.classList?.contains('signatureBox') || /^H[23]$/.test(node.tagName || '')))){
-        const next = node.nextSibling;
-        nodes.push(node);
-        node = next;
-      }
-      const text = nodes.map(n => n.textContent || '').join(' ').trim();
-      if(text.length < 80) return;
-      const wrapper = document.createElement('div');
-      wrapper.innerHTML = formatLegacyDailyText(text);
-      nodes.forEach(n => n.remove());
-      dailyHead.insertAdjacentElement('afterend', wrapper.firstElementChild);
-    }
-    function removeRawMediaDebugText(root){
-      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-      const remove = [];
-      while(walker.nextNode()){ const t = walker.currentNode.nodeValue || ""; const compact = t.trim(); if(!compact) continue; if((compact.length > 250 && /(data:(image|video)\/|\{\s*\"src\"|function\s+report|openReportMediaLink|<script)/i.test(compact)) || /^\{\s*\"src\"/i.test(compact)){ remove.push(walker.currentNode); } }
-      remove.forEach(n => n.remove());
-    }
-    function disablePublicMediaPopupBlockers(root){
-      root.querySelectorAll(".reportMediaOpen").forEach(link => {
-        link.remove();
-      });
-      root.querySelectorAll(".reportMediaPending").forEach(el => el.remove());
-    }
-    function polishPublicReport(root){
-      normalizePublicReportNumbers(root);
-      improvePublicDailyDocumentation(root);
-      removeRawMediaDebugText(root);
-    }
-    function copyCurrentLink(){ navigator.clipboard.writeText(location.href).then(()=>alert('Link kimásolva.')); }
-    async function waitForPublicPdfImagesV70(root){
-      const imgs = Array.from(root.querySelectorAll('img')).filter(img => img.src);
-      await Promise.all(imgs.map(img => {
-        if(img.complete && img.naturalWidth > 0) return Promise.resolve();
-        return new Promise(resolve => {
-          try { img.crossOrigin = img.crossOrigin || 'anonymous'; } catch(_) {}
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
-          setTimeout(resolve, 2500);
-        });
-      }));
-      await new Promise(resolve => setTimeout(resolve, 250));
-    }
-    async function downloadPublicPdfV25(){
-      const el=document.getElementById('publicReportView');
-      await waitForPublicPdfImagesV70(el);
-      if(window.html2pdf){
-        el.classList.add('pdfExportMode');
-        html2pdf().set({margin:8, filename:'epitesi-naplo-ugyfelriport.pdf', image:{type:'jpeg',quality:0.96}, html2canvas:{scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', imageTimeout:8000}, jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}, pagebreak:{mode:['css','legacy'], before:'.v70PageBreakBefore'}}).from(el).save().finally(()=>el.classList.remove('pdfExportMode'));
-      } else window.print();
-    }
-    async function approveReport(decision='accepted'){
-      const name = document.getElementById('clientApproveName').value.trim();
-      const email = document.getElementById('clientApproveEmail').value.trim();
-      const message = document.getElementById('clientApproveMessage')?.value.trim() || '';
-      const ok = document.getElementById('clientApproveCheck').checked;
-      if(!ok) return alert('A jóváhagyáshoz pipáld be a megtekintést.');
-      const labels = { viewed:'Megnéztem', accepted:'Elfogadom', question:'Kérdésem van' };
-      try{ await window.EpitesNaploAPI.approvePublicReport(currentToken, {name,email,decision,message}); document.getElementById('approvalBox').innerHTML='<div class="reportOpenedBox"><b>Visszajelzés mentve: '+(labels[decision] || 'Megnéztem')+'</b><br>Dátum: '+new Date().toLocaleString('hu-HU')+'</div>'; }
-      catch(e){ alert('Jóváhagyás mentési hiba: '+(e.message||e)); }
-    }
-
-    document.addEventListener('click', function(event){
-      const media = event.target.closest('#publicReportContent img, #publicReportContent .v67ReportPhotoOpen, #publicReportContent video');
-      if(!media) return;
-      const isVideo = media.tagName === 'VIDEO';
-      const src = media.getAttribute('href') || media.currentSrc || media.src;
-      if(src){ event.preventDefault(); openMediaViewer(src, isVideo ? 'video' : 'image', isVideo ? 'Munkavideó' : (media.alt || 'Napló fotó')); }
-    });
-    async function load(){
-      currentToken = new URLSearchParams(location.search).get('riport') || new URLSearchParams(location.search).get('token');
-      const box = document.getElementById('publicReportContent');
-      if(!currentToken){ box.innerHTML='<h2>Hiányzó riport azonosító.</h2>'; return; }
-      const report = await window.EpitesNaploAPI.getPublicReport(currentToken);
-      if(!report){ box.innerHTML='<h2>A riport nem található vagy lejárt.</h2><p>Kérj új linket a kivitelezőtől.</p>'; return; }
-      try { await window.EpitesNaploAPI.markPublicReportOpened(currentToken); } catch(e) {}
-      const safeReportHtml = window.EpitesNaploAPI?.sanitizeReportHtml ? window.EpitesNaploAPI.sanitizeReportHtml(report.report_html) : (report.report_html || '<p>A riport üres.</p>');
-      box.innerHTML = '<div class="reportOpenedBox"><b>Riport megnyitva.</b><br>Az oldal csak olvasásra szolgál.</div>' + (safeReportHtml || '<p>A riport üres.</p>');
-      polishPublicReport(box);
-      try { await window.EpitesNaploAPI.hydratePublicReportMedia(currentToken, box); } catch(e) { console.warn(e); }
-      wirePublicMediaClicks(box);
-      setTimeout(()=>wirePublicMediaClicks(box), 300);
-      disablePublicMediaPopupBlockers(box);
-      removeRawMediaDebugText(box);
-      document.getElementById('approvalBox').classList.remove('hidden');
-      document.getElementById('approvalBox').innerHTML = `<h2>Ügyfél visszajelzés</h2><p class="muted">Válaszd ki, mit szeretnél rögzíteni. Ez később bizonyíték lehet, hogy a riportot megnyitottad és milyen visszajelzést adtál.</p><input id="clientApproveName" placeholder="Név / cég" /><input id="clientApproveEmail" placeholder="Email cím (opcionális)" /><textarea id="clientApproveMessage" placeholder="Megjegyzés vagy kérdés (opcionális)"></textarea><label class="checkLine"><input id="clientApproveCheck" type="checkbox" /> Megtekintettem az építési napló riportot.</label><div class="approvalActionGrid"><button class="btn ghost" onclick="approveReport('viewed', this)">Megnéztem</button><button class="btn primary" onclick="approveReport('accepted', this)">Elfogadom</button><button class="btn ghost" onclick="approveReport('question', this)">Kérdésem van</button></div>`;
-      document.title = (report.project_name ? report.project_name + ' – ' : '') + 'Építési Napló';
-    }
-    load();
-  </script>
-  <script>
-    // V76: tiszta PDF export + jóváhagyáskor teljes riport snapshot mentése
-    (function(){
-      function cloneReportForPdf(){
-        const source = document.getElementById('publicReportContent');
-        const stage = document.createElement('div');
-        stage.className = 'v76PdfStage';
-        stage.innerHTML = source ? source.innerHTML : '';
-        stage.querySelectorAll('script,.reportOpenedBox,.reportMediaOpen,.reportMediaPending,.v67PhotoHint,.v67ReportPhoto span,button,.v74Lightbox,.mediaViewerModal').forEach(el => el.remove());
-        stage.querySelectorAll('a.v67ReportPhotoOpen').forEach(a => {
-          const img = a.querySelector('img');
-          if(img) a.replaceWith(img);
-        });
-        stage.querySelectorAll('img').forEach(img => {
-          try { img.crossOrigin = img.crossOrigin || 'anonymous'; } catch(_) {}
-          img.removeAttribute('loading');
-          img.style.display = 'block';
-        });
-        document.body.appendChild(stage);
-        return stage;
-      }
-      async function waitForImages(root){
-        const imgs = Array.from(root.querySelectorAll('img')).filter(img => img.src);
-        await Promise.all(imgs.map(img => {
-          if(img.complete && img.naturalWidth > 0) return Promise.resolve();
-          return new Promise(resolve => {
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
-            setTimeout(resolve, 5000);
-          });
-        }));
-        await new Promise(resolve => setTimeout(resolve, 250));
-      }
-      window.downloadPublicPdfV25 = async function(){
-        const stage = cloneReportForPdf();
-        try{
-          await waitForImages(stage);
-          if(window.html2pdf){
-            await html2pdf().set({
-              margin:[8,8,8,8],
-              filename:'epitesi-naplo-ugyfelriport.pdf',
-              image:{type:'jpeg',quality:0.98},
-              html2canvas:{scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff',imageTimeout:12000},
-              jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-              pagebreak:{mode:['css','legacy'],avoid:['img','figure','.stat','.v74Stat','.photo','.v74Photo']}
-            }).from(stage).save();
-          } else {
-            window.print();
-          }
-        } finally {
-          setTimeout(()=>stage.remove(), 500);
-        }
-      };
-      window.approveReport = async function(decision='accepted', btn=null){
-        const name = document.getElementById('clientApproveName')?.value.trim() || '';
-        const email = document.getElementById('clientApproveEmail')?.value.trim() || '';
-        const message = document.getElementById('clientApproveMessage')?.value.trim() || '';
-        const ok = document.getElementById('clientApproveCheck')?.checked;
-        if(!ok) return alert('A jóváhagyáshoz pipáld be a megtekintést.');
-        const labels = { viewed:'Megnéztem', accepted:'Elfogadom', question:'Kérdésem van' };
-        const buttons = Array.from(document.querySelectorAll('#approvalBox .approvalActionGrid .btn'));
-        const activeBtn = btn || document.activeElement;
-        const oldText = activeBtn && activeBtn.innerText ? activeBtn.innerText : '';
-        buttons.forEach(b => b.disabled = true);
-        if(activeBtn && activeBtn.classList){ activeBtn.classList.add('is-loading'); activeBtn.innerText = 'Mentés folyamatban...'; }
-        const reportNode = document.getElementById('publicReportContent');
-        const reportHtml = reportNode ? reportNode.innerHTML : '';
-        const reportText = reportNode ? reportNode.innerText : '';
-        try{
-          await window.EpitesNaploAPI.approvePublicReport(currentToken, {name,email,decision,message,reportHtml,reportText});
-          const approved = decision === 'accepted';
-          document.getElementById('approvalBox').innerHTML = '<div class="reportOpenedBox"><b>'+(approved?'Jóváhagyás mentve ✔':'Visszajelzés mentve: '+(labels[decision] || 'Megnéztem'))+'</b><br>Dátum: '+new Date().toLocaleString('hu-HU')+'<br><small>'+(approved?'A kivitelező projektjében megjelenik a jóváhagyott saját példány letöltése.':'A visszajelzés rögzítve lett.')+'</small></div>';
-        } catch(e){
-          alert('Jóváhagyás mentési hiba: '+(e.message||e));
-        }
-      };
-    })();
-  </script>
-  <script>
-    // V79: stabil token felismeres, oldalon beluli kepgaleria, teljes ugyfel-visszajelzes snapshot.
-    (function(){
-      function reportTokenV79(){
-        const params = new URLSearchParams(location.search);
-        let token = params.get('riport') || params.get('token') || params.get('report') || params.get('reportToken') || params.get('id') || '';
-        if(!token && location.hash){
-          const hash = location.hash.replace(/^#\/?/, '');
-          const hashParams = new URLSearchParams(hash.includes('=') ? hash : '');
-          token = hashParams.get('riport') || hashParams.get('token') || hashParams.get('report') || hash.replace(/^riport[-/=]?/, '');
-        }
-        if(!token){
-          const parts = location.pathname.split('/').filter(Boolean);
-          const last = parts[parts.length - 1] || '';
-          if(last && last !== 'view.html' && !last.includes('.')) token = last;
-        }
-        if(!token){ try { token = localStorage.getItem('epitesnaplo_last_report_token') || ''; } catch(_) {} }
-        token = String(token || '').trim();
-        if(token){ try { localStorage.setItem('epitesnaplo_last_report_token', token); } catch(_) {} }
-        return token;
-      }
-      function mediaListV79(root){
-        return [...root.querySelectorAll('img,video')]
-          .filter(el => (el.currentSrc || el.src || el.getAttribute('href')) && !el.closest('.mediaViewerModal'))
-          .map(el => ({ src: el.currentSrc || el.src || el.getAttribute('href'), type: el.tagName === 'VIDEO' ? 'video' : 'image', title: el.alt || (el.tagName === 'VIDEO' ? 'Munkavideo' : 'Naplo foto') }));
-      }
-      window.openPublicGalleryV79 = function(index, root){
-        const container = root || document.getElementById('publicReportContent') || document;
-        const items = mediaListV79(container);
-        if(!items.length) return;
-        let current = Math.max(0, Math.min(Number(index || 0), items.length - 1));
-        const modal = ensureMediaViewerModal();
-        modal.classList.add('v79GalleryModal');
-        function render(){
-          const item = items[current];
-          document.getElementById('mediaViewerTitle').textContent = `${item.title || 'Naplo foto'} (${current + 1}/${items.length})`;
-          document.getElementById('mediaViewerBody').innerHTML = `<button class="v79GalleryNav prev" type="button" aria-label="Elozo kep">‹</button><div class="v79GalleryStage">${item.type === 'video' ? `<video id="mediaViewerItem" controls playsinline preload="auto" src="${safeText(item.src)}"></video>` : `<img id="mediaViewerItem" src="${safeText(item.src)}" alt="${safeText(item.title || 'Naplo foto')}" />`}</div><button class="v79GalleryNav next" type="button" aria-label="Kovetkezo kep">›</button>`;
-          document.querySelector('.v79GalleryNav.prev').onclick = (event) => { event.stopPropagation(); current = (current - 1 + items.length) % items.length; render(); };
-          document.querySelector('.v79GalleryNav.next').onclick = (event) => { event.stopPropagation(); current = (current + 1) % items.length; render(); };
-        }
-        render();
-        modal.classList.remove('hidden');
-        document.body.classList.add('mediaViewerOpen');
-      };
-      window.wirePublicMediaClicks = function(root){
-        root.querySelectorAll('a.reportMediaOpen').forEach(link => {
-          const media = link.querySelector('img,video');
-          if(media) link.replaceWith(media);
-          else link.remove();
-        });
-        [...root.querySelectorAll('img,video')].forEach((media, index) => {
-          if(media.dataset.v79Wired === '1') return;
-          media.dataset.v79Wired = '1';
-          media.classList.add('openableMedia');
-          media.addEventListener('click', event => {
-            event.preventDefault();
-            event.stopPropagation();
-            openPublicGalleryV79(index, root);
-          });
-        });
-        root.querySelectorAll('.reportMediaPending').forEach(el => el.remove());
-      };
-      window.disablePublicMediaPopupBlockers = function(root){
-        root.querySelectorAll('.reportMediaOpen').forEach(link => {
-          const media = link.querySelector('img,video');
-          if(media) link.replaceWith(media);
-          else link.remove();
-        });
-        root.querySelectorAll('.reportMediaPending').forEach(el => el.remove());
-      };
-      async function loadPublicReportV79(){
-        currentToken = reportTokenV79();
-        const box = document.getElementById('publicReportContent');
-        if(!currentToken){
-          box.innerHTML = '<h2>Hiányzó riport azonosító.</h2><p>A linkből hiányzik a riport azonosító. A projektoldalon nyomd meg újra az ügyfélriport link létrehozását, majd azt a linket küldd el vagy nyisd meg.</p>';
-          return;
-        }
-        box.innerHTML = '<p>Riport betöltése...</p>';
-        const report = await window.EpitesNaploAPI.getPublicReport(currentToken);
-        if(!report){ box.innerHTML='<h2>A riport nem található vagy lejárt.</h2><p>Kérj új linket a kivitelezőtől.</p>'; return; }
-        try { await window.EpitesNaploAPI.markPublicReportOpened(currentToken); } catch(e) {}
-        const safeReportHtml = window.EpitesNaploAPI?.sanitizeReportHtml ? window.EpitesNaploAPI.sanitizeReportHtml(report.report_html) : (report.report_html || '<p>A riport üres.</p>');
-        box.innerHTML = '<div class="reportOpenedBox"><b>Riport megnyitva.</b><br>Az oldal csak olvasásra szolgál.</div>' + (safeReportHtml || '<p>A riport üres.</p>');
-        try { polishPublicReport(box); } catch(_) {}
-        try { await window.EpitesNaploAPI.hydratePublicReportMedia(currentToken, box); } catch(e) { console.warn(e); }
-        disablePublicMediaPopupBlockers(box);
-        wirePublicMediaClicks(box);
-        document.getElementById('approvalBox').classList.remove('hidden');
-        document.getElementById('approvalBox').innerHTML = `<h2>Ügyfél visszajelzés</h2><p class="muted">Válaszd ki, mit szeretnél rögzíteni. A kivitelezőnél a döntés, név, email és kérdés/megjegyzés is megjelenik.</p><input id="clientApproveName" placeholder="Név / cég" /><input id="clientApproveEmail" placeholder="Email cím (opcionális)" /><textarea id="clientApproveMessage" placeholder="Megjegyzés vagy kérdés (opcionális)"></textarea><label class="checkLine"><input id="clientApproveCheck" type="checkbox" /> Megtekintettem az építési napló riportot.</label><div class="approvalActionGrid"><button class="btn ghost" onclick="approveReport('viewed', this)">Megnéztem</button><button class="btn primary" onclick="approveReport('accepted', this)">Elfogadom</button><button class="btn ghost" onclick="approveReport('question', this)">Kérdésem van</button></div>`;
-        document.title = (report.project_name ? report.project_name + ' - ' : '') + 'Építési Napló';
-      }
-      window.approveReport = async function(decision='accepted', btn=null){
-        const name = document.getElementById('clientApproveName')?.value.trim() || '';
-        const email = document.getElementById('clientApproveEmail')?.value.trim() || '';
-        const message = document.getElementById('clientApproveMessage')?.value.trim() || '';
-        const ok = document.getElementById('clientApproveCheck')?.checked;
-        if(!ok) return alert('A visszajelzéshez pipáld be a megtekintést.');
-        if(decision === 'question' && !message) return alert('Kérdéshez írd be a kérdésedet vagy megjegyzésedet.');
-        const labels = { viewed:'Megnéztem', accepted:'Elfogadom', question:'Kérdésem van' };
-        const buttons = Array.from(document.querySelectorAll('#approvalBox .approvalActionGrid .btn'));
-        const activeBtn = btn || document.activeElement;
-        const oldText = activeBtn && activeBtn.innerText ? activeBtn.innerText : '';
-        buttons.forEach(b => b.disabled = true);
-        if(activeBtn && activeBtn.classList){ activeBtn.classList.add('is-loading'); activeBtn.innerText = 'Mentés folyamatban...'; }
-        const reportNode = document.getElementById('publicReportContent');
-        const baseReportHtml = reportNode ? reportNode.innerHTML : '';
-        const baseReportText = reportNode ? reportNode.innerText : '';
-        const clientBlock = message ? `<section class="clientFeedbackBlock" style="margin:22px 0;padding:16px 18px;border-left:5px solid #f59e0b;background:#fff7ed;border-radius:12px;color:#111827;"><h2 style="margin:0 0 8px;">Ügyfél kérdése / észrevétele</h2><p style="white-space:pre-wrap;margin:0;">${safeText(message)}</p></section>` : '';
-        const aiContextBlock = `<section class="aiProfessionalContextBlock" style="margin:22px 0;padding:16px 18px;border-left:5px solid #22c55e;background:#ecfdf5;border-radius:12px;color:#111827;"><h2 style="margin:0 0 8px;">AI szakmai kiegészítés</h2><p style="margin:0;">A riportban szereplő AI szakmai kontroll a munkafázis ellenőrzési pontjait is rögzíti. Különösen fontos a rétegrend, tömörítés, szint, lejtés, vízelvezetés, fotódokumentáció és a következő munkafázis előtti ellenőrzés dokumentálása.</p></section>`;
-        const approvedReportHtml = baseReportHtml + clientBlock + aiContextBlock;
-        const approvedReportText = baseReportText + (message ? `\n\nÜgyfél kérdése / észrevétele:\n${message}` : '') + `\n\nAI szakmai kiegészítés: A riportban szereplő AI szakmai kontroll a munkafázis ellenőrzési pontjait is rögzíti: rétegrend, tömörítés, szint, lejtés, vízelvezetés, fotódokumentáció és következő lépés.`;
-        try{
-          await window.EpitesNaploAPI.approvePublicReport(currentToken, {
-            name, email, decision, message, clientComment: message,
-            reportHtml: approvedReportHtml,
-            reportText: approvedReportText
-          });
-          document.getElementById('approvalBox').innerHTML = `<div class="reportOpenedBox"><b>Visszajelzés mentve: ${safeText(labels[decision] || 'Megnéztem')}</b><br>Dátum: ${new Date().toLocaleString('hu-HU')}${message ? `<br><small>Kérdés/megjegyzés: ${safeText(message)}</small>` : ''}<br><small>A kivitelező projektoldalán megjelenik és letölthető lesz.</small></div>`;
-        }catch(e){
-          const msg = String(e?.message || e || '');
-          const nice = /timeout|canceling statement|failed to fetch|network/i.test(msg)
-            ? 'A szerver most lassan válaszol. Próbáld újra 1 perc múlva.'
-            : 'Jóváhagyás mentési hiba: ' + msg;
-          const box = document.getElementById('approvalBox');
-          if(box){
-            let note = document.getElementById('approvalErrorNote');
-            if(!note){ note = document.createElement('div'); note.id = 'approvalErrorNote'; note.className='reportOpenedBox'; box.prepend(note); }
-            note.innerHTML = '<b>Nem sikerült menteni.</b><br>' + safeText(nice);
-          } else alert(nice);
-        } finally {
-          buttons.forEach(b => b.disabled = false);
-          if(activeBtn && activeBtn.classList){ activeBtn.classList.remove('is-loading'); if(oldText) activeBtn.innerText = oldText; }
-        }
-      };
-      window.addEventListener('keydown', event => {
-        const modal = document.getElementById('mediaViewerModal');
-        if(!modal || modal.classList.contains('hidden')) return;
-        if(event.key === 'Escape') closeMediaViewer();
-        if(event.key === 'ArrowLeft') document.querySelector('.v79GalleryNav.prev')?.click();
-        if(event.key === 'ArrowRight') document.querySelector('.v79GalleryNav.next')?.click();
-      });
-      loadPublicReportV79();
-    })();
-  </script>
-  <script src="view-v108-final-public-fix.js?v=108"></script>
+  <script src="supabase-adapter.js?v=110"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="view-v110-final-public-clean.js?v=110"></script>
 </body>
 </html>
