@@ -1,12 +1,31 @@
 <!doctype html>
 <html lang="hu">
 <head>
+  <link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/favicon.png">
+  <link rel="icon" type="image/svg+xml" href="https://epitesi-naplo.eu/favicon.svg">
+  <link rel="shortcut icon" href="https://epitesi-naplo.eu/favicon.ico">
+  <link rel="apple-touch-icon" href="https://epitesi-naplo.eu/favicon.png">
+  <meta name="theme-color" content="#0f172a">
+
+  <meta property="og:title" content="Ügyfélriport – ÉpítésNapló AI PRO">
+  <meta property="og:description" content="Átadásra kész építési napló, fotókkal és dokumentációval.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://epitesi-naplo.eu/og-epitesi-naplo-v106.png">
+  <meta property="og:image:secure_url" content="https://epitesi-naplo.eu/og-epitesi-naplo-v106.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Ügyfélriport – ÉpítésNapló AI PRO</title>
   <meta name="description" content="Biztonságos, csak olvasható ÉpítésNapló ügyfélriport ügyfél jóváhagyással." />
+  <!-- V106: Messenger/Facebook megosztási előnézet – nem fehér alap, hanem ÉpítésNapló arculat -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Ügyfélriport – ÉpítésNapló AI PRO" />
+  <meta name="twitter:description" content="Átadható, csak olvasható építési dokumentáció naplóval, fotókkal és jóváhagyással." />
+  <meta name="twitter:image" content="https://epitesi-naplo.eu/og-epitesi-naplo-v106.png" />
   <link rel="stylesheet" href="style.css?v=80" />
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <style id="v88PublicReportMobileCss">
     html,body{max-width:100%;overflow-x:hidden}.publicReportView{box-sizing:border-box}.publicReportCard{max-width:min(1050px,calc(100vw - 20px))!important;box-sizing:border-box!important;overflow:hidden!important}#publicReportContent,#publicReportContent *{box-sizing:border-box;max-width:100%}#publicReportContent{overflow-wrap:anywhere}#publicReportContent h1{font-size:clamp(30px,9vw,62px)!important;line-height:1.06!important;word-break:break-word}#publicReportContent h2{font-size:clamp(22px,6.5vw,34px)!important;line-height:1.15!important}#publicReportContent h3{font-size:clamp(18px,5vw,26px)!important;line-height:1.2!important}#publicReportContent p,#publicReportContent li,#publicReportContent td,#publicReportContent th{font-size:clamp(14px,3.8vw,17px)!important;line-height:1.42!important}#publicReportContent table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important}#publicReportContent th,#publicReportContent td{white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;padding:8px 6px!important;vertical-align:top!important}
     @media(max-width:640px){body{padding:0!important}.publicHero{padding:22px 14px!important}.publicHero h1{font-size:clamp(30px,10vw,48px)!important}.publicActions{display:flex!important;gap:8px!important;flex-wrap:wrap!important}.publicReportView{padding:12px!important}.publicReportCard{padding:14px!important;border-radius:16px!important}#publicReportContent th:nth-child(3),#publicReportContent td:nth-child(3){display:none!important}}
@@ -75,7 +94,7 @@ function ensureMediaViewerModal(){
       const media = type === 'video'
         ? `<video controls autoplay playsinline src="${safeSrc}"></video>`
         : `<img src="${safeSrc}" alt="${safeTitle}" />`;
-      return `<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safeTitle}</title><style>body{margin:0;background:#020617;color:#fff;font-family:Arial,sans-serif}.top{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#0f172a}.top a{color:#fbbf24;font-weight:800}.stage{height:calc(100vh - 54px);display:grid;place-items:center;padding:12px;box-sizing:border-box}img,video{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;background:#000}</style>
+      return `<!doctype html><html lang="hu"><head><link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/favicon.png"><link rel="shortcut icon" href="https://epitesi-naplo.eu/favicon.ico"><link rel="apple-touch-icon" href="https://epitesi-naplo.eu/favicon.png"><meta name="theme-color" content="#0f172a"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safeTitle}</title><style>body{margin:0;background:#020617;color:#fff;font-family:Arial,sans-serif}.top{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#0f172a}.top a{color:#fbbf24;font-weight:800}.stage{height:calc(100vh - 54px);display:grid;place-items:center;padding:12px;box-sizing:border-box}img,video{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;background:#000}</style>
 <style id="v100-final-public-report-fix">
   .publicReportCard .photos, .publicReportCard .entryImageGrid, .publicReportCard .reportImageGrid, .publicReportCard .v68ReportPhotos{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(112px,112px))!important;gap:12px!important;align-items:start!important;justify-content:start!important;}
   .publicReportCard .v67ReportPhoto, .publicReportCard .photos figure{width:112px!important;max-width:112px!important;background:#fff!important;border:1px solid #d1d5db!important;border-radius:12px!important;padding:6px!important;margin:0!important;box-sizing:border-box!important;}

@@ -1,0 +1,7 @@
+V107 javítások
+- V105 stabil alap megtartva, login/Supabase kódhoz nem nyúlva.
+- favicon.png és favicon.ico hozzáadva az SVG mellé, hogy Edge/Chrome/Messenger is biztosabban ikonként lássa.
+- Minden HTML oldal fejléce megkapta az abszolút epitesi-naplo.eu ikon linkeket.
+- A generált riport/HTML/PDF ablakok head részébe is bekerült az ikon link.
+- Facebook/Messenger előnézeti OG kép maradt: og-epitesi-naplo-v106.png.
+- Heti PDF/képnéző javítások a V105 stabil patchből maradtak.
