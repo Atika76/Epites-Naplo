@@ -1549,3 +1549,72 @@ window.EpitesNaploAPI = {
     return true;
   };
 })();
+
+// ===== V110: gyors projekt törlés + Supabase takarítás RPC elsőként =====
+(function(){
+  const api = window.EpitesNaploAPI;
+  const db = window.supabaseDirect;
+  if(!api || !db || api.__v110DeleteFix) return;
+  api.__v110DeleteFix = true;
+  const oldDeleteProject = api.deleteProject?.bind(api);
+  const missing = e => /does not exist|schema cache|not found|relation .* does not exist|function .* does not exist|column .* does not exist|42P01|42703/i.test(String(e?.message || e || ''));
+  async function safeDelete(table, filters){
+    try{
+      let q = db.from(table).delete();
+      (filters || []).forEach(([k,v]) => { q = q.eq(k,v); });
+      const { error } = await q;
+      if(error && !missing(error)) throw error;
+    }catch(e){ if(!missing(e)) throw e; }
+  }
+  api.deleteProject = async function(projectId){
+    const user = await this.getCurrentUser();
+    if(!user) throw new Error('Nincs bejelentkezve.');
+    if(!projectId) throw new Error('Hiányzó projekt azonosító.');
+
+    // 1) Legjobb megoldás: SQL-ben futó takarító RPC, mert nem timeoutol könnyen.
+    try{
+      const { data, error } = await db.rpc('delete_project_full_v110', { p_project_id: projectId });
+      if(!error && data !== false) return true;
+      if(error && !missing(error)) throw error;
+    }catch(e){
+      if(!missing(e)) console.warn('V110 RPC projekt törlés nem sikerült, kliens oldali takarítás indul:', e.message || e);
+    }
+
+    // 2) Fallback: több kisebb, párhuzamos törlés. Ha egy opcionális tábla nincs, nem áll meg.
+    const deletes = [
+      ['report_documents', [['project_id', projectId]]],
+      ['report_approvals', [['project_id', projectId]]],
+      ['public_reports', [['project_id', projectId]]],
+      ['notifications', [['project_id', projectId]]],
+      ['media_files', [['project_id', projectId]]],
+      ['project_members', [['project_id', projectId]]],
+      ['project_materials', [['project_id', projectId]]],
+      ['project_invoices', [['project_id', projectId]]],
+      ['ai_photo_analyses', [['project_id', projectId]]],
+      ['tasks', [['project_id', projectId]]],
+      ['diary_entries', [['project_id', projectId]]],
+      ['entries', [['project_id', projectId]]]
+    ];
+    await Promise.allSettled(deletes.map(([t,f]) => safeDelete(t,f)));
+
+    try{
+      const folder = `${user.id}/${projectId}`;
+      for(const bucket of ['project-videos','project-media','media-files','report-media']){
+        try{
+          const listed = await db.storage.from(bucket).list(folder, { limit:1000 });
+          if(!listed.error && Array.isArray(listed.data) && listed.data.length){
+            const paths = listed.data.map(x => x?.name ? `${folder}/${x.name}` : '').filter(Boolean);
+            for(let i=0;i<paths.length;i+=100){ await db.storage.from(bucket).remove(paths.slice(i,i+100)); }
+          }
+        }catch(_){ }
+      }
+    }catch(e){ console.warn('Storage takarítás figyelmeztetés:', e.message || e); }
+
+    const { error } = await db.from('projects').delete().eq('id', projectId).eq('user_id', user.id);
+    if(error && !missing(error)){
+      if(oldDeleteProject) return oldDeleteProject(projectId);
+      throw error;
+    }
+    return true;
+  };
+})();
