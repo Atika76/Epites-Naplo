@@ -231,6 +231,25 @@
     return '<!doctype html>\n' + doc.documentElement.outerHTML;
   }
 
+
+  function reportExpectedPhotoCount(html){
+    const txt = String(html || '').replace(/<[^>]+>/g,' ');
+    const m = txt.match(/(\d+)\s*fot[óo]/i);
+    return m ? Number(m[1]) : 0;
+  }
+  function reportImageCount(html){
+    const doc = new DOMParser().parseFromString(ensureFullHtml(html), 'text/html');
+    return [...doc.querySelectorAll('img')].filter(img => {
+      const src = img.getAttribute('src') || '';
+      const alt = (img.getAttribute('alt') || '').toLowerCase();
+      return src && !alt.includes('ikon') && !src.includes('favicon');
+    }).length;
+  }
+  function snapshotMissingImages(html){
+    const expected = reportExpectedPhotoCount(html);
+    return expected > 0 && reportImageCount(html) < expected;
+  }
+
   function isBadSnapshot(html){
     const s = String(html || '');
     const plain = s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -264,10 +283,10 @@
     const row = await getApproval(id);
     if(!row) throw new Error('Nem találom az ügyfél visszajelzést. Frissítsd az oldalt.');
     let html = row.approved_report_html || row.report_html_snapshot || row.report_html || '';
-    if(isBadSnapshot(html)){
-      try{ const doc = await window.EpitesNaploAPI?.getReportDocumentByApproval?.(id); if(doc?.html_content && !isBadSnapshot(doc.html_content)) html = doc.html_content; }catch(_){ }
+    if(isBadSnapshot(html) || snapshotMissingImages(html)){
+      try{ const doc = await window.EpitesNaploAPI?.getReportDocumentByApproval?.(id); if(doc?.html_content && !isBadSnapshot(doc.html_content) && !snapshotMissingImages(doc.html_content)) html = doc.html_content; }catch(_){ }
     }
-    if(isBadSnapshot(html)) html = await buildFreshReport();
+    if(isBadSnapshot(html) || snapshotMissingImages(html)) html = await buildFreshReport();
     return { row, html: stamp(html,row) };
   }
   async function documentHtml(id){
@@ -280,7 +299,7 @@
     }
     if(!d) throw new Error('Nem találom a mentett riportot.');
     let html = d.html_content || d.html || '';
-    if(isBadSnapshot(html)) html = await buildFreshReport();
+    if(isBadSnapshot(html) || snapshotMissingImages(html)) html = await buildFreshReport();
     return { doc:d, html: cleanReportHtml(html) };
   }
   function downloadFile(name, html){

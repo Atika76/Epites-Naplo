@@ -955,39 +955,48 @@ window.EpitesNaploAPI = {
     return report || null;
   },
 
-  async getPublicReportMediaUrls(token, paths) {
+  async getPublicReportMediaUrls(token, paths, all = false) {
     const cleanPaths = [...new Set((paths || []).map(p => String(p || "").trim()).filter(Boolean))];
-    if (!token || !cleanPaths.length) return {};
+    if (!token || (!cleanPaths.length && !all)) return all ? [] : {};
 
     const response = await fetch(`${window.EPITESNAPLO_CONFIG.supabaseUrl}/functions/v1/public-report-media`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, paths: cleanPaths })
+      body: JSON.stringify({ token, paths: cleanPaths, all })
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok || result.error) {
       console.warn("Publikus riport média hiba:", result.error || response.statusText);
-      return {};
+      return all ? [] : {};
     }
-    return result.urls || {};
+    return all ? (result.media || []) : (result.urls || {});
+  },
+
+  async getPublicReportAllMedia(token) {
+    return await this.getPublicReportMediaUrls(token, [], true);
   },
 
   async hydratePublicReportMedia(token, root = document) {
-    const videos = [...root.querySelectorAll("video[data-video-path]")];
-    const paths = videos.map(v => v.getAttribute("data-video-path")).filter(Boolean);
+    const medias = [...root.querySelectorAll("video[data-video-path], img[data-media-path], img[data-image-path], img[data-path]")];
+    const paths = medias.map(el => el.getAttribute("data-video-path") || el.getAttribute("data-media-path") || el.getAttribute("data-image-path") || el.getAttribute("data-path")).filter(Boolean);
     if (!paths.length) return;
     const urls = await this.getPublicReportMediaUrls(token, paths);
-    videos.forEach(video => {
-      const path = video.getAttribute("data-video-path");
+    medias.forEach(el => {
+      const path = el.getAttribute("data-video-path") || el.getAttribute("data-media-path") || el.getAttribute("data-image-path") || el.getAttribute("data-path");
       const url = urls[path];
       if (!url) return;
-      video.src = url;
-      video.controls = true;
-      video.playsInline = true;
-      video.preload = "metadata";
-      video.muted = false;
-      video.volume = 1;
-      const tile = video.closest(".reportMediaTile");
+      el.src = url;
+      if (el.tagName === "VIDEO") {
+        el.controls = true;
+        el.playsInline = true;
+        el.preload = "metadata";
+        el.muted = false;
+        el.volume = 1;
+      } else {
+        el.loading = "lazy";
+        el.decoding = "async";
+      }
+      const tile = el.closest(".reportMediaTile");
       const link = tile?.querySelector?.(".reportMediaOpen");
       if (link) {
         link.href = url;
