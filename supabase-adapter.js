@@ -803,8 +803,8 @@ window.EpitesNaploAPI = {
     ]);
     const allowedAttrs = {
       A: new Set(["href", "target", "rel", "class"]),
-      IMG: new Set(["src", "alt", "class"]),
-      VIDEO: new Set(["src", "controls", "playsinline", "preload", "class", "data-video-path"]),
+      IMG: new Set(["src", "alt", "class", "data-media-path", "data-image-path", "data-path", "data-src", "data-full-src", "loading", "decoding", "crossorigin"]),
+      VIDEO: new Set(["src", "controls", "playsinline", "preload", "class", "data-video-path", "data-media-path", "data-path"]),
       DIV: new Set(["class"]),
       SPAN: new Set(["class"]),
       P: new Set(["class"]),
@@ -865,7 +865,7 @@ window.EpitesNaploAPI = {
           if (el.tagName === "VIDEO" && name === "preload" && !["none", "metadata", "auto"].includes(attr.value)) {
             el.setAttribute("preload", "metadata");
           }
-          if (name === "data-video-path" && /(^|\/)\.\.(\/|$)/.test(attr.value)) {
+          if (["data-video-path","data-media-path","data-image-path","data-path","data-src","data-full-src"].includes(name) && /(^|\/)\.\.(\/|$)/.test(attr.value)) {
             el.removeAttribute(attr.name);
           }
           if (name === "src") {
