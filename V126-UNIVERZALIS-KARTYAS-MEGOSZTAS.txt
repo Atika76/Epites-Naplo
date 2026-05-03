@@ -1,0 +1,10 @@
+V126 - Univerzális kártyás ügyfélriport megosztás
+
+Javítás:
+- Nem csak Messengerhez készült.
+- Open Graph + Twitter Card + itemprop meta adatok kerültek a share.html oldalba.
+- Facebook, Messenger, WhatsApp, Viber, Telegram és más appok is kártyás előnézetként tudják felismerni.
+- A megosztott link továbbra is a share.html?riport=... köztes oldalra mutat, onnan nyílik a valódi ügyfélriport.
+
+Fontos:
+- Az appok gyorsítótárazhatják a régi előnézetet. Első megosztásnál vagy régi linknél előfordulhat, hogy még a régi kinézetet mutatják.
