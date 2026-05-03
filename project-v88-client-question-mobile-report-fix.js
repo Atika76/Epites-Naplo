@@ -53,8 +53,8 @@
   </style>`; }
   function ensureHtml(html){
     let out = String(html || '');
-    if(!/<!doctype|<html/i.test(out)) out = `<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(ptitle())}</title></head><body>${out}</body></html>`;
-    if(!/<meta name="viewport"/i.test(out)) out = out.replace('<head>', '<head><meta name="viewport" content="width=device-width,initial-scale=1">');
+    if(!/<!doctype|<html/i.test(out)) out = `<!doctype html><html lang="hu"><head><link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/favicon.png"><link rel="shortcut icon" href="https://epitesi-naplo.eu/favicon.ico"><link rel="apple-touch-icon" href="https://epitesi-naplo.eu/favicon.png"><meta name="theme-color" content="#0f172a"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(ptitle())}</title></head><body>${out}</body></html>`;
+    if(!/<meta name="viewport"/i.test(out)) out = out.replace('<head>', '<head><link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/favicon.png"><link rel="shortcut icon" href="https://epitesi-naplo.eu/favicon.ico"><link rel="apple-touch-icon" href="https://epitesi-naplo.eu/favicon.png"><meta name="theme-color" content="#0f172a"><meta name="viewport" content="width=device-width,initial-scale=1">');
     if(!out.includes('v88MobileReportCss')) out = out.includes('</head>') ? out.replace('</head>', extraCss() + '</head>') : out.replace('<body', `<head>${extraCss()}</head><body`);
     return out;
   }
@@ -81,7 +81,7 @@
     const entries = closeData?.entries || state()?.entries || [];
     const builder = window.buildProReportHtml || (typeof buildProReportHtml === 'function' ? buildProReportHtml : null);
     if(typeof builder === 'function') return { html: builder(entries, `${ptitle()} – jóváhagyott riport`, closeData || {}), entries };
-    return { html:`<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(ptitle())}</title></head><body><h1>${esc(ptitle())}</h1><p>A riport pillanatnyilag nem építhető újra.</p></body></html>`, entries };
+    return { html:`<!doctype html><html lang="hu"><head><link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/favicon.png"><link rel="shortcut icon" href="https://epitesi-naplo.eu/favicon.ico"><link rel="apple-touch-icon" href="https://epitesi-naplo.eu/favicon.png"><meta name="theme-color" content="#0f172a"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(ptitle())}</title></head><body><h1>${esc(ptitle())}</h1><p>A riport pillanatnyilag nem építhető újra.</p></body></html>`, entries };
   }
   async function fullApprovedHtml(id){
     const row = await approvalRow(id);

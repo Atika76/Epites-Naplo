@@ -48,7 +48,7 @@
     // Régi V77/V100/V102 lightbox scriptek kiszedése, különben két bezáró X és dupla kattintás lesz.
     out = out.replace(/<script[^>]*>[\s\S]*?(?:v77Lightbox|v100Lightbox|v102Lightbox|v103Lightbox|v100-report-lightbox|v102-report-lightbox)[\s\S]*?<\/script>/gi, '');
     out = out.replace(/<style[^>]*>[\s\S]*?(?:v100Lightbox|v102Lightbox)[\s\S]*?<\/style>/gi, '');
-    if(!/<!doctype|<html/i.test(out)) out = `<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>${out}</body></html>`;
+    if(!/<!doctype|<html/i.test(out)) out = `<!doctype html><html lang="hu"><head><link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/favicon.png"><link rel="shortcut icon" href="https://epitesi-naplo.eu/favicon.ico"><link rel="apple-touch-icon" href="https://epitesi-naplo.eu/favicon.png"><meta name="theme-color" content="#0f172a"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>${out}</body></html>`;
     if(!/<meta name="viewport"/i.test(out)) out = out.replace(/<head[^>]*>/i, m => m + '<meta name="viewport" content="width=device-width,initial-scale=1">');
     if(!out.includes('v103-report-css')) out = out.includes('</head>') ? out.replace('</head>', reportCss() + '</head>') : out.replace(/<body/i, '<head>' + reportCss() + '</head><body');
     if(!out.includes('v103-report-lightbox-script')) out = out.includes('</body>') ? out.replace('</body>', lightboxScript() + '</body>') : out + lightboxScript();
