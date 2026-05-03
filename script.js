@@ -1,4 +1,4 @@
-﻿let state = {
+let state = {
   user: null,
   subscription: null,
   profile: null,
@@ -1715,7 +1715,111 @@ function copyClientReport() {
   navigator.clipboard.writeText(preview.innerText).then(() => alert('Ügyfélriport szöveg kimásolva.'));
 }
 
-function downloadClientReportPdf() {
+function clientReportPdfFileName(project) {
+  const safe = (value) => String(value || 'riport')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80) || 'riport';
+  return `${safe(reportTitle())}-${safe(project?.name || 'ugyfelriport')}.pdf`;
+}
+
+function buildClientReportPrintableHtml(project, previewHtml) {
+  const title = `${reportTitle()} – ${project?.name || 'Ügyfélriport'}`;
+  const generated = new Date().toLocaleString('hu-HU');
+  return `
+    <div class="v131PdfPage">
+      <div class="v131PdfHeader">
+        <div>
+          <span class="v131PdfBadge">Átadásra kész dokumentáció</span>
+          <h1>${escapeHtml(title)}</h1>
+          <p>Generálva: ${escapeHtml(generated)} • ÉpítésNapló AI PRO</p>
+        </div>
+      </div>
+      <div class="v131PdfBody">
+        ${previewHtml}
+      </div>
+    </div>
+  `;
+}
+
+function clientReportPrintCss() {
+  return `
+    <style>
+      *{box-sizing:border-box}
+      body{margin:0;background:#fff;color:#111827;font-family:Arial,Helvetica,sans-serif;line-height:1.45}
+      .v131PdfPage{width:100%;max-width:1040px;margin:0 auto;padding:28px;background:#fff;color:#111827}
+      .v131PdfHeader{border-bottom:4px solid #f59e0b;padding-bottom:18px;margin-bottom:22px}
+      .v131PdfBadge{display:inline-block;background:#fef3c7;color:#92400e;border-radius:999px;padding:8px 14px;font-weight:800;margin-bottom:12px}
+      h1{font-size:30px;margin:10px 0 8px;color:#111827}
+      h2,h3,h4{color:#111827;margin:20px 0 10px}
+      p,li,small,span,b{color:#111827}
+      .clientReportHeader,.clientReportEntry,.notice,.reportText,.signatureBox{background:#f9fafb!important;color:#111827!important;border:1px solid #e5e7eb!important;border-radius:14px!important;padding:16px!important;margin:14px 0!important}
+      .reportGrid,.compactReportStats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;margin:14px 0!important}
+      .reportGrid>div,.compactReportStats>div{background:#f3f4f6!important;border:1px solid #e5e7eb!important;border-radius:12px!important;padding:12px!important;color:#111827!important}
+      .reportGrid b,.compactReportStats b{display:block;color:#d97706!important;font-size:20px!important}
+      .reportImageGrid,.entryPhotoGrid,.photoGrid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;margin-top:12px!important}
+      .reportImageTile,.entryPhotoTile,.reportImageGrid a,.reportImageGrid img{break-inside:avoid}
+      img{max-width:100%!important;height:auto!important;object-fit:cover!important;border-radius:10px!important;border:1px solid #d1d5db!important;background:#fff!important}
+      a{color:#111827!important;text-decoration:none!important}
+      button,.btn,.noPrint{display:none!important}
+      ul{padding-left:22px}
+      table{width:100%;border-collapse:collapse}
+      td,th{border-bottom:1px solid #e5e7eb;padding:8px;text-align:left;color:#111827}
+      @media print{
+        body{background:#fff!important}
+        .v131PdfPage{max-width:none;padding:18mm}
+        .clientReportEntry{break-inside:avoid}
+        .reportImageGrid,.entryPhotoGrid,.photoGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+      }
+    </style>
+  `;
+}
+
+function waitForImagesV131(root, timeoutMs = 4500) {
+  const imgs = Array.from(root.querySelectorAll('img'));
+  if (!imgs.length) return Promise.resolve();
+  return new Promise(resolve => {
+    let done = 0;
+    let finished = false;
+    const finish = () => {
+      if (!finished && ++done >= imgs.length) {
+        finished = true;
+        resolve();
+      }
+    };
+    imgs.forEach(img => {
+      try { img.crossOrigin = 'anonymous'; } catch(_) {}
+      if (img.complete) finish();
+      else {
+        img.addEventListener('load', finish, { once:true });
+        img.addEventListener('error', finish, { once:true });
+      }
+    });
+    setTimeout(() => {
+      if (!finished) {
+        finished = true;
+        resolve();
+      }
+    }, timeoutMs);
+  });
+}
+
+function openClientReportPrintWindowV131(project, previewHtml) {
+  const filename = clientReportPdfFileName(project);
+  const docHtml = `<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(filename)}</title>${clientReportPrintCss()}</head><body>${buildClientReportPrintableHtml(project, previewHtml)}<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),400));<\/script></body></html>`;
+  const w = window.open('', '_blank');
+  if (!w) {
+    alert('A böngésző blokkolta az új ablakot. Engedélyezd az előugró ablakot, és próbáld újra.');
+    return;
+  }
+  w.document.open();
+  w.document.write(docHtml);
+  w.document.close();
+}
+
+async function downloadClientReportPdf() {
   const limit = currentLimit();
 
   if (!limit.canPdf) {
@@ -1723,23 +1827,79 @@ function downloadClientReportPdf() {
     return;
   }
 
-  const preview = document.getElementById('clientReportPreview');
+  const projectId = selectedClientProjectId();
+  if (!projectId) {
+    alert('Előbb válassz projektet.');
+    return;
+  }
+
+  let preview = document.getElementById('clientReportPreview');
   if (!preview || preview.innerText.includes('Még nincs előkészített')) {
+    generateClientReport();
+    preview = document.getElementById('clientReportPreview');
+  }
+
+  if (!preview || !preview.innerText.trim() || preview.innerText.includes('Még nincs előkészített')) {
     alert('Előbb készíts ügyfélriportot.');
     return;
   }
 
-  const projectId = selectedClientProjectId();
   const project = state.projects.find(p => p.id === projectId);
-  const filename = `${reportTitle().replaceAll(' ', '-')}-${(project?.name || 'riport').replaceAll(' ', '-')}.pdf`;
+  const filename = clientReportPdfFileName(project);
+  const sourceHtml = preview.innerHTML;
 
-  html2pdf().set({
-    margin: 10,
-    filename,
-    image: { type: 'jpeg', quality: 0.92 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }).from(preview).save();
+  const btn = document.activeElement && document.activeElement.tagName === 'BUTTON' ? document.activeElement : null;
+  const originalText = btn ? btn.textContent : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'PDF készül…';
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.id = 'v131ClientPdfWrapper';
+  wrapper.style.position = 'fixed';
+  wrapper.style.left = '-10000px';
+  wrapper.style.top = '0';
+  wrapper.style.width = '1040px';
+  wrapper.style.background = '#ffffff';
+  wrapper.style.color = '#111827';
+  wrapper.style.zIndex = '-1';
+  wrapper.innerHTML = clientReportPrintCss() + buildClientReportPrintableHtml(project, sourceHtml);
+  document.body.appendChild(wrapper);
+
+  try {
+    await waitForImagesV131(wrapper);
+
+    if (typeof html2pdf === 'function') {
+      await html2pdf().set({
+        margin: 8,
+        filename,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: 1040
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'], avoid: ['.clientReportEntry', '.reportImageTile', 'img'] }
+      }).from(wrapper).save();
+    } else {
+      openClientReportPrintWindowV131(project, sourceHtml);
+    }
+  } catch (err) {
+    console.error('PDF export hiba:', err);
+    openClientReportPrintWindowV131(project, sourceHtml);
+  } finally {
+    try { wrapper.remove(); } catch(_) {}
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = originalText || 'PDF jelentés letöltése';
+    }
+  }
 }
 
 function createShareText() {

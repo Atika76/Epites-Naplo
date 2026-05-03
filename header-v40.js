@@ -55,6 +55,30 @@
     }
   }
 
+
+  function v130OpenReportNav(event){
+    if(event && typeof event.preventDefault === 'function') event.preventDefault();
+    closeMenu();
+    try{
+      if(typeof window.openReportCenterV69 === 'function'){
+        window.openReportCenterV69();
+        return false;
+      }
+      const params = new URLSearchParams(window.location.search);
+      const pidFromUrl = params.get('id') || params.get('project') || '';
+      const pid = pidFromUrl || localStorage.getItem('epitesnaplo_last_project_id') || localStorage.getItem('epitesnaplo_current_project_id') || '';
+      if(pid){
+        window.location.href = 'project.html?id=' + encodeURIComponent(pid) + '&openReport=1';
+        return false;
+      }
+      window.location.href = 'index.html#naplo';
+    }catch(_){
+      window.location.href = 'index.html#naplo';
+    }
+    return false;
+  }
+  window.v130OpenReportNav = v130OpenReportNav;
+
   function renderCommonNav(user, isAdmin){
     const current = page();
     const logged = !!user;
@@ -63,7 +87,7 @@
     const logoutBtn = `<button id="${logoutId}" class="btn small ghost" type="button" onclick="window.location.href='logout.html'">Kilépés</button>`;
     const reportNav = current === 'project.html'
       ? `<a href="#reportCenterV69" onclick="event.preventDefault(); if(typeof window.openReportCenterV69 === 'function'){ window.openReportCenterV69(); }">Riport</a>`
-      : '<a href="view.html">Riport</a>';
+      : '<a href="#riport" onclick="return window.v130OpenReportNav(event)">Riport</a>';
     return `
       <a href="index.html#home">Főoldal</a>
       <a href="index.html#naplo">Napló</a>

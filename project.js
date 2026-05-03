@@ -4754,3 +4754,53 @@ document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeReportCe
     }finally{ done(); }
   };
 })();
+
+
+// ===== V130: közös fejléc Riport gomb javítás =====
+// A Riport gomb ne nyissa meg a view.html oldalt azonosító nélkül.
+// Projektoldalon a Riportok és átadás ablak nyílik meg, más oldalról pedig visszahoz ide.
+(function(){
+  if(window.__v130ReportNavFix) return;
+  window.__v130ReportNavFix = true;
+
+  function getV130ProjectId(){
+    try{
+      const p = new URLSearchParams(window.location.search);
+      return p.get('id') || p.get('project') || (window.detailState && window.detailState.project && window.detailState.project.id) || '';
+    }catch(_){ return ''; }
+  }
+
+  function rememberV130Project(){
+    try{
+      const pid = getV130ProjectId();
+      if(pid){
+        localStorage.setItem('epitesnaplo_last_project_id', pid);
+        localStorage.setItem('epitesnaplo_current_project_id', pid);
+      }
+    }catch(_){}
+  }
+
+  function openV130ReportCenterFromUrl(){
+    try{
+      const p = new URLSearchParams(window.location.search);
+      if(p.get('openReport') !== '1') return;
+      rememberV130Project();
+      let tries = 0;
+      const timer = setInterval(() => {
+        tries++;
+        if(typeof window.openReportCenterV69 === 'function'){
+          clearInterval(timer);
+          window.openReportCenterV69();
+        }else if(tries > 20){
+          clearInterval(timer);
+        }
+      }, 150);
+    }catch(_){}
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    rememberV130Project();
+    setTimeout(rememberV130Project, 600);
+    setTimeout(openV130ReportCenterFromUrl, 350);
+  });
+})();
