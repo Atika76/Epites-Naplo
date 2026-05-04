@@ -911,7 +911,9 @@ function renderPayPal() {
 
   const creditProducts = [
     { id: 'paypal-ai-credit-1', credits: 1, name: '1 AI riport kredit', amount: '390' },
-    { id: 'paypal-ai-credit-10', credits: 10, name: '10 AI riport kredit', amount: '2990' }
+    { id: 'paypal-ai-credit-10', credits: 10, name: '10 AI riport kredit', amount: '2990' },
+    { id: 'paypal-ai-credit-1-home', credits: 1, name: '1 AI riport kredit', amount: '390' },
+    { id: 'paypal-ai-credit-10-home', credits: 10, name: '10 AI riport kredit', amount: '2990' }
   ];
 
   creditProducts.forEach(product => {
@@ -2384,7 +2386,7 @@ function preparePaidAiReportOffer() {
       <div class="creditBuyCard"><b>1 AI riport</b><strong>390 Ft</strong><div id="paypal-ai-credit-1" class="paypalBox"></div></div>
       <div class="creditBuyCard"><b>10 AI riport</b><strong>2 990 Ft</strong><small>jobb ár, több projekthez</small><div id="paypal-ai-credit-10" class="paypalBox"></div></div>
     </div>
-    <p class="muted">Fizetés után a kredit automatikusan jóváíródik a fiókodhoz. Egy részletes AI riport 1 kreditet használ fel.</p>`);
+    <p class="muted">Fizetés után a kredit automatikusan jóváíródik a fiókodhoz. A kredit darabszámát a Fiók állapotnál látod. Egy részletes AI riport 1 kreditet használ fel.</p>`);
   renderPayPal();
 }
 

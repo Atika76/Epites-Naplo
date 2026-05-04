@@ -1698,3 +1698,80 @@ window.EpitesNaploAPI = {
     throw new Error('Projekt törlés nem sikerült. Futtasd a supabase-pro-v117-cleanup-and-fast-delete.sql fájlt.');
   };
 })();
+
+
+// ===== V138: projekt törlés után ne maradjanak árva riportok / események =====
+(function(){
+  const api = window.EpitesNaploAPI;
+  const db = window.supabaseDirect;
+  if(!api || !db || api.__v138ReportCleanupDeleteFix) return;
+  api.__v138ReportCleanupDeleteFix = true;
+  const oldDeleteProject = api.deleteProject?.bind(api);
+  const missing = e => /does not exist|schema cache|not found|relation .* does not exist|function .* does not exist|column .* does not exist|42P01|42703|PGRST/i.test(String(e?.message || e || ''));
+  const uniq = a => [...new Set((a||[]).map(x=>String(x||'').trim()).filter(Boolean))];
+  async function getProjectName(projectId, userId){
+    try{ const { data } = await db.from('projects').select('name').eq('id', projectId).eq('user_id', userId).maybeSingle(); return String(data?.name || '').trim(); }catch(_){ return ''; }
+  }
+  async function selectRows(table, build){
+    try{ let q = db.from(table).select('*'); q = build ? build(q) : q; const { data, error } = await q; if(error && !missing(error)) throw error; return data || []; }catch(e){ if(!missing(e)) console.warn('V138 select hiba '+table+':', e.message||e); return []; }
+  }
+  function rowMatchesProject(row, projectId, projectName){
+    if(String(row?.project_id || '') === String(projectId)) return true;
+    if(projectName){
+      const hay = JSON.stringify(row || {}).toLowerCase();
+      if(hay.includes(projectName.toLowerCase())) return true;
+    }
+    return false;
+  }
+  async function deleteById(table, ids){
+    ids = uniq(ids);
+    for(let i=0;i<ids.length;i+=50){
+      const chunk = ids.slice(i,i+50);
+      try{ const { error } = await db.from(table).delete().in('id', chunk); if(error && !missing(error)) throw error; }catch(e){ if(!missing(e)) console.warn('V138 delete id hiba '+table+':', e.message||e); }
+    }
+  }
+  async function deleteWhere(table, filters){
+    try{ let q = db.from(table).delete(); (filters||[]).forEach(([k,op,v])=>{ if(op==='eq') q=q.eq(k,v); else if(op==='is') q=q.is(k,v); }); const { error } = await q; if(error && !missing(error)) throw error; }catch(e){ if(!missing(e)) console.warn('V138 delete hiba '+table+':', e.message||e); }
+  }
+  async function deleteEvents(reportIds, tokens, projectId){
+    await deleteWhere('report_events', [['project_id','eq',projectId]]);
+    for(const [col, vals] of [['report_id', reportIds], ['token', tokens]]){
+      const arr = uniq(vals);
+      for(let i=0;i<arr.length;i+=50){
+        try{ const { error } = await db.from('report_events').delete().in(col, arr.slice(i,i+50)); if(error && !missing(error)) throw error; }catch(e){ if(!missing(e)) console.warn('V138 report_events cleanup hiba:', e.message||e); }
+      }
+    }
+  }
+  async function cleanupProjectReports(projectId, userId, projectName){
+    // Projektazonosítóval mentett rekordok.
+    await deleteWhere('report_documents', [['project_id','eq',projectId]]);
+    await deleteWhere('report_approvals', [['project_id','eq',projectId]]);
+    await deleteWhere('public_reports', [['project_id','eq',projectId]]);
+
+    // Régebbi verziók néha NULL project_id-val mentettek riportot. Ezeket név/tartalom alapján takarítjuk.
+    const publicRows = await selectRows('public_reports', q => q.eq('user_id', userId));
+    const matchedPublic = publicRows.filter(r => rowMatchesProject(r, projectId, projectName));
+    const reportIds = matchedPublic.map(r=>r.id);
+    const tokens = matchedPublic.map(r=>r.token);
+    await deleteEvents(reportIds, tokens, projectId);
+    await deleteById('public_reports', reportIds);
+
+    const docRows = await selectRows('report_documents', q => q.limit(500));
+    const matchedDocs = docRows.filter(r => rowMatchesProject(r, projectId, projectName));
+    await deleteById('report_documents', matchedDocs.map(r=>r.id));
+
+    const approvalRows = await selectRows('report_approvals', q => q.limit(500));
+    const matchedApprovals = approvalRows.filter(r => rowMatchesProject(r, projectId, projectName));
+    await deleteById('report_approvals', matchedApprovals.map(r=>r.id));
+  }
+  api.deleteProject = async function(projectId){
+    const user = await this.getCurrentUser?.();
+    if(!user) throw new Error('Nincs bejelentkezve.');
+    if(!projectId) throw new Error('Hiányzó projekt azonosító.');
+    const projectName = await getProjectName(projectId, user.id);
+    await cleanupProjectReports(projectId, user.id, projectName);
+    const result = oldDeleteProject ? await oldDeleteProject(projectId) : true;
+    await cleanupProjectReports(projectId, user.id, projectName);
+    return result;
+  };
+})();
