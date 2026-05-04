@@ -1775,3 +1775,24 @@ window.EpitesNaploAPI = {
     return result;
   };
 })();
+
+// ===== V139: árva riportok takarítása + delete RPC bekötés =====
+(function(){
+  const api = window.EpitesNaploAPI;
+  const db = window.supabaseDirect;
+  if(!api || !db || api.__v139OrphanReportCleanup) return;
+  api.__v139OrphanReportCleanup = true;
+  const oldDeleteProject = api.deleteProject?.bind(api);
+  api.cleanupMyOrphanReportsV139 = async function(){
+    const { data, error } = await db.rpc('cleanup_my_orphan_reports_v139');
+    if(error) throw error;
+    return data || {};
+  };
+  api.deleteProject = async function(projectId){
+    if(!projectId) throw new Error('Hiányzó projekt azonosító.');
+    try{ await db.rpc('delete_project_reports_v138', { p_project_id: projectId }); }catch(e){ console.warn('V139 projekt-riport előtakarítás hiba:', e?.message || e); }
+    const result = oldDeleteProject ? await oldDeleteProject(projectId) : true;
+    try{ await db.rpc('delete_project_reports_v138', { p_project_id: projectId }); }catch(e){ console.warn('V139 projekt-riport utótakarítás hiba:', e?.message || e); }
+    return result;
+  };
+})();

@@ -242,7 +242,7 @@ function fileToDataUrl(file) {
   });
 }
 
-async function compressImageFile(file, maxSide = 1600, quality = 0.72) {
+async function compressImageFile(file, maxSide = 1200, quality = 0.64) {
   if (!String(file?.type || '').startsWith('image/')) return '';
   const original = await fileToDataUrl(file);
   if (!original) return '';

@@ -3402,3 +3402,21 @@ function requireLoginV38(message){
     }
   };
 })();
+
+// ===== V139: admin riport-takarító gomb =====
+window.cleanupOrphanReportsV139 = async function(btn){
+  if(!confirm('Biztosan törlöd a régi, projekthez már nem tartozó riportokat és megnyitási eseményeket?')) return;
+  const old = btn ? btn.innerText : '';
+  try{
+    if(btn){ btn.disabled = true; btn.innerText = 'Takarítás folyamatban...'; }
+    if(!window.EpitesNaploAPI?.cleanupMyOrphanReportsV139){
+      throw new Error('Hiányzik a V139 takarító függvény. Futtasd le a supabase-v139-egress-report-cleanup.sql fájlt Supabase SQL Editorban.');
+    }
+    const res = await window.EpitesNaploAPI.cleanupMyOrphanReportsV139();
+    alert('Takarítás kész.\npublic_reports: '+(res.public_reports_deleted||0)+'\nreport_documents: '+(res.report_documents_deleted||0)+'\nreport_approvals: '+(res.report_approvals_deleted||0)+'\nreport_events: '+(res.report_events_deleted||0));
+  }catch(e){
+    alert('Takarítás hiba: '+(e.message || e)+'\nHa ezt látod, futtasd le egyszer a supabase-v139-egress-report-cleanup.sql fájlt.');
+  }finally{
+    if(btn){ btn.disabled = false; btn.innerText = old || 'Régi riportok és események takarítása'; }
+  }
+};
