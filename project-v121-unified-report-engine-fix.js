@@ -129,7 +129,7 @@
       <p class="muted" style="word-break:break-all;user-select:all;">${safeLink}</p>
       <div class="v124ClientLinkActions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
         <button class="btn ghost" type="button" onclick="navigator.clipboard.writeText('${safeLink}').then(()=>alert('Link kimásolva'))">Link másolása</button>
-        <button class="btn ghost" type="button" onclick="if(navigator.share){navigator.share({title:'Ügyfélriport – ÉpítésNapló AI PRO',text:'Fotókkal igazolt, csak olvasható építési riport.',url:'${safeLink}'})}else{navigator.clipboard.writeText('${safeLink}');alert('Link kimásolva')}}">Megosztás</button>
+        <button class="btn ghost" type="button" onclick="if(navigator.share){navigator.share({title:'Ügyfélriport – ÉpítésNapló AI PRO',url:'${safeLink}'})}else{navigator.clipboard.writeText('${safeLink}');alert('Link kimásolva')}}">Megosztás</button>
       </div>
     </div>`;
     try { await navigator.clipboard.writeText(link); } catch(_) {}

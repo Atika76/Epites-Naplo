@@ -15,8 +15,8 @@
   <meta property="og:title" content="Ügyfélriport – ÉpítésNapló AI PRO" />
   <meta property="og:description" content="Fotókkal igazolt, csak olvasható építési riport. Képgaléria, PDF, dokumentáció és ügyfél jóváhagyás." />
   <meta property="og:url" content="https://epitesi-naplo.eu/share.html" />
-  <meta property="og:image" content="https://epitesi-naplo.eu/og-ugyfelriport-card.png" />
-  <meta property="og:image:secure_url" content="https://epitesi-naplo.eu/og-ugyfelriport-card.png" />
+  <meta property="og:image" content="https://epitesi-naplo.eu/og-ugyfelriport-card.png?v=145" />
+  <meta property="og:image:secure_url" content="https://epitesi-naplo.eu/og-ugyfelriport-card.png?v=145" />
   <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -26,12 +26,12 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Ügyfélriport – ÉpítésNapló AI PRO" />
   <meta name="twitter:description" content="Fotókkal igazolt, csak olvasható építési riport." />
-  <meta name="twitter:image" content="https://epitesi-naplo.eu/og-ugyfelriport-card.png" />
+  <meta name="twitter:image" content="https://epitesi-naplo.eu/og-ugyfelriport-card.png?v=145" />
 
   <!-- Google/Telegram extra képjelzések -->
   <meta itemprop="name" content="Ügyfélriport – ÉpítésNapló AI PRO" />
   <meta itemprop="description" content="Kártyásan megosztható építési ügyfélriport." />
-  <meta itemprop="image" content="https://epitesi-naplo.eu/og-ugyfelriport-card.png" />
+  <meta itemprop="image" content="https://epitesi-naplo.eu/og-ugyfelriport-card.png?v=145" />
   <meta name="theme-color" content="#0f172a" />
 
   <style>
@@ -61,6 +61,7 @@
       var token=p.get('riport')||p.get('token')||p.get('report')||p.get('id')||'';
       var target=new URL('view.html', location.href);
       if(token) target.searchParams.set('riport', token);
+      target.searchParams.set('v','145');
       var btn=document.getElementById('openBtn');
       btn.href=target.href;
       setTimeout(function(){ location.replace(target.href); }, 700);
