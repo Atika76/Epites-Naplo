@@ -19,7 +19,7 @@ let state = {
 const PLAN_LIMITS = {
   guest: { label: 'Vendég', maxProjects: 0, canAddEntries: false, canUseAI: false, canPdf: false, canClientReport: false },
   trial: { label: '1 hét ingyenes próba', maxProjects: 1, canAddEntries: true, canUseAI: false, canPdf: false, canClientReport: false },
-  starter: { label: 'Starter csomag', maxProjects: 3, canAddEntries: true, canUseAI: true, canPdf: true, canClientReport: true },
+  starter: { label: 'Alap csomag', maxProjects: 3, canAddEntries: true, canUseAI: true, canPdf: true, canClientReport: true },
   pro: { label: 'Pro csomag', maxProjects: 15, canAddEntries: true, canUseAI: true, canPdf: true, canClientReport: true },
   business: { label: 'Business csomag', maxProjects: 9999, canAddEntries: true, canUseAI: true, canPdf: true, canClientReport: true },
   expired: { label: 'Lejárt csomag', maxProjects: 0, canAddEntries: false, canUseAI: false, canPdf: false, canClientReport: false }
@@ -853,9 +853,9 @@ function renderPayPal() {
   if (!window.paypal) return;
 
   const plans = [
-    { id: 'paypal-starter', key: 'starter', name: 'Starter', amount: '9900' },
-    { id: 'paypal-pro', key: 'pro', name: 'Pro', amount: '19900' },
-    { id: 'paypal-business', key: 'business', name: 'Business első hónap', amount: '19900' }
+    { id: 'paypal-starter', key: 'starter', name: 'Alap', amount: '2990' },
+    { id: 'paypal-pro', key: 'pro', name: 'Pro', amount: '4990' },
+    { id: 'paypal-business', key: 'business', name: 'Business', amount: '8990' }
   ];
 
   plans.forEach(plan => {
@@ -910,8 +910,8 @@ function renderPayPal() {
   });
 
   const creditProducts = [
-    { id: 'paypal-ai-credit-1', credits: 1, name: '1 AI riport kredit', amount: '990' },
-    { id: 'paypal-ai-credit-10', credits: 10, name: '10 AI riport kredit', amount: '4990' }
+    { id: 'paypal-ai-credit-1', credits: 1, name: '1 AI riport kredit', amount: '390' },
+    { id: 'paypal-ai-credit-10', credits: 10, name: '10 AI riport kredit', amount: '2990' }
   ];
 
   creditProducts.forEach(product => {
@@ -966,7 +966,7 @@ function checkProjectLimit() {
   }
 
   if (state.projects.length >= limit.maxProjects) {
-    alert(`Az ingyenes csomag maximum ${limit.maxProjects} projektet enged. Több projekthez válassz Starter, Pro vagy Business csomagot.`);
+    alert(`Az ingyenes csomag maximum ${limit.maxProjects} projektet enged. Több projekthez válassz Alap, Pro vagy Business csomagot.`);
     return false;
   }
 
@@ -1352,12 +1352,12 @@ function render() {
     ${isAdmin() ? `
       <div class="adminPlanTester">
         <b>Admin csomag teszt:</b>
-        <p>Ezzel fizetés nélkül kipróbálhatod, mit lát a Próba / Starter / Pro / Business / Lejárt felhasználó.</p>
+        <p>Ezzel fizetés nélkül kipróbálhatod, mit lát a Próba / Alap / Pro / Business / Lejárt felhasználó.</p>
         <div class="adminPlanButtons">
           <button class="btn small ghost" onclick="setAdminTestPlan('trial')">Próba</button>
-          <button class="btn small ghost" onclick="setAdminTestPlan('starter')">Starter 9 900</button>
-          <button class="btn small ghost" onclick="setAdminTestPlan('pro')">Pro 19 900</button>
-          <button class="btn small ghost" onclick="setAdminTestPlan('business')">Business 39 900</button>
+          <button class="btn small ghost" onclick="setAdminTestPlan('starter')">Alap 2 990</button>
+          <button class="btn small ghost" onclick="setAdminTestPlan('pro')">Pro 4 990</button>
+          <button class="btn small ghost" onclick="setAdminTestPlan('business')">Business 8 990</button>
           <button class="btn small ghost" onclick="setAdminTestPlan('expired')">Lejárt nézet</button>
           <button class="btn small primary" onclick="clearAdminTestPlan()">Teljes admin</button>
         </div>
@@ -1637,7 +1637,7 @@ function generateClientReport() {
   }
 
   if (!limit.canClientReport) {
-    alert('Az ügyfélriport fizetős funkció. Válassz Starter, Pro vagy Business csomagot.');
+    alert('Az ügyfélriport fizetős funkció. Válassz Alap, Pro vagy Business csomagot.');
     return;
   }
 
@@ -1823,7 +1823,7 @@ async function downloadClientReportPdf() {
   const limit = currentLimit();
 
   if (!limit.canPdf) {
-    alert('PDF export fizetős funkció. Válassz Starter, Pro vagy Business csomagot.');
+    alert('PDF export fizetős funkció. Válassz Alap, Pro vagy Business csomagot.');
     return;
   }
 
@@ -1937,7 +1937,7 @@ async function createAndCopyClientLink() {
   const limit = currentLimit();
 
   if (!limit.canClientReport) {
-    alert('Ügyfél link Starter, Pro vagy Business csomagban érhető el.');
+    alert('Ügyfél link Alap, Pro vagy Business csomagban érhető el.');
     return;
   }
 
@@ -2286,7 +2286,7 @@ function buildBudgetSummary(entries, tasks = [], project = null) {
 
 async function runAiPhotoRecognition() {
   const limit = currentLimit();
-  if (!limit.canUseAI) return alert('Az AI elemzés fizetős funkció. Válassz Starter, Pro vagy Business csomagot.');
+  if (!limit.canUseAI) return alert('Az AI elemzés fizetős funkció. Válassz Alap, Pro vagy Business csomagot.');
   const project = selectedProProject();
   if (!project) return alert('Előbb hozz létre vagy válassz projektet.');
   const entries = selectedProjectEntries(project.id);
@@ -2362,8 +2362,8 @@ function generateInvoiceDraft() {
   proResult(`
     <h3>🧾 Számla / díjbekérő vázlat</h3>
     <p><b>Kiállító:</b> ${escapeHtml(displayOwnerName())}</p><p><b>Projekt:</b> ${escapeHtml(project.name)}</p><p><b>Dátum:</b> ${today}</p>
-    <table class="simpleTable"><tr><th>Tétel</th><th>Mennyiség</th><th>Összeg</th></tr><tr><td>Építési napló dokumentáció és ügyfélriport</td><td>1 db</td><td>${money(9900)}</td></tr><tr><td>AI beavatkozási javaslat és anyaglista</td><td>${entries.length} bejegyzés</td><td>${money(Math.max(990, entries.length * 990))}</td></tr><tr><td>Ellenőrzési tartalék</td><td>előzetes</td><td>${money(budget.total)}</td></tr></table>
-    <p><b>Összesen előzetesen:</b> ${money(9900 + Math.max(990, entries.length * 990) + budget.total)}</p><p class="muted">Ez nem NAV-os számla, hanem számlázóprogramba másolható előkészítő/díjbekérő szöveg.</p><button class="btn ghost full" onclick="copyProToolsResult()">Számla vázlat másolása</button>`);
+    <table class="simpleTable"><tr><th>Tétel</th><th>Mennyiség</th><th>Összeg</th></tr><tr><td>Építési napló dokumentáció és ügyfélriport</td><td>1 db</td><td>${money(2990)}</td></tr><tr><td>AI beavatkozási javaslat és anyaglista</td><td>${entries.length} bejegyzés</td><td>${money(Math.max(390, entries.length * 390))}</td></tr><tr><td>Ellenőrzési tartalék</td><td>előzetes</td><td>${money(budget.total)}</td></tr></table>
+    <p><b>Összesen előzetesen:</b> ${money(2990 + Math.max(390, entries.length * 390) + budget.total)}</p><p class="muted">Ez nem NAV-os számla, hanem számlázóprogramba másolható előkészítő/díjbekérő szöveg.</p><button class="btn ghost full" onclick="copyProToolsResult()">Számla vázlat másolása</button>`);
 }
 
 function preparePaidAiReportOffer() {
@@ -2372,7 +2372,7 @@ function preparePaidAiReportOffer() {
   proResult(`
     <h3>💰 AI riport kredit rendszer</h3>
     <div class="offerBox">
-      <p><b>Részletes AI építési kockázati riport</b></p>
+      <p><b>Részletes AI építési kockázati riport</b></p><p><b>AI kredit árak:</b> 1 kredit 390 Ft, 10 kredit 2 990 Ft.</p>
       <p>A(z) ${escapeHtml(projectName)} dokumentációja alapján a rendszer elkészíti a kockázati összefoglalót, beavatkozási javaslatot, anyaglistát és előzetes költségbecslést.</p>
       <div class="creditStatusBox"><b>Elérhető AI riport kredit:</b> ${state.aiCredits || 0} db</div>
       <div class="formRow">
@@ -2381,8 +2381,8 @@ function preparePaidAiReportOffer() {
       </div>
     </div>
     <div class="creditBuyGrid">
-      <div class="creditBuyCard"><b>1 AI riport</b><strong>990 Ft</strong><div id="paypal-ai-credit-1" class="paypalBox"></div></div>
-      <div class="creditBuyCard"><b>10 AI riport</b><strong>4 990 Ft</strong><small>jobb ár, több projekthez</small><div id="paypal-ai-credit-10" class="paypalBox"></div></div>
+      <div class="creditBuyCard"><b>1 AI riport</b><strong>390 Ft</strong><div id="paypal-ai-credit-1" class="paypalBox"></div></div>
+      <div class="creditBuyCard"><b>10 AI riport</b><strong>2 990 Ft</strong><small>jobb ár, több projekthez</small><div id="paypal-ai-credit-10" class="paypalBox"></div></div>
     </div>
     <p class="muted">Fizetés után a kredit automatikusan jóváíródik a fiókodhoz. Egy részletes AI riport 1 kreditet használ fel.</p>`);
   renderPayPal();
@@ -2488,7 +2488,7 @@ async function sendClientNotification() {
 const FEATURE_EXPLAIN = {
   fiok:{title:'Felhasználói fiókok',what:'Minden szakember vagy cég saját fiókkal tud belépni, így a projektek, naplók, riportok és ügyfélanyagok külön kezelhetők.',how:'Belépés után a rendszer a felhasználóhoz köti a projekteket. Így nem keveredik más munkáival, és később visszakereshető minden dokumentáció.',why:'Ettől lesz a napló nem csak egy egyszerű űrlap, hanem saját, digitális munkaterület.'},
   paypal:{title:'PayPal ellenőrzés',what:'A fizetős csomagoknál a rendszer PayPal fizetéshez kapcsolódik.',how:'A felhasználó kiválaszt egy csomagot, fizet, majd a rendszer ellenőrzi, hogy a fizetés megtörtént-e.',why:'Ez azért fontos, mert így később eladható szolgáltatásként működhet: ingyenes alap csomag + fizetős PRO funkciók.'},
-  csomag:{title:'Automatikus csomagaktiválás',what:'Fizetés után nem kézzel kell átállítani a hozzáférést, hanem a rendszer aktiválja a kiválasztott csomagot.',how:'A csomaghoz időtartam és jogosultság tartozik. Például Starter, Pro vagy Business csomag.',why:'Ez leveszi rólad az adminisztrációt, és profibbá teszi az egész fizetési folyamatot.'},
+  csomag:{title:'Automatikus csomagaktiválás',what:'Fizetés után nem kézzel kell átállítani a hozzáférést, hanem a rendszer aktiválja a kiválasztott csomagot.',how:'A csomaghoz időtartam és jogosultság tartozik. Például Alap, Pro vagy Business csomag.',why:'Ez leveszi rólad az adminisztrációt, és profibbá teszi az egész fizetési folyamatot.'},
   adminFizetes:{title:'Admin fizetéskövetés',what:'Az admin látja, ki milyen csomagot használ, mikor aktiválódott, és meddig érvényes.',how:'Az admin áttekintésben megjelennek a fizetések és a felhasználói hozzáférések.',why:'Így könnyebb kezelni az ügyfeleket, reklamációkat, előfizetéseket és jogosultságokat.'},
   projekt:{title:'Projektkezelés',what:'Egy építkezés vagy felújítás külön projektként kezelhető.',how:'A projekten belül lehet naplózni a munkát, képeket feltölteni, anyagokat rögzíteni, riportot készíteni és ügyfélnek küldeni.',why:'Ettől minden munka rendezett lesz: nem Facebook üzenetekben, papíron vagy telefonban szétszórva van az információ.'},
   naplo:{title:'Naplóbejegyzések',what:'A napi munkák külön bejegyzésekben kerülnek mentésre.',how:'Megadható dátum, munkafázis, felelős, státusz, leírás, fotó, anyag, időjárás és GPS/helyadat.',why:'Vita esetén bizonyíték, átadásnál profi dokumentáció, később pedig referenciaanyag.'},
@@ -3228,7 +3228,7 @@ function requireLoginV38(message){
       const limit = typeof currentLimit === 'function' ? currentLimit() : {canPdf:true};
       if(!limit.canPdf){
         restore(b, 'PDF jelentés letöltése');
-        alert('PDF export fizetős funkció. Válassz Starter, Pro vagy Business csomagot.');
+        alert('PDF export fizetős funkció. Válassz Alap, Pro vagy Business csomagot.');
         return;
       }
       const projectId = typeof selectedClientProjectId === 'function' ? selectedClientProjectId() : '';
@@ -3372,7 +3372,7 @@ function requireLoginV38(message){
     try{
       const limit = typeof currentLimit === 'function' ? currentLimit() : {canPdf:true};
       if(!limit.canPdf){
-        alert('PDF export fizetős funkció. Válassz Starter, Pro vagy Business csomagot.');
+        alert('PDF export fizetős funkció. Válassz Alap, Pro vagy Business csomagot.');
         return;
       }
       const projectId = typeof selectedClientProjectId === 'function' ? selectedClientProjectId() : '';

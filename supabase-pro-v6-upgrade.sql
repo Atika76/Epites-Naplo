@@ -1,10 +1,10 @@
-﻿-- ÉpítésNapló AI PRO v6 üzleti okosítások
+-- ÉpítésNapló AI PRO v6 üzleti okosítások
 create table if not exists public.ai_report_orders (
   id uuid primary key default gen_random_uuid(),
   user_id uuid default auth.uid(),
   project_id uuid,
   package_type text default 'single',
-  amount_huf integer default 990,
+  amount_huf integer default 490,
   status text default 'draft',
   created_at timestamptz default now()
 );

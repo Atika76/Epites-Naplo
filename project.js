@@ -5000,3 +5000,112 @@ document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeReportCe
     }
   };
 })();
+
+
+// ===== V137: árfrissítés utáni anyagösszesítő fix (Murva 8 m³ is megjelenik fent és a riportban) =====
+(function(){
+  if(window.__v137MaterialSummaryFix) return;
+  window.__v137MaterialSummaryFix = true;
+
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function normMaterial(raw){
+    if(!raw) return null;
+    const name = String(raw.name || raw.material || raw.title || raw.label || '').trim();
+    const unit = String(raw.unit || raw.unit_name || raw.unitName || 'db').trim();
+    const qRaw = String(raw.quantity ?? raw.qty ?? raw.amount ?? raw.value ?? '').replace(',', '.');
+    const quantity = Number(qRaw);
+    if(!name || !Number.isFinite(quantity) || quantity <= 0) return null;
+    return { name, unit, quantity };
+  }
+
+  function addToMap(map, raw){
+    const m = normMaterial(raw);
+    if(!m) return;
+    const key = (m.name + '|' + m.unit).toLowerCase();
+    const prev = map.get(key) || { name:m.name, unit:m.unit, quantity:0 };
+    prev.quantity += m.quantity;
+    map.set(key, prev);
+  }
+
+  function collectMaterialsForReport(entries, options){
+    const map = new Map();
+
+    (Array.isArray(entries) ? entries : []).forEach(entry => {
+      ['materials_json','materials','material_json','materialItems','used_materials'].forEach(key => {
+        const list = entry && entry[key];
+        if(Array.isArray(list)) list.forEach(x => addToMap(map, x));
+      });
+    });
+
+    // Ha nincs strukturált napi anyag, akkor jöhet a projekt/záró adat.
+    if(!map.size){
+      const lists = [
+        options && options.materials,
+        options && options.materials_json,
+        options && options.projectMaterials,
+        options && options.used_materials
+      ];
+      lists.forEach(list => Array.isArray(list) && list.forEach(x => addToMap(map, x)));
+    }
+
+    return Array.from(map.values()).map(m => ({
+      name:m.name,
+      unit:m.unit,
+      quantity:Number(m.quantity.toFixed(2))
+    }));
+  }
+
+  function materialListHtml(items){
+    return items.length
+      ? items.map(m => '<li><b>'+esc(m.name)+'</b>: '+esc(m.quantity)+' '+esc(m.unit)+'</li>').join('')
+      : '<li>Nincs rögzített anyag.</li>';
+  }
+
+  function materialMiniHtml(items){
+    if(!items.length) return '<span>Nincs rögzített anyag</span>';
+    return items.slice(0,4).map(m => '<b>'+esc(m.name)+'</b> '+esc(m.quantity)+' '+esc(m.unit)).join('<br>');
+  }
+
+  function patchReportHtml(html, entries, options){
+    let out = String(html || '');
+    const items = collectMaterialsForReport(entries, options || {});
+    const list = '<ul class="v137MaterialSummary">'+materialListHtml(items)+'</ul>';
+    const count = items.length;
+
+    // Anyagösszesítő rész javítása ékezetes és ékezet nélküli riportokban is.
+    const headingRe = /(<h2[^>]*>\s*(?:Anyagösszesítő|Anyagosszesito)\s*<\/h2>\s*)<ul[^>]*>[\s\S]*?<\/ul>/i;
+    if(headingRe.test(out)){
+      out = out.replace(headingRe, '$1'+list);
+    }else if(/<h2[^>]*>\s*(?:Számlák|Szamlak)\s*<\/h2>/i.test(out)){
+      out = out.replace(/(<h2[^>]*>\s*(?:Számlák|Szamlak)\s*<\/h2>)/i, '<h2>Anyagösszesítő</h2>'+list+'$1');
+    }else{
+      out = out.replace(/(<body[^>]*>)/i, '$1<h2>Anyagösszesítő</h2>'+list);
+    }
+
+    // Felső stat kártya: ne 0 anyag sor legyen, hanem valós szám.
+    out = out.replace(/(<div class="stat"><b>)[^<]*(<\/b>\s*anyag sor\s*<\/div>)/i, '$1'+count+'$2');
+    out = out.replace(/(<div class="stat"><b>)[^<]*(<\/b>\s*anyag\s*<\/div>)/i, '$1'+count+'$2');
+
+    // Ha van stat blokk, tegyünk bele látható mini anyaglistát is, hogy a Murva 8 m³ felül is látszódjon.
+    if(items.length && !out.includes('v137MaterialMini')){
+      out = out.replace(/(<div class="stats">[\s\S]*?<\/div>\s*<\/div>)/i, function(m){
+        return m + '<div class="v137MaterialMini" style="margin:12px 0 18px;padding:12px 14px;border-radius:12px;background:#ecfdf5;border-left:5px solid #22c55e;"><b>Anyag mennyiség:</b><br>'+materialMiniHtml(items)+'</div>';
+      });
+    }
+
+    return out;
+  }
+
+  const oldBuild = window.buildProReportHtml || (typeof buildProReportHtml === 'function' ? buildProReportHtml : null);
+  if(oldBuild && !oldBuild.__v137MaterialSummaryFix){
+    const wrapped = function(entries, title, options){
+      return patchReportHtml(oldBuild(entries, title, options || {}), entries, options || {});
+    };
+    wrapped.__v137MaterialSummaryFix = true;
+    window.buildProReportHtml = wrapped;
+    try{ buildProReportHtml = wrapped; }catch(_){}
+  }
+
+  window.v137CollectMaterialsForReport = collectMaterialsForReport;
+})();

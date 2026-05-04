@@ -1,4 +1,4 @@
-﻿# ÉpítésNapló AI PRO – 100% automatikus PayPal → Pro
+# ÉpítésNapló AI PRO – 100% automatikus PayPal → Pro
 
 ## Mit tartalmaz?
 
@@ -61,9 +61,9 @@ A PayPal Client ID publikus. A PayPal Secret és Supabase Service Role Key titko
 
 - Admin fiók fizetés nélkül Business szintű hozzáférést kap.
 - Több fizetős csomag:
-  - Starter: 9 900 Ft / hó
-  - Pro: 19 900 Ft / hó
-  - Business: 49 900 Ft / hó
+  - Alap: 2 990 Ft / hó
+  - Pro: 4 990 Ft / hó
+  - Business: 8 990 Ft / hó
 - A gombszerű, csak leíró címkék le lettek tisztítva.
 - PayPal fizetés összege alapján aktiválódik a megfelelő csomag.
 
@@ -112,9 +112,9 @@ Mit tud:
 
 Admin fiókkal fizetés nélkül lehet váltani a csomagnézetek között:
 - Próba
-- Starter 9 900
-- Pro 19 900
-- Business 49 900
+- Alap 2 990
+- Pro 4 990
+- Business 8 990
 - Lejárt
 
 Ez csak teszteléshez van. A valódi ügyfeleknél a csomagot a Supabase subscription és PayPal fizetés állítja.
@@ -216,8 +216,8 @@ Telepítés:
 4. Admin inbox: `https://epitesi-naplo.eu/admin-messages.html`.
 
 ## v6 üzleti okosítások
-- Business ár: első hónap 19 900 Ft, utána 39 900 Ft / hó kommunikációval
-- Fizetős AI riport ajánlat: 990 Ft / riport, 10 db 4 990 Ft
+- Business ár: 8 990 Ft / hó bevezető ár kommunikációval
+- Fizetős AI riport ajánlat: 390 Ft / riport, 10 db 2 990 Ft
 - Automatikus anyaglista és költségbecslés
 - Számla / díjbekérő előkészítő
 - AI fotóelemzés előszűrés, későbbi Vision API bekötésre előkészítve

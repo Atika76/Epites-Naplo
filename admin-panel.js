@@ -1,4 +1,4 @@
-﻿let adminUsers = [];
+let adminUsers = [];
 let adminPayments = [];
 let currentUser = null;
 let currentProfile = null;

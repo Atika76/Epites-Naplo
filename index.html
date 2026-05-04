@@ -24,7 +24,7 @@
   <meta name="twitter:image" content="https://epitesi-naplo.eu/og-epitesi-naplo-v106.png" />
 
   <meta name="description" content="Építőipari ügyfélriport rendszer fotós dokumentációval, AI jelentéssel, PDF exporttal és PayPal fizetéssel." />
-  <link rel="stylesheet" href="style.css?v=133" />
+  <link rel="stylesheet" href="style.css?v=137" />
 </head>
 
 <body class="auth-loading">
@@ -142,27 +142,27 @@
         </div>
 
         <div class="planCard featured">
-          <h3>Starter</h3>
-          <strong>9 900 Ft / hó</strong>
+          <h3>Alap</h3>
+          <strong>2 990 Ft / hó</strong>
           <p>3 projekt, AI napi jelentés, PDF export, ügyfél link és jóváhagyás.</p>
           <div id="paypal-starter" class="paypalBox"></div>
         </div>
 
         <div class="planCard featured">
           <h3>Pro</h3>
-          <strong>19 900 Ft / hó</strong>
+          <strong>4 990 Ft / hó</strong>
           <p>15 projekt, AI riport, PDF, ügyfél jóváhagyás, számla/költség riport és profi kivitelezői használat.</p>
           <div id="paypal-pro" class="paypalBox"></div>
         </div>
 
         <div class="planCard featured">
           <h3>Business</h3>
-          <strong>39 900 Ft / hó</strong>
-          <p><b>Első hónap: 19 900 Ft</b><br>Korlátlan közeli használat, admin áttekintés, ügyfélriport, PDF, AI és céges működéshez.</p>
+          <strong>8 990 Ft / hó</strong>
+          <p><b>Bevezető ár: 8 990 Ft / hó</b><br>Korlátlan közeli használat, admin áttekintés, ügyfélriport, PDF, AI és céges működéshez.</p>
           <div id="paypal-business" class="paypalBox"></div>
         </div>
       </div>
-      <div id="publicPlanNotice" class="notice">Regisztráció után 1 hétig ingyen kipróbálható 1 projekttel. Fizetés után automatikusan aktiválódik a Starter / Pro / Business csomag.</div>
+      <div id="publicPlanNotice" class="notice">Regisztráció után 1 hétig ingyen kipróbálható 1 projekttel. Fizetés után automatikusan aktiválódik az Alap / Pro / Business csomag.</div>
       <div id="adminOnlyPlanNotice" class="adminFreeNote hidden">Admin tesztmód: teljes hozzáférés fizetés nélkül.</div>
 
       <div id="limitBox" class="notice"></div>
@@ -357,7 +357,7 @@
         <div class="toolCard"><b>📸 AI fotó + kockázat felismerés</b><p>Átnézi a kiválasztott projekt fotóit és szövegeit.</p><button class="btn primary full" onclick="runAiPhotoRecognition()">AI fotóelemzés indítása</button></div>
         <div class="toolCard"><b>📊 Automatikus költségvetés</b><p>Anyag + munkadíj becslés hibákra és beavatkozásokra.</p><button class="btn primary full" onclick="generateAutoBudget()">Költségvetés készítése</button></div>
         <div class="toolCard"><b>🧾 Számla / díjbekérő előkészítés</b><p>Nyomtatható számla-előkészítő.</p><button class="btn primary full" onclick="generateInvoiceDraft()">Számla vázlat készítése</button></div>
-        <div class="toolCard creditTool"><b>💰 Fizetős AI riport kredit</b><p>1 riport 990 Ft, 10 riportos csomag 4 990 Ft. Fizetés után automatikusan jóváíródik.</p><div class="creditBadge">AI kreditek: <b id="aiCreditBadge">0</b> db</div><button class="btn primary full" onclick="preparePaidAiReportOffer()">AI riport kredit / indítás</button></div>
+        <div class="toolCard creditTool"><b>💰 AI kredit vásárlás</b><p>1 AI riport kredit 390 Ft, 10 kredit 2 990 Ft. Itt tudsz kreditet venni, fizetés után automatikusan jóváíródik.</p><div class="creditBadge">AI kreditek: <b id="aiCreditBadge">0</b> db</div><button class="btn primary full" onclick="preparePaidAiReportOffer()">AI kredit vásárlás / riport indítás</button></div>
       </div>
       <div id="proToolsResult" class="reportText"><p class="muted">Válassz projektet az ügyfélriport résznél, majd indítsd el valamelyik PRO eszközt.</p></div>
     </section>
@@ -443,9 +443,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://www.paypal.com/sdk/js?client-id=AQsaQCLj0og2wsfMoDKAqxJieD2cgXwWq5cssAJCJbO2KoYE8LGHCREyR4vMzMfKZK68qw6EY7IAxMYF&currency=HUF"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="supabase-adapter.js?v=110"></script>
-  <script src="header-v40.js?v=133"></script>
-  <script src="script.js?v=133"></script>
+  <script src="supabase-adapter.js?v=137"></script>
+  <script src="header-v40.js?v=137"></script>
+  <script src="script.js?v=137"></script>
   <div id="toast" class="toast hidden"></div>
 </body>
 </html>

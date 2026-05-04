@@ -1,4 +1,4 @@
-﻿import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -12,9 +12,9 @@ const PAYPAL_API = Deno.env.get("PAYPAL_ENV") === "live"
   : "https://api-m.sandbox.paypal.com";
 
 const PLAN_RULES: Record<string, { amount: number; days: number }> = {
-  starter: { amount: 9900, days: 30 },
-  pro: { amount: 19900, days: 30 },
-  business: { amount: 19900, days: 30 }, // Business induló akció első hónap
+  starter: { amount: 2990, days: 30 },
+  pro: { amount: 4990, days: 30 },
+  business: { amount: 8990, days: 30 }, // Business bevezető ár
 };
 
 serve(async (req) => {
@@ -61,9 +61,9 @@ serve(async (req) => {
     let paidPlan = PLAN_RULES[customPlan] ? customPlan : "";
 
     if (!paidPlan) {
-      if (Math.round(amount) === 9900) paidPlan = "starter";
-      else if (Math.round(amount) === 19900) paidPlan = "pro";
-      else if (Math.round(amount) === 39900) paidPlan = "business";
+      if (Math.round(amount) === 2990) paidPlan = "starter";
+      else if (Math.round(amount) === 4990) paidPlan = "pro";
+      else if (Math.round(amount) === 8990) paidPlan = "business";
     }
 
     const rule = PLAN_RULES[paidPlan];
