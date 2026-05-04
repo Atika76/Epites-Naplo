@@ -1,9 +1,9 @@
-﻿# ÉpítésNapló AI PRO v11 – AI kredit rendszer
+# ÉpítésNapló AI PRO v11 – AI kredit rendszer
 
 ## Mit tud?
 
-- 1 AI riport kredit: 990 Ft
-- 10 AI riport kredit: 4 990 Ft
+- 1 AI riport kredit: 390 Ft
+- 10 AI riport kredit: 2 990 Ft
 - PayPal fizetés után automatikus kredit jóváírás
 - Fizetős AI riport indításakor 1 kredit levonás
 - A fiók kártyán és a PRO eszközöknél látszik a kredit darabszám

@@ -210,3 +210,176 @@
     [700, 1500, 3000, 5000].forEach(function(ms){ setTimeout(hydrateMissingPhotos, ms); });
   }
 })();
+
+
+// ===== V137: iPhone/Safari kompatibilis képnagyítás + lapozás az ügyfélriportban =====
+(function(){
+  if(window.__v137IphoneZoomGallery) return;
+  window.__v137IphoneZoomGallery = true;
+
+  function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]); }); }
+  function mediaList(){
+    const root = document.getElementById('publicReportContent') || document;
+    return Array.from(root.querySelectorAll('img,video')).filter(function(el){
+      const s = String(el.currentSrc || el.src || el.getAttribute('data-full-src') || el.getAttribute('data-src') || '').toLowerCase();
+      return s && !s.includes('favicon') && !el.closest('#v137ZoomViewer');
+    }).map(function(el){
+      return {
+        el:el,
+        type:el.tagName === 'VIDEO' ? 'video' : 'image',
+        src:el.currentSrc || el.src || el.getAttribute('data-full-src') || el.getAttribute('data-src') || '',
+        title:el.alt || el.title || 'Napló fotó'
+      };
+    });
+  }
+
+  let idx = 0, scale = 1, tx = 0, ty = 0;
+  let startDist = 0, startScale = 1, startX = 0, startY = 0, panX = 0, panY = 0, oneStartX = 0, oneStartY = 0, oneMoved = false;
+
+  function css(){
+    if(document.getElementById('v137ZoomCss')) return;
+    const st = document.createElement('style');
+    st.id = 'v137ZoomCss';
+    st.textContent = `
+      #v137ZoomViewer{position:fixed;inset:0;z-index:2147483647;background:rgba(2,6,23,.96);display:none;color:#fff;touch-action:none;overscroll-behavior:contain}
+      #v137ZoomViewer.open{display:flex;align-items:center;justify-content:center}
+      .v137ZoomTop{position:absolute;top:0;left:0;right:0;min-height:58px;background:#0f172a;display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 10px;z-index:2}
+      .v137ZoomTitle{font-weight:800;font-size:14px;line-height:1.25;max-width:46vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .v137ZoomBtns{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+      .v137ZoomBtns button,.v137ZoomNav{border:1px solid rgba(255,255,255,.24);background:#132238;color:#fff;border-radius:12px;padding:9px 11px;font-weight:900}
+      .v137ZoomBtns .primary{background:#fbbf24;color:#111827;border-color:#fbbf24}
+      .v137ZoomStage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:70px 52px 34px;overflow:hidden}
+      .v137ZoomStage img{max-width:100%;max-height:100%;object-fit:contain;border-radius:14px;transform-origin:center center;will-change:transform;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+      .v137ZoomStage video{max-width:100%;max-height:100%;border-radius:14px;background:#000}
+      .v137ZoomNav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:64px;font-size:34px;padding:0;background:rgba(15,23,42,.72);z-index:2}
+      .v137ZoomNav.prev{left:8px}.v137ZoomNav.next{right:8px}
+      @media(max-width:760px){.v137ZoomStage{padding:68px 8px 24px}.v137ZoomNav{width:38px;height:54px;font-size:30px;opacity:.88}.v137ZoomTitle{max-width:35vw}.v137ZoomBtns button{padding:8px 9px;font-size:12px}}
+      @media print{#v137ZoomViewer{display:none!important}}
+    `;
+    document.head.appendChild(st);
+  }
+
+  function viewer(){
+    css();
+    let v = document.getElementById('v137ZoomViewer');
+    if(v) return v;
+    v = document.createElement('div');
+    v.id = 'v137ZoomViewer';
+    v.innerHTML = '<div class="v137ZoomTop"><div id="v137ZoomTitle" class="v137ZoomTitle">Napló fotó</div><div class="v137ZoomBtns"><button type="button" data-act="minus">−</button><button type="button" data-act="plus">+</button><button type="button" data-act="reset">100%</button><button class="primary" type="button" data-act="open">Teljes kép</button><button type="button" data-act="close">Bezárás</button></div></div><button type="button" class="v137ZoomNav prev">‹</button><div id="v137ZoomStage" class="v137ZoomStage"></div><button type="button" class="v137ZoomNav next">›</button>';
+    document.body.appendChild(v);
+    v.querySelector('.prev').onclick = function(e){ e.stopPropagation(); show(idx-1); };
+    v.querySelector('.next').onclick = function(e){ e.stopPropagation(); show(idx+1); };
+    v.querySelector('[data-act="close"]').onclick = close;
+    v.querySelector('[data-act="minus"]').onclick = function(){ setScale(scale - .35); };
+    v.querySelector('[data-act="plus"]').onclick = function(){ setScale(scale + .35); };
+    v.querySelector('[data-act="reset"]').onclick = function(){ scale=1; tx=0; ty=0; applyTransform(); };
+    v.querySelector('[data-act="open"]').onclick = function(){ const it = mediaList()[idx]; if(it && it.src) window.open(it.src, '_blank'); };
+    v.addEventListener('wheel', function(e){ if(!v.classList.contains('open')) return; e.preventDefault(); setScale(scale + (e.deltaY < 0 ? .25 : -.25)); }, {passive:false});
+    v.addEventListener('touchstart', onTouchStart, {passive:false});
+    v.addEventListener('touchmove', onTouchMove, {passive:false});
+    v.addEventListener('touchend', onTouchEnd, {passive:false});
+    return v;
+  }
+
+  function applyTransform(){
+    const img = document.querySelector('#v137ZoomStage img');
+    if(img) img.style.transform = 'translate3d('+tx+'px,'+ty+'px,0) scale('+scale+')';
+  }
+  function setScale(s){
+    scale = Math.max(1, Math.min(5, s));
+    if(scale === 1){ tx = 0; ty = 0; }
+    applyTransform();
+  }
+  function show(i){
+    const list = mediaList();
+    if(!list.length) return;
+    idx = (i + list.length) % list.length;
+    const it = list[idx];
+    scale = 1; tx = 0; ty = 0;
+    const v = viewer();
+    document.getElementById('v137ZoomTitle').textContent = (it.title || 'Napló fotó') + ' ('+(idx+1)+'/'+list.length+')';
+    const stage = document.getElementById('v137ZoomStage');
+    stage.innerHTML = it.type === 'video'
+      ? '<video controls playsinline preload="auto" src="'+esc(it.src)+'"></video>'
+      : '<img src="'+esc(it.src)+'" alt="'+esc(it.title)+'">';
+    v.classList.add('open');
+    document.documentElement.style.overflow = 'hidden';
+  }
+  function close(){
+    const v = document.getElementById('v137ZoomViewer');
+    if(v){ v.classList.remove('open'); document.getElementById('v137ZoomStage').innerHTML = ''; }
+    document.documentElement.style.overflow = '';
+  }
+  function dist(t1,t2){ const dx=t1.clientX-t2.clientX, dy=t1.clientY-t2.clientY; return Math.sqrt(dx*dx+dy*dy); }
+  function mid(t1,t2){ return {x:(t1.clientX+t2.clientX)/2, y:(t1.clientY+t2.clientY)/2}; }
+
+  function onTouchStart(e){
+    if(!e.currentTarget.classList.contains('open')) return;
+    if(e.touches.length === 2){
+      e.preventDefault();
+      startDist = dist(e.touches[0], e.touches[1]);
+      startScale = scale;
+      const m = mid(e.touches[0], e.touches[1]);
+      startX = m.x; startY = m.y; panX = tx; panY = ty;
+    }else if(e.touches.length === 1){
+      oneStartX = e.touches[0].clientX;
+      oneStartY = e.touches[0].clientY;
+      panX = tx; panY = ty;
+      oneMoved = false;
+    }
+  }
+  function onTouchMove(e){
+    if(!e.currentTarget.classList.contains('open')) return;
+    if(e.touches.length === 2){
+      e.preventDefault();
+      const d = dist(e.touches[0], e.touches[1]);
+      const m = mid(e.touches[0], e.touches[1]);
+      scale = Math.max(1, Math.min(5, startScale * (d / Math.max(1, startDist))));
+      tx = panX + (m.x - startX);
+      ty = panY + (m.y - startY);
+      if(scale === 1){ tx = 0; ty = 0; }
+      applyTransform();
+    }else if(e.touches.length === 1){
+      const dx = e.touches[0].clientX - oneStartX;
+      const dy = e.touches[0].clientY - oneStartY;
+      if(Math.abs(dx) > 8 || Math.abs(dy) > 8) oneMoved = true;
+      if(scale > 1){
+        e.preventDefault();
+        tx = panX + dx;
+        ty = panY + dy;
+        applyTransform();
+      }
+    }
+  }
+  function onTouchEnd(e){
+    if(e.touches.length) return;
+    const changed = e.changedTouches && e.changedTouches[0];
+    const dx = (changed ? changed.clientX : oneStartX) - oneStartX;
+    const dy = (changed ? changed.clientY : oneStartY) - oneStartY;
+    if(scale === 1 && oneMoved && Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4){
+      show(idx + (dx < 0 ? 1 : -1));
+    }
+  }
+
+  document.addEventListener('keydown', function(e){
+    const v = document.getElementById('v137ZoomViewer');
+    if(!v || !v.classList.contains('open')) return;
+    if(e.key === 'Escape') close();
+    if(e.key === 'ArrowRight') show(idx+1);
+    if(e.key === 'ArrowLeft') show(idx-1);
+    if(e.key === '+' || e.key === '=') setScale(scale+.35);
+    if(e.key === '-') setScale(scale-.35);
+  });
+
+  document.addEventListener('click', function(e){
+    const img = e.target && e.target.closest ? e.target.closest('#publicReportContent img, #publicReportContent video') : null;
+    if(!img || img.closest('#v137ZoomViewer')) return;
+    const src = img.currentSrc || img.src || img.getAttribute('data-full-src') || img.getAttribute('data-src') || '';
+    if(!src || /favicon/i.test(src)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+    const list = mediaList();
+    show(Math.max(0, list.findIndex(x => x.el === img)));
+  }, true);
+})();
