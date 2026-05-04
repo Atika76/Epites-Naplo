@@ -443,12 +443,20 @@ window.EpitesNaploAPI = {
   createClientShareUrl(token) {
     const cleanToken = String(token || "").trim();
     try { if (cleanToken) localStorage.setItem("epitesnaplo_last_report_token", cleanToken); } catch (_) {}
+    // V143 profi megosztás: a Facebook/Messenger/WhatsApp robotok szerveroldali HTML-t kapnak,
+    // ezért minden ügyfélriport saját címet, leírást és első fotós kártyát tud mutatni.
+    const fnUrl = String(window.EPITESNAPLO_CONFIG?.supabaseUrl || "").replace(/\/$/, "") + "/functions/v1/share-report";
+    if (cleanToken && /^https:\/\//i.test(fnUrl)) {
+      const shareUrl = new URL(fnUrl);
+      shareUrl.searchParams.set("riport", cleanToken);
+      return shareUrl.href;
+    }
     const current = new URL(window.location.href);
-    const viewUrl = new URL("share.html", current.href);
-    viewUrl.search = "";
-    viewUrl.hash = "";
-    viewUrl.searchParams.set("riport", cleanToken);
-    return viewUrl.href;
+    const fallback = new URL("share.html", current.href);
+    fallback.search = "";
+    fallback.hash = "";
+    fallback.searchParams.set("riport", cleanToken);
+    return fallback.href;
   },
 
 

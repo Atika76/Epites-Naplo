@@ -1,0 +1,2 @@
+[functions.share-report]
+verify_jwt = false
