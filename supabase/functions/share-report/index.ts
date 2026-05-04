@@ -13,8 +13,21 @@ function esc(value: unknown) {
     .replaceAll("'", "&#039;");
 }
 
+function repairMojibake(value: unknown) {
+  const text = String(value ?? "");
+  if (!/[ÃÂÅÄÐ]/.test(text)) return text;
+  try {
+    const bytes = new Uint8Array([...text].map((ch) => ch.charCodeAt(0) & 255));
+    const decoded = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+    if (decoded && decoded.length >= Math.min(8, text.length)) return decoded;
+  } catch (_) {}
+  return text
+    .replaceAll("Ã¡", "á").replaceAll("Ã©", "é").replaceAll("Ã­", "í").replaceAll("Ã³", "ó").replaceAll("Ã¶", "ö").replaceAll("Ãµ", "ő").replaceAll("Å‘", "ő").replaceAll("Ãº", "ú").replaceAll("Ã¼", "ü").replaceAll("Å±", "ű")
+    .replaceAll("Ã", "Á").replaceAll("Ã‰", "É").replaceAll("Ã", "Í").replaceAll("Ã“", "Ó").replaceAll("Ã–", "Ö").replaceAll("Å", "Ő").replaceAll("Ãš", "Ú").replaceAll("Ãœ", "Ü").replaceAll("Å°", "Ű");
+}
+
 function cleanText(value: unknown, max = 180) {
-  const text = String(value ?? "")
+  const text = repairMojibake(value)
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " ")
@@ -28,14 +41,14 @@ function cleanText(value: unknown, max = 180) {
 
 function firstImageSrc(html: unknown) {
   const source = String(html || "");
-  const imgs = [...source.matchAll(/<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi)].map(m => m[1]).filter(Boolean);
-  const good = imgs.find(src => !/favicon|logo|icon|og-/i.test(src));
+  const imgs = [...source.matchAll(/<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi)].map((m) => m[1]).filter(Boolean);
+  const good = imgs.find((src) => !/favicon|logo|icon|og-/i.test(src));
   return good || imgs[0] || "";
 }
 
-function toAbsoluteImage(src: string, reqUrl: string) {
+function toAbsoluteImage(src: string) {
   if (!src) return FALLBACK_IMAGE;
-  if (/^data:image\//i.test(src)) return ""; // image route will serve it directly
+  if (/^data:image\//i.test(src)) return "";
   try { return new URL(src, SITE_URL).href; } catch (_) { return FALLBACK_IMAGE; }
 }
 
@@ -54,6 +67,11 @@ function decodeDataImage(src: string) {
   }
 }
 
+function isShareBot(req: Request) {
+  const ua = req.headers.get("user-agent") || "";
+  return /facebookexternalhit|facebot|whatsapp|telegrambot|twitterbot|linkedinbot|slackbot|discordbot|viber|pinterest|googlebot|bingbot/i.test(ua);
+}
+
 async function loadReport(token: string) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
@@ -65,14 +83,12 @@ async function loadReport(token: string) {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // Először a meglévő publikus RPC-t használjuk, mert ez tiszteli az aktív / lejárati szabályokat.
   const rpc = await supabase.rpc("get_public_report_by_token", { p_token: token });
   if (!rpc.error) {
     const row = Array.isArray(rpc.data) ? rpc.data[0] : rpc.data;
     if (row) return row;
   }
 
-  // Biztonsági fallback régebbi séma esetére.
   const { data, error } = await supabase
     .from("public_reports")
     .select("id, token, project_name, report_html, report_text, is_active, expires_at, created_at")
@@ -85,7 +101,7 @@ async function loadReport(token: string) {
 
 serve(async (req) => {
   const url = new URL(req.url);
-  const token = (url.searchParams.get("riport") || url.searchParams.get("token") || "").trim();
+  const token = (url.searchParams.get("riport") || url.searchParams.get("report") || url.searchParams.get("token") || "").trim();
 
   if (!token) {
     return new Response("Hiányzó riport token.", { status: 400, headers: { "Content-Type": "text/plain; charset=utf-8" } });
@@ -109,11 +125,12 @@ serve(async (req) => {
             "Content-Type": decoded.mime,
             "Cache-Control": "public, max-age=3600",
             "Access-Control-Allow-Origin": "*",
+            "X-Content-Type-Options": "nosniff",
           },
         });
       }
     }
-    const abs = toAbsoluteImage(imgSrc, req.url) || FALLBACK_IMAGE;
+    const abs = toAbsoluteImage(imgSrc) || FALLBACK_IMAGE;
     return Response.redirect(abs || FALLBACK_IMAGE, 302);
   }
 
@@ -126,6 +143,12 @@ serve(async (req) => {
   viewUrl.searchParams.set("riport", token);
   const shareUrl = new URL(req.url);
   shareUrl.searchParams.delete("img");
+
+  // Ha ember nyitja meg a Supabase share-linket, ne ezt a technikai oldalt lássa, hanem rögtön a valódi ügyfélriportot.
+  // A Facebook/Messenger/WhatsApp robot viszont HTML-t kap OG meta adatokkal.
+  if (!isShareBot(req) && url.searchParams.get("preview") !== "1") {
+    return Response.redirect(viewUrl.href, 302);
+  }
 
   const html = `<!doctype html>
 <html lang="hu">
@@ -172,10 +195,12 @@ serve(async (req) => {
 </body>
 </html>`;
 
-  return new Response(html, {
+  return new Response(new TextEncoder().encode(html), {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "public, max-age=300",
+      "Access-Control-Allow-Origin": "*",
+      "X-Content-Type-Options": "nosniff",
     },
   });
 });
