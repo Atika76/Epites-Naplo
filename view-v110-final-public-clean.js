@@ -260,23 +260,56 @@
   }
 
 
+  function dataUrlToObjectUrl(dataUrl){
+    try{
+      const parts = String(dataUrl || '').split(',');
+      if(parts.length < 2) return '';
+      const meta = parts[0] || '';
+      const mime = (meta.match(/data:([^;]+)/) || [,'image/jpeg'])[1];
+      const bin = atob(parts.slice(1).join(','));
+      const len = bin.length;
+      const arr = new Uint8Array(len);
+      for(let i=0;i<len;i++) arr[i] = bin.charCodeAt(i);
+      return URL.createObjectURL(new Blob([arr], {type:mime}));
+    }catch(e){
+      console.warn('Teljes kép blob készítési hiba:', e);
+      return '';
+    }
+  }
+
   function openFullMediaV138(it){
-    const src = String(it && it.src || '').trim();
-    if(!src) return alert('A teljes kép linkje nem található.');
+    const rawSrc = String(it && it.src || '').trim();
+    if(!rawSrc) return alert('A teljes kép linkje nem található.');
     const title = String(it.title || 'Teljes kép');
+    const isData = /^data:/i.test(rawSrc);
+    const isVideo = it.type === 'video' || /^data:video\//i.test(rawSrc) || /\.(mp4|mov|webm)(\?|#|$)/i.test(rawSrc);
+
+    // Fontos: az ablakot azonnal, a kattintás pillanatában nyitjuk meg,
+    // különben iPhone/Messenger/Edge blokkolhatja, és about:blank marad.
     const w = window.open('', '_blank');
     if(!w){
-      // Utolsó esély: ugyanabban az ablakban nyitjuk meg, hogy iPhone/Messenger se dobjon üres oldalt.
-      location.href = src;
+      if(!isData) location.href = rawSrc;
+      else alert('A böngésző blokkolta az új ablakot. Engedélyezd a felugró ablakot, vagy használd a + nagyítást.');
       return;
     }
-    const isVideo = it.type === 'video' || /\.(mp4|mov|webm)(\?|#|$)/i.test(src);
-    const body = isVideo
-      ? '<video controls playsinline autoplay style="max-width:100%;max-height:88vh;border-radius:14px;background:#000" src="'+esc(src)+'"></video>'
-      : '<img alt="'+esc(title)+'" src="'+esc(src)+'" style="max-width:100%;height:auto;max-height:none;border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.35);touch-action:auto;-webkit-user-select:auto;user-select:auto">';
     w.document.open();
-    w.document.write('<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=8,user-scalable=yes"><title>'+esc(title)+'</title><style>body{margin:0;background:#07111f;color:#fff;font-family:Arial,Helvetica,sans-serif}.top{position:sticky;top:0;background:#0f172a;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between}.top b{font-size:16px}.top button,.top a{border:0;border-radius:10px;background:#fbbf24;color:#111827;font-weight:900;padding:10px 12px;text-decoration:none}.stage{padding:16px;min-height:calc(100vh - 60px);display:flex;align-items:flex-start;justify-content:center;overflow:auto;-webkit-overflow-scrolling:touch}@media(max-width:760px){.stage{display:block;text-align:center;padding:10px}.top{align-items:flex-start;flex-direction:column}.top button,.top a{width:100%;text-align:center}}</style></head><body><div class="top"><b>'+esc(title)+'</b><div><a href="'+esc(src)+'" target="_self">Kép megnyitása közvetlenül</a> <button onclick="window.close()">Bezárás</button></div></div><div class="stage">'+body+'</div></body></html>');
+    w.document.write('<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=8,user-scalable=yes"><title>'+esc(title)+'</title><style>body{margin:0;background:#07111f;color:#fff;font-family:Arial,Helvetica,sans-serif}.top{position:sticky;top:0;background:#0f172a;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between}.stage{padding:18px;min-height:calc(100vh - 58px);display:flex;align-items:flex-start;justify-content:center;overflow:auto;-webkit-overflow-scrolling:touch}.loader{padding:30px;font-weight:900}.top button,.top a{border:0;border-radius:10px;background:#fbbf24;color:#111827;font-weight:900;padding:10px 12px;text-decoration:none}@media(max-width:760px){.stage{display:block;text-align:center;padding:10px}.top{align-items:flex-start;flex-direction:column}.top button,.top a{width:100%;text-align:center}}</style></head><body><div class="top"><b>'+esc(title)+'</b><button onclick="window.close()">Bezárás</button></div><div class="stage"><div class="loader">Teljes kép előkészítése...</div></div></body></html>');
     w.document.close();
+
+    setTimeout(function(){
+      const src = isData ? (dataUrlToObjectUrl(rawSrc) || rawSrc) : rawSrc;
+      const body = isVideo
+        ? '<video controls playsinline autoplay style="max-width:100%;max-height:88vh;border-radius:14px;background:#000" src="'+esc(src)+'"></video>'
+        : '<img alt="'+esc(title)+'" src="'+esc(src)+'" style="max-width:100%;height:auto;max-height:none;border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.35);touch-action:auto;-webkit-user-select:auto;user-select:auto">';
+      try{
+        w.document.open();
+        w.document.write('<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=8,user-scalable=yes"><title>'+esc(title)+'</title><style>body{margin:0;background:#07111f;color:#fff;font-family:Arial,Helvetica,sans-serif}.top{position:sticky;top:0;background:#0f172a;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between}.top b{font-size:16px}.top button,.top a{border:0;border-radius:10px;background:#fbbf24;color:#111827;font-weight:900;padding:10px 12px;text-decoration:none}.stage{padding:16px;min-height:calc(100vh - 60px);display:flex;align-items:flex-start;justify-content:center;overflow:auto;-webkit-overflow-scrolling:touch}@media(max-width:760px){.stage{display:block;text-align:center;padding:10px}.top{align-items:flex-start;flex-direction:column}.top button,.top a{width:100%;text-align:center}}</style></head><body><div class="top"><b>'+esc(title)+'</b><div><a href="'+esc(src)+'" target="_self">Kép megnyitása közvetlenül</a> <button onclick="window.close()">Bezárás</button></div></div><div class="stage">'+body+'</div></body></html>');
+        w.document.close();
+      }catch(e){
+        console.warn('Teljes kép ablak írási hiba:', e);
+        try{ if(!isData) w.location.href = rawSrc; }catch(_){}
+      }
+    }, 30);
   }
 
   function viewer(){
