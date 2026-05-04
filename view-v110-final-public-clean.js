@@ -259,6 +259,26 @@
     document.head.appendChild(st);
   }
 
+
+  function openFullMediaV138(it){
+    const src = String(it && it.src || '').trim();
+    if(!src) return alert('A teljes kép linkje nem található.');
+    const title = String(it.title || 'Teljes kép');
+    const w = window.open('', '_blank');
+    if(!w){
+      // Utolsó esély: ugyanabban az ablakban nyitjuk meg, hogy iPhone/Messenger se dobjon üres oldalt.
+      location.href = src;
+      return;
+    }
+    const isVideo = it.type === 'video' || /\.(mp4|mov|webm)(\?|#|$)/i.test(src);
+    const body = isVideo
+      ? '<video controls playsinline autoplay style="max-width:100%;max-height:88vh;border-radius:14px;background:#000" src="'+esc(src)+'"></video>'
+      : '<img alt="'+esc(title)+'" src="'+esc(src)+'" style="max-width:100%;height:auto;max-height:none;border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.35);touch-action:auto;-webkit-user-select:auto;user-select:auto">';
+    w.document.open();
+    w.document.write('<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=8,user-scalable=yes"><title>'+esc(title)+'</title><style>body{margin:0;background:#07111f;color:#fff;font-family:Arial,Helvetica,sans-serif}.top{position:sticky;top:0;background:#0f172a;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between}.top b{font-size:16px}.top button,.top a{border:0;border-radius:10px;background:#fbbf24;color:#111827;font-weight:900;padding:10px 12px;text-decoration:none}.stage{padding:16px;min-height:calc(100vh - 60px);display:flex;align-items:flex-start;justify-content:center;overflow:auto;-webkit-overflow-scrolling:touch}@media(max-width:760px){.stage{display:block;text-align:center;padding:10px}.top{align-items:flex-start;flex-direction:column}.top button,.top a{width:100%;text-align:center}}</style></head><body><div class="top"><b>'+esc(title)+'</b><div><a href="'+esc(src)+'" target="_self">Kép megnyitása közvetlenül</a> <button onclick="window.close()">Bezárás</button></div></div><div class="stage">'+body+'</div></body></html>');
+    w.document.close();
+  }
+
   function viewer(){
     css();
     let v = document.getElementById('v137ZoomViewer');
@@ -273,7 +293,7 @@
     v.querySelector('[data-act="minus"]').onclick = function(){ setScale(scale - .35); };
     v.querySelector('[data-act="plus"]').onclick = function(){ setScale(scale + .35); };
     v.querySelector('[data-act="reset"]').onclick = function(){ scale=1; tx=0; ty=0; applyTransform(); };
-    v.querySelector('[data-act="open"]').onclick = function(){ const it = mediaList()[idx]; if(it && it.src) window.open(it.src, '_blank'); };
+    v.querySelector('[data-act="open"]').onclick = function(){ const it = mediaList()[idx]; if(it && it.src) openFullMediaV138(it); };
     v.addEventListener('wheel', function(e){ if(!v.classList.contains('open')) return; e.preventDefault(); setScale(scale + (e.deltaY < 0 ? .25 : -.25)); }, {passive:false});
     v.addEventListener('touchstart', onTouchStart, {passive:false});
     v.addEventListener('touchmove', onTouchMove, {passive:false});
