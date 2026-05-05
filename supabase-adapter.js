@@ -1798,32 +1798,3 @@ window.EpitesNaploAPI = {
     return result;
   };
 })();
-
-
-// ===== V153 CLEAN: admin rendszerállapot és takarítás API fallback =====
-(function(){
-  const api = window.EpitesNaploAPI;
-  const db = window.supabaseDirect;
-  if(!api || !db || api.__v153AdminCleanupFallback) return;
-  api.__v153AdminCleanupFallback = true;
-  api.getAdminSystemStatusV153 = api.getAdminSystemStatusV153 || async function(){
-    const tables = ['projects','entries','public_reports','report_approvals','report_documents','report_events','ai_photo_analyses','project_materials','project_invoices','media_files'];
-    const out = { tables:{}, updatedAt:new Date().toISOString() };
-    await Promise.all(tables.map(async t => {
-      try{ const { count, error } = await db.from(t).select('id', { count:'exact', head:true }); out.tables[t] = error ? null : (count || 0); }
-      catch(_){ out.tables[t] = null; }
-    }));
-    try{ const cutoff = new Date(Date.now() - 30*86400000).toISOString(); const { count } = await db.from('report_events').select('id', {count:'exact', head:true}).lt('created_at', cutoff); out.oldReportEvents = count || 0; }catch(_){ out.oldReportEvents = null; }
-    return out;
-  };
-  api.cleanupProjectRemaindersV153 = api.cleanupProjectRemaindersV153 || async function(){
-    const before = await api.getAdminSystemStatusV153().catch(()=>null);
-    try{ await db.rpc('admin_cleanup_project_remainders_v153'); }catch(_){ }
-    try{ if(typeof api.cleanupMyOrphanReportsV139 === 'function') await api.cleanupMyOrphanReportsV139(); }catch(_){ }
-    try{ if(typeof api.cleanupReportEvents === 'function') await api.cleanupReportEvents(30); }catch(_){ }
-    const after = await api.getAdminSystemStatusV153().catch(()=>null);
-    const deleted = {};
-    if(before?.tables && after?.tables){ Object.keys(before.tables).forEach(k => { if(typeof before.tables[k]==='number' && typeof after.tables[k]==='number') deleted[k] = Math.max(0, before.tables[k] - after.tables[k]); }); }
-    return { ok:true, before, after, deleted, updatedAt:new Date().toISOString() };
-  };
-})();

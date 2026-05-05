@@ -42,7 +42,6 @@ async function refreshAdminPanel() {
     adminPayments = await window.EpitesNaploAPI.getAdminPayments();
     renderKpis();
     renderUsers();
-    await loadSystemStatusV153();
     toast('Admin adatok frissítve.');
   } catch (err) {
     $('adminAccessBox').classList.remove('hidden');
@@ -171,62 +170,3 @@ async function logoutAdmin() {
 }
 
 document.addEventListener('DOMContentLoaded', initAdminPanel);
-
-
-// ===== V153 admin rendszerállapot + projekt-maradványok takarítása =====
-function setTextV153(id, value) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = value == null ? '–' : String(value);
-}
-function formatCleanupTableV153(deleted = {}) {
-  const labels = {
-    public_reports: 'publikus riport',
-    report_events: 'riport esemény',
-    report_approvals: 'jóváhagyás',
-    report_documents: 'riport dokumentum',
-    media_files: 'média hivatkozás',
-    ai_photo_analyses: 'AI elemzés',
-    project_materials: 'anyag tétel',
-    project_invoices: 'számla tétel',
-    entries: 'naplóbejegyzés'
-  };
-  const rows = Object.entries(deleted || {}).filter(([,v]) => Number(v) > 0);
-  if (!rows.length) return 'Nem találtam törölhető maradványt. A rendszer jelenleg tiszta vagy az SQL RPC még nincs lefuttatva.';
-  return 'Törölve: ' + rows.map(([k,v]) => `${v} ${labels[k] || k}`).join(' • ');
-}
-async function loadSystemStatusV153() {
-  const box = document.getElementById('cleanupResultV153');
-  try {
-    if (!window.EpitesNaploAPI?.getAdminSystemStatusV153) {
-      if (box) box.textContent = 'A V153 rendszerállapot API nem érhető el. Frissítsd az oldalt.';
-      return;
-    }
-    const status = await window.EpitesNaploAPI.getAdminSystemStatusV153();
-    const t = status?.tables || {};
-    setTextV153('sysProjects', t.projects);
-    setTextV153('sysEntries', t.entries);
-    setTextV153('sysReports', t.public_reports);
-    setTextV153('sysDocs', t.report_documents);
-    setTextV153('sysEvents', t.report_events);
-    setTextV153('sysMedia', t.media_files);
-    if (box) box.innerHTML = `Utolsó ellenőrzés: ${formatDate(status?.updatedAt)}${status?.oldReportEvents ? `<br>30 napnál régebbi riport esemény: <b>${status.oldReportEvents}</b>` : ''}`;
-  } catch (err) {
-    if (box) box.textContent = 'Rendszerállapot hiba: ' + (err.message || err);
-  }
-}
-async function cleanupRemaindersV153(btn) {
-  const box = document.getElementById('cleanupResultV153');
-  const old = btn?.textContent || '';
-  if (btn) { btn.disabled = true; btn.textContent = 'Takarítás folyamatban...'; }
-  if (box) box.textContent = 'Takarítás indul...';
-  try {
-    const result = await window.EpitesNaploAPI.cleanupProjectRemaindersV153();
-    if (box) box.innerHTML = `<b>Projekt-maradványok takarítása kész.</b><br>${formatCleanupTableV153(result.deleted)}<br><small>Utolsó takarítás: ${formatDate(result.updatedAt)}</small>`;
-    await loadSystemStatusV153();
-    toast('Takarítás kész.');
-  } catch (err) {
-    if (box) box.textContent = 'Takarítási hiba: ' + (err.message || err);
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = old || 'Projekt-maradványok takarítása'; }
-  }
-}

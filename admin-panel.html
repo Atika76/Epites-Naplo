@@ -19,7 +19,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Admin panel – ÉpítésNapló AI PRO</title>
-  <link rel="stylesheet" href="style.css?v=153" />
+  <link rel="stylesheet" href="style.css?v=76" />
 </head>
 <body class="auth-loading">
   <header class="topbar">
@@ -72,25 +72,6 @@
         <div id="userList" class="adminUserGrid"></div>
       </section>
 
-
-      <section class="card wide v153SystemPanel">
-        <div class="sectionTitleRow">
-          <div>
-            <h2>Rendszer állapot és takarítás</h2>
-            <p class="muted">Itt látod, mennyi adat gyűlt össze, és egy gombbal indítható a riport/projekt-maradványok takarítása.</p>
-          </div>
-          <button class="btn primary" id="cleanupRemaindersBtn" onclick="cleanupRemaindersV153(this)">Projekt-maradványok takarítása</button>
-        </div>
-        <div class="adminKpiGrid v153SystemGrid">
-          <div><b id="sysProjects">–</b><span>projekt</span></div>
-          <div><b id="sysEntries">–</b><span>naplóbejegyzés</span></div>
-          <div><b id="sysReports">–</b><span>publikus riport</span></div>
-          <div><b id="sysDocs">–</b><span>riport dokumentum</span></div>
-          <div><b id="sysEvents">–</b><span>riport esemény</span></div>
-          <div><b id="sysMedia">–</b><span>média hivatkozás</span></div>
-        </div>
-        <div id="cleanupResultV153" class="notice muted">Állapot betöltése folyamatban...</div>
-      </section>
       <section class="card wide">
         <h2>Gyors admin műveletek</h2>
         <div class="checkGrid">
@@ -105,9 +86,9 @@
 
   <div id="toast" class="toast hidden"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-adapter.js?v=153"></script>
-  <script src="header-v40.js?v=153"></script>
-  <script src="admin-panel.js?v=153"></script>
+  <script src="supabase-adapter.js?v=110"></script>
+  <script src="header-v40.js?v=76"></script>
+  <script src="admin-panel.js?v=76"></script>
 <script>window.addEventListener("DOMContentLoaded",()=>setTimeout(()=>document.body.classList.remove("auth-loading"),500));</script>
 </body>
 </html>

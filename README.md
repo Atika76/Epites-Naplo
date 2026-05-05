@@ -1,11 +1,3 @@
-# ÉpítésNapló AI PRO – V153 CLEAN végleges stabil alap
-
-A csomag stabilizált verzió: egy képnéző, egy V153 stabilizáló script, admin takarítás, ügyfélriport finomítás.
-
-Lásd: `V153-CLEAN-VEGLEGES-STABIL-ALAP.md` és `supabase-v153-clean-stabilization.sql`.
-
----
-
 # ÉpítésNapló AI PRO – 100% automatikus PayPal → Pro
 
 ## Mit tartalmaz?
