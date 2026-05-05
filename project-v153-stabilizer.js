@@ -2252,3 +2252,44 @@
     if(root && !root.dataset.v153Polished){ root.dataset.v153Polished='1'; root.classList.add('v153PublicReport'); }
   });
 })();
+
+
+// ===== V154 REPORT CENTER FIX: ha a riportközpont HTML hiányzik, automatikusan létrehozza =====
+(function(){
+  if(window.__epitesNaploV154ReportCenterFix) return;
+  window.__epitesNaploV154ReportCenterFix = true;
+
+  function ensureReportCenter(){
+    var existing = document.getElementById('reportCenterV69');
+    if(existing) return existing;
+    var wrap = document.createElement('div');
+    wrap.id = 'reportCenterV69';
+    wrap.className = 'v69Modal hidden';
+    wrap.setAttribute('role','dialog');
+    wrap.setAttribute('aria-modal','true');
+    wrap.setAttribute('aria-labelledby','reportCenterTitleV69');
+    wrap.innerHTML = '<div class="v69ModalBackdrop" onclick="closeReportCenterV69()"></div>'+
+      '<div class="v69ModalCard"><div class="v69ModalHead"><div><p class="badge">PRO riport központ</p><h2 id="reportCenterTitleV69">Riportok és átadás</h2><p>Egy helyen találod a heti riportot, lezáró dokumentumot, ügyfélriport linket és a saját projektmentést.</p></div><button class="v69ModalClose" type="button" onclick="closeReportCenterV69()" aria-label="Bezárás">×</button></div>'+
+      '<div class="v69ReportGrid">'+
+      '<section class="v69ReportBox"><h3>Heti riport</h3><p>A jelenlegi hét / utolsó 7 nap dokumentációja. Folyamat közbeni ügyféltájékoztatáshoz való.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="closeReportCenterV69(); printWeeklyReport();">PDF / nyomtatás</button><button class="btn ghost" type="button" onclick="closeReportCenterV69(); downloadWeeklyReportHtml();">HTML letöltés</button></div></section>'+
+      '<section class="v69ReportBox important"><h3>Lezáró riport</h3><p>A teljes projekt egyben: minden addigi napló, fotó, anyag, időjárás és ellenőrzési adat.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="closeReportCenterV69(); printClosingDocument();">Lezáró PDF / nyomtatás</button><button class="btn ghost" type="button" onclick="closeReportCenterV69(); downloadClosingReportHtml();">Lezáró HTML</button></div></section>'+
+      '<section class="v69ReportBox"><h3>Ügyfél átadás</h3><p>Olvasható ügyfélriport, megtekintés és elfogadás nyomával.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="closeReportCenterV69(); createProjectClientLinkV25();">Ügyfél link + jóváhagyás</button><button class="btn ghost" type="button" onclick="closeReportCenterV69(); exportClosingPdfV25();">Profi PDF export</button></div></section>'+
+      '<section class="v69ReportBox archive"><h3>Saját mentés</h3><p>Saját példány a projektről: riport, adatok, képek és videók egy ZIP-ben.</p><div class="v69ReportBtns"><button class="btn primary" type="button" onclick="closeReportCenterV69(); v68DownloadProjectZip();">Projekt mentése ZIP-be</button><button class="btn ghost" type="button" onclick="closeReportCenterV69(); v33ArchiveProject();">Projekt lezárása</button></div></section>'+
+      '</div></div>';
+    document.body.appendChild(wrap);
+    return wrap;
+  }
+
+  window.openReportCenterV69 = function(){
+    var modal = ensureReportCenter();
+    modal.classList.remove('hidden');
+    document.body.classList.add('v69ModalOpen');
+  };
+  window.closeReportCenterV69 = function(){
+    var modal = document.getElementById('reportCenterV69');
+    if(modal) modal.classList.add('hidden');
+    document.body.classList.remove('v69ModalOpen');
+  };
+
+  document.addEventListener('DOMContentLoaded', ensureReportCenter);
+})();

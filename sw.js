@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-ai-pro-v153-clean';
+const CACHE_NAME = 'epitesnaplo-ai-pro-v154-reportfix';
 const APP_SHELL = [
   './',
   './index.html',
