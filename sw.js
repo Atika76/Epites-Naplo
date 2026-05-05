@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-ai-pro-v154-reportfix';
+const CACHE_NAME = 'epitesnaplo-ai-pro-v149-performance';
 const APP_SHELL = [
   './',
   './index.html',
@@ -11,14 +11,12 @@ const APP_SHELL = [
   './admin-panel.html',
   './style.css',
   './script.js',
-  './index-v153-optimizer.js',
   './project.js',
-  './project-v153-core.js',
-  './project-v153-stabilizer.js',
-  './unified-photo-viewer-v153.js',
+  './project-v149-performance-upload-optimizer.js',
   './project-finance.js',
   './profile.js',
   './header-v40.js',
+  './v19-pro-features.js',
   './supabase-adapter.js',
   './favicon.svg',
   './manifest.webmanifest'
