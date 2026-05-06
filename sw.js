@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-ai-pro-v166-mobile-text-fix';
+const CACHE_NAME = 'epitesnaplo-ai-pro-v149-performance';
 const APP_SHELL = [
   './',
   './index.html',
