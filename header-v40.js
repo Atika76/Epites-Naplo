@@ -56,6 +56,41 @@
   }
 
 
+  function setupSmartMobileHeaderV164(){
+    const topbar = document.querySelector('.topbar');
+    if(!topbar || topbar.dataset.v164SmartHeaderReady) return;
+    topbar.dataset.v164SmartHeaderReady = '1';
+    let lastY = window.scrollY || 0;
+    let ticking = false;
+    const onScroll = () => {
+      if(ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY || 0;
+        if(window.innerWidth > 860){
+          topbar.classList.remove('topbarHidden');
+          lastY = y;
+          ticking = false;
+          return;
+        }
+        const diff = y - lastY;
+        if(y < 40 || diff < -3){
+          topbar.classList.remove('topbarHidden');
+        }else if(diff > 6 && y > 90){
+          const nav = document.getElementById('nav');
+          if(!nav || (!nav.classList.contains('open') && !nav.classList.contains('navOpen'))){
+            topbar.classList.add('topbarHidden');
+          }
+        }
+        lastY = y;
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, {passive:true});
+    window.addEventListener('resize', () => { if(window.innerWidth > 860) topbar.classList.remove('topbarHidden'); }, {passive:true});
+  }
+
+
   function v130OpenReportNav(event){
     if(event && typeof event.preventDefault === 'function') event.preventDefault();
     closeMenu();
@@ -121,6 +156,7 @@
   }
   document.addEventListener('DOMContentLoaded', () => {
     ensureMobileMenuButton();
+    setupSmartMobileHeaderV164();
     renderHeader();
     try { window.supabaseDirect?.auth?.onAuthStateChange?.(() => setTimeout(renderHeader, 60)); } catch(e) {}
     setTimeout(() => { if(document.body.classList.contains('auth-loading')) renderHeader(); }, 1200);
