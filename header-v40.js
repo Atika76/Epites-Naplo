@@ -119,44 +119,8 @@
     document.body.classList.remove('auth-loading');
     document.body.classList.add('auth-ready');
   }
-
-
-  function v166SmartMobileHeader(){
-    const topbar = document.querySelector('.topbar');
-    if(!topbar || topbar.dataset.v166SmartMobileHeader) return;
-    topbar.dataset.v166SmartMobileHeader = '1';
-    let lastY = window.scrollY || 0;
-    let ticking = false;
-    function update(){
-      ticking = false;
-      if(window.innerWidth > 900){
-        topbar.classList.remove('mobileHeaderHidden');
-        lastY = window.scrollY || 0;
-        return;
-      }
-      const y = window.scrollY || 0;
-      const diff = y - lastY;
-      if(y < 12){
-        topbar.classList.remove('mobileHeaderHidden');
-      }else if(diff > 6){
-        topbar.classList.add('mobileHeaderHidden');
-      }else if(diff < -3){
-        topbar.classList.remove('mobileHeaderHidden');
-      }
-      lastY = y;
-    }
-    window.addEventListener('scroll', () => {
-      if(!ticking){
-        ticking = true;
-        requestAnimationFrame(update);
-      }
-    }, { passive:true });
-    window.addEventListener('resize', update, { passive:true });
-  }
-
   document.addEventListener('DOMContentLoaded', () => {
     ensureMobileMenuButton();
-    v166SmartMobileHeader();
     renderHeader();
     try { window.supabaseDirect?.auth?.onAuthStateChange?.(() => setTimeout(renderHeader, 60)); } catch(e) {}
     setTimeout(() => { if(document.body.classList.contains('auth-loading')) renderHeader(); }, 1200);
