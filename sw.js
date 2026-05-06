@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-ai-pro-v162-mobile-view-fix';
+const CACHE_NAME = 'epitesnaplo-ai-pro-v163-mobile-report-only';
 const APP_SHELL = [
   './',
   './index.html',
@@ -16,12 +16,13 @@ const APP_SHELL = [
   './project-finance.js',
   './profile.js',
   './header-v40.js',
-  './mobile-report-open-v162.js',
-  './mobile-header-autohide-v162.js',
   './v19-pro-features.js',
   './supabase-adapter.js',
   './favicon.svg',
-  './manifest.webmanifest'
+  './manifest.webmanifest',
+  './v163-project-mobile-safe.css',
+  './v163-mobile-report-window-fix.js',
+  './v163-mobile-report-header-only.css'
 ];
 
 self.addEventListener('install', event => {

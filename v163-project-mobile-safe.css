@@ -1,0 +1,17 @@
+/* V163 – projektoldal mobil biztonsági szélesség javítás
+   Csak project.html-en töltődik be. */
+@media screen and (max-width: 860px){
+  html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important;}
+  .projectPageShell{width:100%!important;max-width:100%!important;margin-left:auto!important;margin-right:auto!important;padding-left:10px!important;padding-right:10px!important;box-sizing:border-box!important;}
+  .projectHero,.projectTwoCol,.timelineEntry,.card,.timelineBody,.timelineDate{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;}
+  .projectHero,.projectTwoCol,.timelineEntry{grid-template-columns:1fr!important;}
+  .timelineBody p,.timelineBody div,.projectHero p{overflow-wrap:anywhere!important;word-break:normal!important;}
+  .detailImages,.entryImageGrid,.reportImageGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;}
+  .detailImages img,.entryImageGrid img,.reportImageGrid img{width:100%!important;max-width:100%!important;height:auto!important;aspect-ratio:1/1!important;object-fit:cover!important;}
+}
+@media screen and (max-height:520px) and (orientation:landscape){
+  .projectPageShell{margin-top:74px!important;padding-left:8px!important;padding-right:8px!important;}
+  .projectHero{padding:14px!important;}
+  .projectHero h1{font-size:28px!important;line-height:1.05!important;}
+  .card{padding:14px!important;border-radius:16px!important;}
+}

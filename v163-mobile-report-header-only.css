@@ -1,0 +1,121 @@
+/* V163 – CSAK mobilos riport/ügyfélriport fejléc javítás
+   Funkcióhoz, képnézőhöz, Supabase-hez nem nyúl. */
+@media screen and (max-width: 820px){
+  html, body{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    overflow-x:hidden !important;
+    -webkit-text-size-adjust:100% !important;
+  }
+
+  /* Ügyfélriport felső sáv: mobilon kicsi és NEM ragad rá a tartalomra */
+  .top{
+    position:relative !important;
+    top:auto !important;
+    left:auto !important;
+    right:auto !important;
+    width:100% !important;
+    max-width:100% !important;
+    padding:8px 10px !important;
+    min-height:0 !important;
+    box-shadow:0 4px 14px rgba(0,0,0,.18) !important;
+  }
+  .topInner{
+    width:100% !important;
+    max-width:100% !important;
+    margin:0 !important;
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:7px !important;
+    align-items:center !important;
+  }
+  .brand{
+    width:100% !important;
+    min-width:0 !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:8px !important;
+  }
+  .brand img{
+    width:32px !important;
+    height:32px !important;
+    min-width:32px !important;
+    border-radius:9px !important;
+  }
+  .brand h1{
+    font-size:17px !important;
+    line-height:1.1 !important;
+    margin:0 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+  .brand p{
+    font-size:12px !important;
+    line-height:1.2 !important;
+    margin:2px 0 0 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+  .actions{
+    width:100% !important;
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:6px !important;
+  }
+  .actions .btn,
+  .btn{
+    min-height:34px !important;
+    padding:8px 6px !important;
+    border-radius:10px !important;
+    font-size:12px !important;
+    line-height:1.1 !important;
+    white-space:normal !important;
+  }
+
+  main{
+    width:100% !important;
+    max-width:100% !important;
+    margin:10px auto 18px !important;
+    padding:0 8px 22px !important;
+  }
+  .reportWrap,
+  #publicReportContent{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+    padding:14px 12px !important;
+    border-radius:12px !important;
+    overflow-wrap:anywhere !important;
+  }
+  #publicReportContent h1{font-size:24px !important;line-height:1.15 !important;margin:12px 0 8px !important;letter-spacing:0 !important;}
+  #publicReportContent h2{font-size:20px !important;line-height:1.2 !important;}
+  #publicReportContent h3{font-size:17px !important;line-height:1.25 !important;}
+  #publicReportContent p,
+  #publicReportContent li,
+  #publicReportContent td,
+  #publicReportContent th{font-size:14px !important;line-height:1.45 !important;}
+  #publicReportContent .stats{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important;}
+  #publicReportContent .stat{padding:9px !important;}
+  #publicReportContent .stat b{font-size:18px !important;}
+  .approvalBox{margin:12px 8px 18px !important;padding:12px !important;border-radius:12px !important;}
+  .approvalActionGrid{grid-template-columns:1fr !important;}
+}
+
+@media screen and (max-height: 520px) and (orientation: landscape){
+  .top{position:relative !important;padding:5px 8px !important;}
+  .topInner{grid-template-columns:minmax(0,1fr) auto !important;gap:8px !important;}
+  .brand img{width:28px !important;height:28px !important;min-width:28px !important;border-radius:8px !important;}
+  .brand h1{font-size:15px !important;}
+  .brand p{display:none !important;}
+  .actions{width:auto !important;grid-template-columns:repeat(3,92px) !important;gap:5px !important;}
+  .actions .btn{min-height:30px !important;padding:6px 5px !important;font-size:11px !important;border-radius:9px !important;}
+  main{margin-top:8px !important;padding-left:8px !important;padding-right:8px !important;}
+  .reportWrap,#publicReportContent{padding:12px !important;}
+  #publicReportContent h1{font-size:22px !important;}
+  #publicReportContent .stats{grid-template-columns:repeat(5,minmax(0,1fr)) !important;}
+}
