@@ -35,8 +35,34 @@
     .v110Gallery{position:fixed;inset:0;z-index:999999;background:rgba(2,6,23,.93);display:none;align-items:center;justify-content:center;padding:76px 72px 34px}.v110Gallery.open{display:flex}.v110GalleryTop{position:absolute;top:0;left:0;right:0;height:58px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px}.v110GalleryClose{border:0;border-radius:999px;background:#fbbf24;color:#111827;font-weight:900;padding:10px 14px;cursor:pointer}.v110GalleryStage{display:grid;place-items:center;width:100%;height:100%}.v110GalleryStage img,.v110GalleryStage video{max-width:100%;max-height:calc(100vh - 125px);object-fit:contain;border-radius:14px;background:#000}.v110Nav{position:absolute;top:50%;transform:translateY(-50%);width:54px;height:76px;border:1px solid rgba(255,255,255,.22);border-radius:18px;background:rgba(15,23,42,.74);color:#fff;font-size:44px;cursor:pointer}.v110Nav.prev{left:14px}.v110Nav.next{right:14px}.v110Nav:hover{background:#fbbf24;color:#111827}
     @media(max-width:760px){.topInner{align-items:flex-start;flex-direction:column}.brand h1{font-size:22px}.actions .btn{width:100%}.actions{width:100%}.reportWrap{padding:18px;border-radius:14px}.approvalActionGrid{grid-template-columns:1fr}.v110Gallery{padding:66px 12px 24px}.v110Nav{width:44px;height:58px;font-size:34px}.v110Nav.prev{left:6px}.v110Nav.next{right:6px}#publicReportContent h1{font-size:27px}#publicReportContent .stats{grid-template-columns:repeat(2,1fr)}}
     @media print{.top,.approvalBox,.v110Gallery{display:none!important}body{background:#fff}main{max-width:none;margin:0;padding:0}.reportWrap{box-shadow:none;border-radius:0;padding:0}.photos,.v117Photos{grid-template-columns:repeat(4,30mm)!important}.v67ReportPhoto{width:30mm!important;max-width:30mm!important}.v67ReportPhoto img{width:28mm!important;height:28mm!important}}
+
+
+    /* V164 – mobil ügyfélriport fejléc kisebb, fekvő nézetben is használható */
+    @media(max-width:760px){
+      html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important;}
+      .top{position:sticky!important;top:0!important;left:0!important;right:0!important;width:100%!important;padding:8px 10px!important;border-radius:0!important;}
+      .topInner{max-width:100%!important;width:100%!important;margin:0!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;}
+      .brand{min-width:0!important;flex:1 1 auto!important;gap:8px!important;overflow:hidden!important;}
+      .brand img{width:32px!important;height:32px!important;min-width:32px!important;border-radius:10px!important;}
+      .brand h1{font-size:17px!important;line-height:1.05!important;margin:0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+      .brand p{font-size:11px!important;line-height:1.15!important;margin:2px 0 0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-width:100%!important;}
+      .actions{width:auto!important;flex:0 0 auto!important;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;gap:5px!important;}
+      .actions .btn{width:auto!important;min-width:0!important;padding:7px 8px!important;font-size:10.5px!important;line-height:1.05!important;border-radius:9px!important;white-space:nowrap!important;}
+      main{max-width:100%!important;width:100%!important;margin:10px auto!important;padding:0 10px 18px!important;}
+      .reportWrap{width:100%!important;max-width:100%!important;margin:0 auto!important;padding:14px!important;border-radius:14px!important;}
+      #publicReportContent h1{font-size:24px!important;line-height:1.1!important;}
+      #publicReportContent h2{font-size:21px!important;line-height:1.15!important;}
+    }
+    @media(max-width:760px) and (orientation:landscape){
+      .top{padding:5px 8px!important;}
+      .brand img{width:28px!important;height:28px!important;min-width:28px!important;border-radius:8px!important;}
+      .brand h1{font-size:15px!important;}
+      .brand p{display:none!important;}
+      .actions .btn{padding:6px 7px!important;font-size:10px!important;}
+      main{margin:8px auto!important;padding:0 8px 12px!important;}
+      .reportWrap{padding:12px!important;}
+    }
   </style>
-  <link rel="stylesheet" href="v163-mobile-report-header-only.css?v=163">
 </head>
 <body>
   <header class="top">
@@ -50,10 +76,10 @@
     <section id="approvalBox" class="approvalBox hidden"></section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-adapter.js?v=163"></script>
+  <script src="supabase-adapter.js?v=150"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="unified-photo-viewer-v152.js?v=152"></script>
-  <script src="view-v110-final-public-clean.js?v=163"></script>
+  <script src="view-v110-final-public-clean.js?v=150"></script>
   <script src="unified-photo-viewer-v152.js?v=152-final"></script>
 </body>
 </html>
