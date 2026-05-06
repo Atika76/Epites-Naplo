@@ -2,7 +2,7 @@
 <html lang="hu">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ügyfélriport – ÉpítésNapló AI PRO</title>
   <meta name="description" content="Fotókkal igazolt, csak olvasható építési riport. Teljes dokumentáció, képgaléria, PDF és ügyfél jóváhagyás." />
   <link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/favicon.png" />
@@ -21,7 +21,6 @@
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://epitesi-naplo.eu/og-ugyfelriport-card.png" />
-  <link rel="stylesheet" href="view-mobile-v159-fix.css?v=159" />
   <style>
     :root{--bg:#07111f;--panel:#0f1f33;--text:#0f172a;--muted:#64748b;--brand:#fbbf24;--brand2:#f59e0b;--ok:#22c55e;--line:#e5e7eb}
     *{box-sizing:border-box} body{margin:0;background:#07111f;font-family:Arial,Helvetica,sans-serif;color:var(--text)}
@@ -35,6 +34,27 @@
     #publicReportContent figcaption{font-size:11px!important;color:#64748b!important;line-height:1.25!important;margin-top:4px!important;max-width:100px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}#publicReportContent a:has(img){text-decoration:none!important;cursor:zoom-in!important;display:inline-block!important}#publicReportContent video{max-width:220px;max-height:160px;border-radius:10px;cursor:zoom-in}.clientFeedbackBlock,.aiProfessionalContextBlock{break-inside:avoid}
     .v110Gallery{position:fixed;inset:0;z-index:999999;background:rgba(2,6,23,.93);display:none;align-items:center;justify-content:center;padding:76px 72px 34px}.v110Gallery.open{display:flex}.v110GalleryTop{position:absolute;top:0;left:0;right:0;height:58px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px}.v110GalleryClose{border:0;border-radius:999px;background:#fbbf24;color:#111827;font-weight:900;padding:10px 14px;cursor:pointer}.v110GalleryStage{display:grid;place-items:center;width:100%;height:100%}.v110GalleryStage img,.v110GalleryStage video{max-width:100%;max-height:calc(100vh - 125px);object-fit:contain;border-radius:14px;background:#000}.v110Nav{position:absolute;top:50%;transform:translateY(-50%);width:54px;height:76px;border:1px solid rgba(255,255,255,.22);border-radius:18px;background:rgba(15,23,42,.74);color:#fff;font-size:44px;cursor:pointer}.v110Nav.prev{left:14px}.v110Nav.next{right:14px}.v110Nav:hover{background:#fbbf24;color:#111827}
     @media(max-width:760px){.topInner{align-items:flex-start;flex-direction:column}.brand h1{font-size:22px}.actions .btn{width:100%}.actions{width:100%}.reportWrap{padding:18px;border-radius:14px}.approvalActionGrid{grid-template-columns:1fr}.v110Gallery{padding:66px 12px 24px}.v110Nav{width:44px;height:58px;font-size:34px}.v110Nav.prev{left:6px}.v110Nav.next{right:6px}#publicReportContent h1{font-size:27px}#publicReportContent .stats{grid-template-columns:repeat(2,1fr)}}
+
+    /* V160 mobil ügyfélriport nézet: a fejléc ne takarja a riportot, és minden középre/teljes szélességre álljon */
+    @media(max-width:760px){
+      html,body{width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:hidden!important;-webkit-text-size-adjust:100%!important;}
+      .top{position:relative!important;width:100%!important;max-width:100%!important;left:0!important;right:0!important;padding:10px 10px!important;box-shadow:0 6px 18px rgba(0,0,0,.20)!important;}
+      .topInner{width:100%!important;max-width:100%!important;margin:0!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;flex-wrap:wrap!important;}
+      .brand{flex:1 1 100%!important;min-width:0!important;gap:8px!important;}
+      .brand img{width:36px!important;height:36px!important;border-radius:11px!important;flex:0 0 auto!important;}
+      .brand h1{font-size:17px!important;line-height:1.12!important;margin:0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+      .brand p{font-size:12px!important;line-height:1.25!important;margin:2px 0 0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-width:calc(100vw - 72px)!important;}
+      .actions{width:100%!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;margin-top:4px!important;}
+      .actions .btn{width:100%!important;padding:8px 6px!important;border-radius:10px!important;font-size:12px!important;line-height:1.15!important;min-height:38px!important;}
+      main{width:100%!important;max-width:100%!important;margin:12px auto!important;padding:0 10px 24px!important;}
+      .reportWrap{width:100%!important;max-width:100%!important;min-width:0!important;margin:0 auto!important;padding:14px!important;border-radius:14px!important;}
+      #publicReportContent{width:100%!important;max-width:100%!important;min-width:0!important;margin-left:auto!important;margin-right:auto!important;}
+      #publicReportContent .entry{width:100%!important;max-width:100%!important;margin:14px auto!important;padding:14px!important;}
+      #publicReportContent .photos,#publicReportContent .v74Photos,#publicReportContent .v77Photos,#publicReportContent .entryImageGrid,#publicReportContent .reportImageGrid,#publicReportContent .v68ReportPhotos,#publicReportContent .v117Photos{grid-template-columns:repeat(2,minmax(0,1fr))!important;justify-content:center!important;width:100%!important;}
+      #publicReportContent figure,#publicReportContent .v67ReportPhoto,#publicReportContent .photo,#publicReportContent .reportMediaTile{width:100%!important;max-width:100%!important;}
+      #publicReportContent figure img,#publicReportContent .photos img,#publicReportContent .v74Photos img,#publicReportContent .v77Photos img,#publicReportContent .entryImageGrid img,#publicReportContent .reportImageGrid img,#publicReportContent .v68ReportPhotos img,#publicReportContent .v117Photos img{width:100%!important;max-width:100%!important;height:auto!important;aspect-ratio:1/1!important;}
+    }
+
     @media print{.top,.approvalBox,.v110Gallery{display:none!important}body{background:#fff}main{max-width:none;margin:0;padding:0}.reportWrap{box-shadow:none;border-radius:0;padding:0}.photos,.v117Photos{grid-template-columns:repeat(4,30mm)!important}.v67ReportPhoto{width:30mm!important;max-width:30mm!important}.v67ReportPhoto img{width:28mm!important;height:28mm!important}}
   </style>
 </head>
@@ -50,11 +70,11 @@
     <section id="approvalBox" class="approvalBox hidden"></section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-adapter.js?v=150"></script>
+  <script src="supabase-adapter.js?v=160-mobile"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="unified-photo-viewer-v152.js?v=152"></script>
-  <script src="view-v110-final-public-clean.js?v=159"></script>
+  <script src="view-v110-final-public-clean.js?v=160-mobile"></script>
   <script src="unified-photo-viewer-v152.js?v=152-final"></script>
-  <script src="view-mobile-v159-fix.js?v=159"></script>
+  <script src="mobile-report-view-v160-fix.js?v=160-mobile"></script>
 </body>
 </html>
