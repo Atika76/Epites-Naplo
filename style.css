@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --bg: #07111f;
   --panel: #101c2f;
   --panel2: #16243a;
@@ -2001,103 +2001,95 @@ body.v69ModalOpen{overflow:hidden;}
 }
 
 
-/* V159 – mobil riportkártya javítás a főoldali/projectből megnyitott riportnézetekhez is */
-@media(max-width:760px){
-  .publicReportView{
-    width:100%!important;
-    max-width:100%!important;
-    padding:10px!important;
-    align-items:flex-start!important;
-    justify-content:center!important;
-    overflow-x:hidden!important;
-  }
-  .publicReportCard{
+/* ===== V160 MOBIL MEGJELENÉS FIX – csak mobilos igazítás =====
+   Cél: fejléc teljes kijelzőszélesség, riportok középre igazítása mobilon,
+   nyomtatási/about:blank riportnézet mobilbarát szélesség. Funkciót nem módosít. */
+@media (max-width: 860px){
+  html, body{
     width:100%!important;
     max-width:100%!important;
     min-width:0!important;
-    margin:0 auto!important;
-    padding:14px!important;
-    border-radius:16px!important;
-    overflow:visible!important;
+    overflow-x:hidden!important;
+    -webkit-text-size-adjust:100%;
   }
-  .publicReportCard,
-  .publicReportCard *{
+  body{position:relative!important;}
+
+  /* Főoldal/projekt/admin fejléc: mindig fusson végig a kijelző teljes szélességén */
+  .topbar{
+    width:100vw!important;
+    max-width:100vw!important;
+    min-width:100vw!important;
+    left:0!important;
+    right:0!important;
+    margin-left:calc(50% - 50vw)!important;
+    margin-right:calc(50% - 50vw)!important;
+    border-radius:0!important;
     box-sizing:border-box!important;
   }
-  .publicReportCard h1{
-    font-size:clamp(22px,7vw,28px)!important;
-    line-height:1.18!important;
-    overflow-wrap:anywhere!important;
-  }
-  .publicReportCard h2{
-    font-size:clamp(19px,5.8vw,23px)!important;
-    line-height:1.22!important;
-  }
-  .publicReportCard h3{
-    font-size:clamp(16px,5vw,20px)!important;
-    line-height:1.24!important;
-  }
-  .publicReportCard p,
-  .publicReportCard li,
-  .publicReportCard td,
-  .publicReportCard th{
-    font-size:14px!important;
-    line-height:1.42!important;
-    overflow-wrap:anywhere!important;
-  }
-  .publicReportCard .stats{
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    gap:8px!important;
-  }
-  .publicReportCard .entry{
-    width:100%!important;
-    max-width:100%!important;
-    margin:12px auto!important;
-    padding:12px!important;
-    border-radius:12px!important;
-    overflow:hidden!important;
-  }
-  .publicReportCard .photos,
-  .publicReportCard .v74Photos,
-  .publicReportCard .v77Photos,
-  .publicReportCard .entryImageGrid,
-  .publicReportCard .reportImageGrid,
-  .publicReportCard .v68ReportPhotos,
-  .publicReportCard .v117Photos{
-    width:100%!important;
-    max-width:100%!important;
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    gap:8px!important;
-    justify-content:stretch!important;
-  }
-  .publicReportCard .v67ReportPhoto,
-  .publicReportCard .photos figure,
-  .publicReportCard figure,
-  .publicReportCard .photo{
+  .topbar .brand{flex:1 1 auto!important;min-width:0!important;max-width:calc(100vw - 82px)!important;}
+  .topbar .brandIcon{width:42px!important;height:42px!important;}
+  .topbar .brand strong{font-size:16px!important;line-height:1.08!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-width:100%!important;}
+  .topbar .brand span{font-size:11px!important;line-height:1.25!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-width:calc(100vw - 138px)!important;}
+  .topbar .menuBtn{margin-left:auto!important;flex:0 0 46px!important;}
+
+  /* Oldaltartalmak mobilon ne szoruljanak bal oldalra */
+  .hero,
+  main,
+  .projectPageShell,
+  .publicReportView,
+  .publicReportCard,
+  .card,
+  .grid,
+  .benefits,
+  .planGrid,
+  .adminShell,
+  .inboxShell{
     width:100%!important;
     max-width:100%!important;
     min-width:0!important;
-    padding:4px!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+    box-sizing:border-box!important;
   }
-  .publicReportCard .v67ReportPhoto img,
-  .publicReportCard .photos img,
-  .publicReportCard figure img,
-  .publicReportCard .entryImageGrid img,
-  .publicReportCard .reportImageGrid img{
+  .publicReportCard{
+    padding-left:14px!important;
+    padding-right:14px!important;
+  }
+
+  /* Riportkártya mobilon középre, teljes kijelzőn olvashatóan */
+  #publicReportContent,
+  .publicReportCard #publicReportContent,
+  .reportWrap,
+  .doc,
+  .v76PdfStage,
+  .v80PdfStage{
     width:100%!important;
     max-width:100%!important;
-    height:82px!important;
-    object-fit:cover!important;
+    min-width:0!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+    box-sizing:border-box!important;
   }
-}
-@media(max-width:360px){
-  .publicReportCard .photos,
-  .publicReportCard .v74Photos,
-  .publicReportCard .v77Photos,
-  .publicReportCard .entryImageGrid,
-  .publicReportCard .reportImageGrid,
-  .publicReportCard .v68ReportPhotos,
-  .publicReportCard .v117Photos{
+  .publicReportCard .stats,
+  #publicReportContent .stats,
+  .reportWrap .stats{
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
   }
+  .publicReportCard .entry,
+  #publicReportContent .entry,
+  .reportWrap .entry{
+    width:100%!important;
+    max-width:100%!important;
+    padding:14px!important;
+    margin:14px auto!important;
+  }
+  .publicReportCard h1,
+  #publicReportContent h1,
+  .reportWrap h1{font-size:26px!important;line-height:1.16!important;letter-spacing:-.5px!important;}
+  .publicReportCard h2,
+  #publicReportContent h2,
+  .reportWrap h2{font-size:21px!important;line-height:1.2!important;}
+  .publicReportCard table,
+  #publicReportContent table,
+  .reportWrap table{display:block!important;max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;}
 }
