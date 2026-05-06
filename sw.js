@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-ai-pro-v160-mobile-report-fix';
+const CACHE_NAME = 'epitesnaplo-ai-pro-v162-mobile-view-fix';
 const APP_SHELL = [
   './',
   './index.html',
@@ -10,13 +10,14 @@ const APP_SHELL = [
   './admin-messages.html',
   './admin-panel.html',
   './style.css',
-  './mobile-report-view-v160-fix.js',
   './script.js',
   './project.js',
   './project-v149-performance-upload-optimizer.js',
   './project-finance.js',
   './profile.js',
   './header-v40.js',
+  './mobile-report-open-v162.js',
+  './mobile-header-autohide-v162.js',
   './v19-pro-features.js',
   './supabase-adapter.js',
   './favicon.svg',
