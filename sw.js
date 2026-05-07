@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-ai-pro-v169-hamburger-menu-fix';
+const CACHE_NAME = 'epitesnaplo-ai-pro-v170-mobile-report-menu-fix';
 const APP_SHELL = [
   './',
   './index.html',

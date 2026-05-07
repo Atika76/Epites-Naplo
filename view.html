@@ -25,7 +25,7 @@
     :root{--bg:#07111f;--panel:#0f1f33;--text:#0f172a;--muted:#64748b;--brand:#fbbf24;--brand2:#f59e0b;--ok:#22c55e;--line:#e5e7eb}
     *{box-sizing:border-box} body{margin:0;background:#07111f;font-family:Arial,Helvetica,sans-serif;color:var(--text)}
     .top{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,#07111f,#10233c);color:#fff;padding:18px 20px;box-shadow:0 10px 28px rgba(0,0,0,.25)}
-    .topInner{max-width:1120px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:14px}.brand{display:flex;align-items:center;gap:12px}.brand img{width:44px;height:44px;border-radius:14px}.brand h1{font-size:26px;margin:0}.brand p{margin:3px 0 0;color:#b6c7d8}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:900;cursor:pointer;background:#e5e7eb;color:#111827}.btn.primary{background:linear-gradient(135deg,#fbbf24,#f59e0b)}.btn.ghost{background:#17263b;color:#fff;border:1px solid rgba(255,255,255,.14)}.btn:disabled{opacity:.65;cursor:wait}.btn.is-loading{position:relative;opacity:.72}
+    .topInner{max-width:1120px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:14px}.brand{display:flex;align-items:center;gap:12px;min-width:0}.brand img{width:44px;height:44px;border-radius:14px;flex:0 0 auto}.brand h1{font-size:26px;margin:0}.brand p{margin:3px 0 0;color:#b6c7d8}.actions{position:relative;display:flex;gap:8px;flex:0 0 auto}.reportMenuBtn{width:48px;height:46px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:#17263b;color:#fff;font-size:26px;line-height:1;font-weight:900;cursor:pointer}.reportMenuBtn[aria-expanded="true"]{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#111827}.reportMenu{position:absolute;right:0;top:calc(100% + 10px);width:min(280px,calc(100vw - 32px));display:none;gap:8px;padding:10px;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:#07111f;box-shadow:0 24px 70px rgba(0,0,0,.42)}.reportMenu.open{display:grid}.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:900;cursor:pointer;background:#e5e7eb;color:#111827}.btn.primary{background:linear-gradient(135deg,#fbbf24,#f59e0b)}.btn.ghost{background:#17263b;color:#fff;border:1px solid rgba(255,255,255,.14)}.reportMenu .btn{width:100%;text-align:center}.btn:disabled{opacity:.65;cursor:wait}.btn.is-loading{position:relative;opacity:.72}
     main{max-width:1120px;margin:24px auto;padding:0 16px 28px}.reportWrap{background:#fff;border-radius:18px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden;line-height:1.45}.loading{padding:30px;border-radius:16px;background:#f8fafc;color:#334155;font-weight:800}.reportOpenedBox{margin:0 0 14px;padding:12px 14px;border-radius:12px;background:#dcfce7;color:#14532d;border:1px solid #bbf7d0}.muted{color:#64748b}.approvalBox{margin-top:22px;border:1px solid #f59e0b;background:#fff7ed;border-radius:16px;padding:18px}.approvalBox h2{margin:0 0 8px}.approvalBox input,.approvalBox textarea{width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:12px;margin:7px 0;font-size:15px}.approvalBox textarea{min-height:110px;resize:vertical}.checkLine{display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:center;margin:8px 0 12px;font-weight:700}.approvalActionGrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.hidden{display:none!important}
     #publicReportContent h1{font-size:34px;margin:18px 0 10px}#publicReportContent h2{font-size:25px;margin:24px 0 12px}#publicReportContent h3{font-size:20px;margin:20px 0 10px}#publicReportContent p{margin:8px 0}#publicReportContent table{width:100%;border-collapse:collapse;margin:10px 0}#publicReportContent td,#publicReportContent th{border-bottom:1px solid #e5e7eb;text-align:left;padding:8px}#publicReportContent .cover{border-bottom:4px solid #f5a400;margin-bottom:20px;padding-bottom:16px}#publicReportContent .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:16px 0}#publicReportContent .stat{background:#f3f4f6;border-radius:10px;padding:12px}#publicReportContent .stat b{display:block;font-size:22px;color:#d97706}#publicReportContent .entry{break-inside:avoid;border-left:4px solid #f5a400;background:#fafafa;margin:16px 0;padding:14px 18px;border-radius:12px}
     #publicReportContent .photos,#publicReportContent .v74Photos,#publicReportContent .v77Photos,#publicReportContent .entryImageGrid,#publicReportContent .reportImageGrid,#publicReportContent .v68ReportPhotos,#publicReportContent .v117Photos{display:grid!important;grid-template-columns:repeat(auto-fill,112px)!important;gap:10px!important;align-items:start!important;justify-content:start!important;margin:12px 0!important}
@@ -33,7 +33,7 @@
     #publicReportContent img{object-fit:cover!important;cursor:zoom-in;border-radius:10px!important;background:#f8fafc!important}#publicReportContent figure img,#publicReportContent .photos img,#publicReportContent .v74Photos img,#publicReportContent .v77Photos img,#publicReportContent .entryImageGrid img,#publicReportContent .reportImageGrid img,#publicReportContent .v68ReportPhotos img,#publicReportContent .v117Photos img{width:100px!important;height:100px!important;max-width:100px!important;max-height:100px!important;margin:0!important;object-fit:cover!important;display:block!important}
     #publicReportContent figcaption{font-size:11px!important;color:#64748b!important;line-height:1.25!important;margin-top:4px!important;max-width:100px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}#publicReportContent a:has(img){text-decoration:none!important;cursor:zoom-in!important;display:inline-block!important}#publicReportContent video{max-width:220px;max-height:160px;border-radius:10px;cursor:zoom-in}.clientFeedbackBlock,.aiProfessionalContextBlock{break-inside:avoid}
     .v110Gallery{position:fixed;inset:0;z-index:999999;background:rgba(2,6,23,.93);display:none;align-items:center;justify-content:center;padding:76px 72px 34px}.v110Gallery.open{display:flex}.v110GalleryTop{position:absolute;top:0;left:0;right:0;height:58px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px}.v110GalleryClose{border:0;border-radius:999px;background:#fbbf24;color:#111827;font-weight:900;padding:10px 14px;cursor:pointer}.v110GalleryStage{display:grid;place-items:center;width:100%;height:100%}.v110GalleryStage img,.v110GalleryStage video{max-width:100%;max-height:calc(100vh - 125px);object-fit:contain;border-radius:14px;background:#000}.v110Nav{position:absolute;top:50%;transform:translateY(-50%);width:54px;height:76px;border:1px solid rgba(255,255,255,.22);border-radius:18px;background:rgba(15,23,42,.74);color:#fff;font-size:44px;cursor:pointer}.v110Nav.prev{left:14px}.v110Nav.next{right:14px}.v110Nav:hover{background:#fbbf24;color:#111827}
-    @media(max-width:760px){.topInner{align-items:flex-start;flex-direction:column}.brand h1{font-size:22px}.actions .btn{width:100%}.actions{width:100%}.reportWrap{padding:18px;border-radius:14px}.approvalActionGrid{grid-template-columns:1fr}.v110Gallery{padding:66px 12px 24px}.v110Nav{width:44px;height:58px;font-size:34px}.v110Nav.prev{left:6px}.v110Nav.next{right:6px}#publicReportContent h1{font-size:27px}#publicReportContent .stats{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:760px){body{overflow-x:hidden}.top{padding:12px 12px}.topInner{align-items:center;flex-direction:row}.brand h1{font-size:21px;line-height:1.08}.brand p{font-size:14px;line-height:1.22}.brand>div{min-width:0}.actions{margin-left:auto}.reportWrap{padding:18px;border-radius:14px}.approvalActionGrid{grid-template-columns:1fr}.v110Gallery{padding:66px 12px 24px}.v110Nav{width:44px;height:58px;font-size:34px}.v110Nav.prev{left:6px}.v110Nav.next{right:6px}#publicReportContent h1{font-size:27px}#publicReportContent .stats{grid-template-columns:repeat(2,1fr)}}
     @media print{.top,.approvalBox,.v110Gallery{display:none!important}body{background:#fff}main{max-width:none;margin:0;padding:0}.reportWrap{box-shadow:none;border-radius:0;padding:0}.photos,.v117Photos{grid-template-columns:repeat(4,30mm)!important}.v67ReportPhoto{width:30mm!important;max-width:30mm!important}.v67ReportPhoto img{width:28mm!important;height:28mm!important}}
   </style>
 </head>
@@ -41,7 +41,14 @@
   <header class="top">
     <div class="topInner">
       <div class="brand"><img src="https://epitesi-naplo.eu/favicon.png" alt="ÉpítésNapló ikon"><div><h1>Építési napló ügyfél nézet</h1><p>Csak olvasható ügyfélriport. Szerkeszteni nem lehet.</p></div></div>
-      <div class="actions"><button class="btn primary" onclick="downloadPublicPdfV110(this)">PDF letöltés</button><button class="btn ghost" onclick="window.print()">Nyomtatás</button><button class="btn ghost" onclick="copyReportLink(this)">Link másolása</button></div>
+      <div class="actions">
+        <button id="reportMenuBtn" class="reportMenuBtn" type="button" aria-label="Riport műveletek" aria-expanded="false" onclick="toggleReportMenu(event)">&#9776;</button>
+        <div id="reportMenu" class="reportMenu" role="menu">
+          <button class="btn primary" type="button" onclick="downloadPublicPdfV110(this); closeReportMenu()">PDF letöltés</button>
+          <button class="btn ghost" type="button" onclick="window.print(); closeReportMenu()">Nyomtatás</button>
+          <button class="btn ghost" type="button" onclick="copyReportLink(this); closeReportMenu()">Link másolása</button>
+        </div>
+      </div>
     </div>
   </header>
   <main>
@@ -54,5 +61,47 @@
   <script src="unified-photo-viewer-v152.js?v=152"></script>
   <script src="view-v110-final-public-clean.js?v=150"></script>
   <script src="unified-photo-viewer-v152.js?v=152-final"></script>
+  <script>
+    function closeReportMenu(){
+      var menu=document.getElementById('reportMenu');
+      var btn=document.getElementById('reportMenuBtn');
+      if(menu) menu.classList.remove('open');
+      if(btn) btn.setAttribute('aria-expanded','false');
+    }
+    function toggleReportMenu(event){
+      if(event) event.stopPropagation();
+      var menu=document.getElementById('reportMenu');
+      var btn=document.getElementById('reportMenuBtn');
+      if(!menu || !btn) return;
+      var open=!menu.classList.contains('open');
+      menu.classList.toggle('open',open);
+      btn.setAttribute('aria-expanded',open?'true':'false');
+    }
+    document.addEventListener('click',function(event){
+      if(!event.target.closest('.actions')) closeReportMenu();
+    });
+    document.addEventListener('keydown',function(event){
+      if(event.key==='Escape') closeReportMenu();
+    });
+    window.downloadPublicPdfV110 = async function(btn){
+      var old=btn ? btn.innerText : '';
+      if(btn){ btn.disabled=true; btn.classList.add('is-loading'); btn.innerText='PDF készül...'; }
+      try{
+        var box=document.getElementById('publicReportContent');
+        var clone=box ? box.cloneNode(true) : null;
+        if(clone) clone.querySelectorAll('.reportOpenedBox,.v110Gallery,.hidden,script').forEach(function(x){ x.remove(); });
+        var content=clone ? clone.innerHTML : '<h1>Ügyfélriport</h1><p>Nincs betöltött riport.</p>';
+        var css='*{box-sizing:border-box}html,body{width:100%;max-width:100%;overflow-x:hidden}body{margin:0;background:#fff;color:#111827;font-family:Arial,Helvetica,sans-serif;line-height:1.45;padding:16px}.printDoc{width:min(980px,100%);margin:0 auto;background:#fff}h1{font-size:30px;line-height:1.1;margin:12px 0}h2{font-size:22px;margin:22px 0 10px}h3{font-size:18px;margin:18px 0 8px}p{margin:8px 0}.cover{border-bottom:4px solid #f59e0b;margin-bottom:20px;padding-bottom:16px}.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}.stat{background:#f3f4f6;border-radius:10px;padding:10px}.stat b{display:block;color:#d97706;font-size:20px}.entry{break-inside:avoid;border-left:4px solid #f59e0b;background:#fafafa;margin:14px 0;padding:14px;border-radius:12px}.photos,.entryImageGrid,.reportImageGrid,.v68ReportPhotos,.v117Photos{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(105px,105px))!important;gap:10px!important;justify-content:start!important}.v67ReportPhoto,figure,.reportMediaTile{width:105px!important;max-width:105px!important;margin:0!important;border:1px solid #e5e7eb!important;border-radius:10px!important;padding:5px!important;background:#fff!important;break-inside:avoid!important}.v67ReportPhoto img,figure img,.reportMediaTile img{width:95px!important;height:95px!important;object-fit:cover!important;border-radius:8px!important;display:block!important}video{max-width:100%;border-radius:8px}figcaption,.v67ReportPhoto span{font-size:10px;color:#64748b;display:block;margin-top:4px}table{display:block;width:100%;max-width:100%;overflow-x:auto;border-collapse:collapse}td,th{border-bottom:1px solid #e5e7eb;padding:7px;text-align:left}@media(min-width:720px){body{padding:24px}.stats{grid-template-columns:repeat(5,minmax(0,1fr))}}@media print{body{padding:8mm}.entry,.v67ReportPhoto,figure{break-inside:avoid;page-break-inside:avoid}}';
+        var w=window.open('', '_blank');
+        if(!w){ alert('A böngésző blokkolta az új ablakot. Engedélyezd az előugró ablakot.'); return; }
+        var html='<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>ÉpítésNapló ügyfélriport PDF</title><style>'+css+'</style></head><body><main class="printDoc">'+content+'</main><script>function wi(){var imgs=Array.prototype.slice.call(document.images||[]);return Promise.race([Promise.all(imgs.map(function(i){return i.complete?Promise.resolve():new Promise(function(r){i.onload=r;i.onerror=r;});})),new Promise(function(r){setTimeout(r,3500);})]);}window.addEventListener("load",function(){wi().then(function(){setTimeout(function(){window.focus();window.print();},500);});});<\/script></body></html>';
+        w.document.open();
+        w.document.write(html);
+        w.document.close();
+      }finally{
+        if(btn){ btn.disabled=false; btn.classList.remove('is-loading'); btn.innerText=old || 'PDF letöltés'; }
+      }
+    };
+  </script>
 </body>
 </html>
