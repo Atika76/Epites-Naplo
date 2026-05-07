@@ -73,6 +73,50 @@
     }
   }
 
+  function setupAutoHideHeader(){
+    const topbar = document.querySelector('.topbar');
+    if(!topbar || topbar.dataset.v171AutoHideReady) return;
+    topbar.dataset.v171AutoHideReady = '1';
+
+    let lastY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+    let ticking = false;
+
+    function menuIsOpen(){
+      const nav = document.getElementById('nav') || topbar.querySelector('nav');
+      return !!(nav && (nav.classList.contains('open') || nav.classList.contains('navOpen')));
+    }
+
+    function show(){
+      topbar.classList.remove('headerHidden');
+    }
+
+    function update(){
+      ticking = false;
+      const y = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+      const diff = y - lastY;
+
+      if(y < 72 || menuIsOpen()){
+        show();
+      } else if(diff > 6){
+        topbar.classList.add('headerHidden');
+      } else if(diff < -2){
+        show();
+      }
+
+      lastY = y;
+    }
+
+    window.addEventListener('scroll', () => {
+      if(!ticking){
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    }, { passive:true });
+
+    window.addEventListener('focusin', show, { passive:true });
+    window.addEventListener('resize', show, { passive:true });
+  }
+
   // V169: hamburger menü védő javítás mobilra.
   // Ha valamelyik oldal régi inline onclickot vagy cache-elt fejlécet használ,
   // ez akkor is elkapja a menü gomb érintését.
@@ -151,6 +195,7 @@
   }
   document.addEventListener('DOMContentLoaded', () => {
     ensureMobileMenuButton();
+    setupAutoHideHeader();
     renderHeader();
     try { window.supabaseDirect?.auth?.onAuthStateChange?.(() => setTimeout(renderHeader, 60)); } catch(e) {}
     setTimeout(() => {
@@ -158,6 +203,7 @@
         document.body.classList.remove('auth-loading');
         document.body.classList.add('auth-ready');
         ensureMobileMenuButton();
+        setupAutoHideHeader();
         renderHeader();
       }
     }, 900);
