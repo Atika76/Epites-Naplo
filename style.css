@@ -2000,177 +2000,74 @@ body.v69ModalOpen{overflow:hidden;}
   .v124ClientLinkActions .btn{width:100%;justify-content:center;}
 }
 
-
-/* ===== V168 – mobil fejléc szélesség + hamburger menü működés fix =====
-   Csak a fejlécet és a mobilmenüt javítja. Nem nagyítja az oldalt, nem nyúl a riportmotorhoz, képnézőhöz vagy Supabase logikához. */
-@media (max-width: 860px), (pointer: coarse) {
+/* ===== V169: CSAK MOBIL FEJLÉC + HAMBURGER MENÜ JAVÍTÁS ===== */
+@media (max-width: 860px){
   html, body{
-    max-width:100%!important;
-    overflow-x:hidden!important;
+    max-width:100%;
+    overflow-x:hidden;
   }
+
+  /* A fejléc ne a szélesre csúszott tartalomhoz igazodjon, hanem a telefon látható kijelzőjéhez. */
+  body > .topbar,
   .topbar{
-    position:sticky!important;
-    top:0!important;
+    width:100vw!important;
+    max-width:100vw!important;
+    min-width:100vw!important;
     left:0!important;
-    right:auto!important;
-    z-index:99990!important;
-    width:100dvw!important;
-    min-width:100dvw!important;
-    max-width:100dvw!important;
+    right:0!important;
     margin-left:0!important;
     margin-right:0!important;
+    transform:none!important;
     box-sizing:border-box!important;
-    display:flex!important;
-    align-items:center!important;
-    justify-content:space-between!important;
-    flex-wrap:nowrap!important;
-    gap:8px!important;
-    min-height:62px!important;
-    padding:8px 10px!important;
-    border-radius:0!important;
+    position:sticky!important;
+    top:0!important;
+    z-index:99990!important;
     overflow:visible!important;
-    background:rgba(7,17,31,.96)!important;
-    border-bottom:1px solid rgba(255,255,255,.14)!important;
-    box-shadow:0 8px 22px rgba(0,0,0,.20)!important;
-    backdrop-filter:blur(14px)!important;
-    -webkit-backdrop-filter:blur(14px)!important;
   }
+
   .topbar .brand{
-    flex:1 1 auto!important;
     min-width:0!important;
-    max-width:calc(100dvw - 78px)!important;
+    max-width:calc(100vw - 88px)!important;
+    flex:1 1 auto!important;
     overflow:hidden!important;
-    display:flex!important;
-    align-items:center!important;
-    gap:9px!important;
   }
-  .topbar .brandIcon{
-    width:42px!important;
-    height:42px!important;
-    min-width:42px!important;
-    flex:0 0 42px!important;
-    border-radius:13px!important;
-    padding:4px!important;
-  }
+
   .topbar .brand > div{
     min-width:0!important;
     overflow:hidden!important;
   }
-  .topbar .brand strong{
-    display:block!important;
-    max-width:100%!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-    font-size:17px!important;
-    line-height:1.08!important;
-  }
+
+  .topbar .brand strong,
   .topbar .brand span{
-    display:block!important;
-    max-width:100%!important;
     white-space:nowrap!important;
     overflow:hidden!important;
     text-overflow:ellipsis!important;
-    font-size:12px!important;
-    line-height:1.15!important;
-    margin-top:2px!important;
+    max-width:100%!important;
   }
+
   .topbar .menuBtn{
-    display:inline-flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-    flex:0 0 48px!important;
-    width:48px!important;
-    height:44px!important;
-    min-width:48px!important;
-    min-height:44px!important;
-    padding:0!important;
-    margin:0!important;
-    border-radius:15px!important;
-    font-size:26px!important;
-    line-height:1!important;
-    cursor:pointer!important;
+    position:relative!important;
+    z-index:100000!important;
     pointer-events:auto!important;
     touch-action:manipulation!important;
     user-select:none!important;
     -webkit-user-select:none!important;
-    position:relative!important;
-    z-index:100001!important;
+    flex:0 0 auto!important;
   }
+
   .topbar nav#nav{
-    display:none!important;
-    position:absolute!important;
-    top:calc(100% + 8px)!important;
-    left:10px!important;
-    right:10px!important;
-    width:auto!important;
-    min-width:0!important;
-    max-width:none!important;
-    box-sizing:border-box!important;
-    z-index:100000!important;
-    flex-direction:column!important;
-    align-items:stretch!important;
-    justify-content:flex-start!important;
-    gap:8px!important;
-    padding:12px!important;
-    border-radius:18px!important;
-    background:rgba(7,17,31,.985)!important;
-    border:1px solid rgba(255,255,255,.16)!important;
-    box-shadow:0 22px 70px rgba(0,0,0,.48)!important;
-    max-height:calc(100dvh - 82px)!important;
-    overflow:auto!important;
-    visibility:hidden!important;
-    opacity:0!important;
-    pointer-events:none!important;
+    z-index:99999!important;
+    pointer-events:auto!important;
   }
-  .topbar nav#nav.open,
-  .topbar nav#nav.navOpen,
-  body.mobileMenuOpen .topbar nav#nav,
+
+  /* Auth-loading alatt is nyíljon ki a menü, különben mobilon látszik a gomb, de nem történik semmi. */
   body.auth-loading .topbar nav#nav.open,
-  body.auth-loading .topbar nav#nav.navOpen{
+  body.auth-loading .topbar nav#nav.navOpen,
+  body .topbar nav#nav.open,
+  body .topbar nav#nav.navOpen{
     display:flex!important;
     visibility:visible!important;
     opacity:1!important;
     pointer-events:auto!important;
-  }
-  .topbar nav#nav a,
-  .topbar nav#nav button,
-  .topbar nav#nav .adminPill{
-    width:100%!important;
-    max-width:100%!important;
-    text-align:left!important;
-    justify-content:flex-start!important;
-    font-size:15px!important;
-    padding:12px 14px!important;
-    border-radius:14px!important;
-    white-space:normal!important;
-  }
-}
-@media (max-width: 860px) and (orientation: landscape), (pointer: coarse) and (orientation: landscape) {
-  .topbar{
-    min-height:50px!important;
-    padding:5px 9px!important;
-  }
-  .topbar .brandIcon{
-    width:34px!important;
-    height:34px!important;
-    min-width:34px!important;
-    flex-basis:34px!important;
-    border-radius:10px!important;
-    padding:3px!important;
-  }
-  .topbar .brand strong{font-size:14px!important;}
-  .topbar .brand span{font-size:10px!important;}
-  .topbar .menuBtn{
-    flex-basis:42px!important;
-    width:42px!important;
-    min-width:42px!important;
-    height:38px!important;
-    min-height:38px!important;
-    font-size:22px!important;
-    border-radius:13px!important;
-  }
-  .topbar nav#nav{
-    max-height:calc(100dvh - 62px)!important;
   }
 }

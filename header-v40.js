@@ -7,19 +7,24 @@
     const nav = document.getElementById('nav');
     const btn = document.querySelector('.menuBtn');
     if(nav) nav.classList.remove('open','navOpen');
-    document.body.classList.remove('mobileMenuOpen');
     if(btn) btn.setAttribute('aria-expanded','false');
   }
   function toggleMenu(event){
     if(event && typeof event.preventDefault === 'function') event.preventDefault();
     if(event && typeof event.stopPropagation === 'function') event.stopPropagation();
-    const nav = document.getElementById('nav');
+    const nav = document.getElementById('nav') || document.querySelector('.topbar nav');
     const btn = document.querySelector('.menuBtn');
     if(!nav) return false;
-    const open = !(nav.classList.contains('open') || nav.classList.contains('navOpen'));
+
+    // Mobilon a menünek akkor is működnie kell, ha az auth lekérdezés lassú
+    // és a body még auth-loading állapotban maradt.
+    document.body.classList.remove('auth-loading');
+    document.body.classList.add('auth-ready');
+
+    if(!nav.id) nav.id = 'nav';
+    const open = !nav.classList.contains('open');
     nav.classList.toggle('open', open);
     nav.classList.toggle('navOpen', open);
-    document.body.classList.toggle('mobileMenuOpen', open);
     if(btn) btn.setAttribute('aria-expanded', String(open));
     return false;
   }
@@ -43,10 +48,14 @@
     btn.setAttribute('aria-controls','nav');
     btn.setAttribute('aria-expanded', nav.classList.contains('open') ? 'true' : 'false');
     btn.textContent = '☰';
-    btn.onclick = null;
-    if(!btn.dataset.v168MenuClickReady){
-      btn.dataset.v168MenuClickReady = '1';
-      btn.addEventListener('click', toggleMenu, false);
+    btn.onclick = toggleMenu;
+    if(!btn.dataset.v169ClickReady){
+      btn.dataset.v169ClickReady = '1';
+      btn.addEventListener('click', toggleMenu, true);
+      btn.addEventListener('touchstart', function(e){
+        // Edge/Messenger mobil nézetben néha a click késik vagy elveszik.
+        toggleMenu(e);
+      }, {passive:false, capture:true});
     }
     if(!nav.dataset.mobileMenuReady){
       nav.dataset.mobileMenuReady = '1';
@@ -59,10 +68,21 @@
       document.documentElement.dataset.mobileMenuOutsideReady = '1';
       document.addEventListener('click', (e) => {
         if(window.innerWidth > 860) return;
-        if(e.target && e.target.closest && e.target.closest('.menuBtn')) return;
         if(!topbar.contains(e.target)) closeMenu();
-      }, true);
+      });
     }
+  }
+
+  // V169: hamburger menü védő javítás mobilra.
+  // Ha valamelyik oldal régi inline onclickot vagy cache-elt fejlécet használ,
+  // ez akkor is elkapja a menü gomb érintését.
+  if(!document.documentElement.dataset.v169HamburgerReady){
+    document.documentElement.dataset.v169HamburgerReady = '1';
+    document.addEventListener('click', function(e){
+      const btn = e.target && e.target.closest ? e.target.closest('.menuBtn') : null;
+      if(!btn) return;
+      toggleMenu(e);
+    }, true);
   }
 
 
@@ -133,6 +153,13 @@
     ensureMobileMenuButton();
     renderHeader();
     try { window.supabaseDirect?.auth?.onAuthStateChange?.(() => setTimeout(renderHeader, 60)); } catch(e) {}
-    setTimeout(() => { if(document.body.classList.contains('auth-loading')) renderHeader(); }, 1200);
+    setTimeout(() => {
+      if(document.body.classList.contains('auth-loading')){
+        document.body.classList.remove('auth-loading');
+        document.body.classList.add('auth-ready');
+        ensureMobileMenuButton();
+        renderHeader();
+      }
+    }, 900);
   });
 })();
