@@ -56,6 +56,42 @@
   }
 
 
+  function initMobileHeaderV167(){
+    if (window.__epitesNaploMobileHeaderV167) return;
+    window.__epitesNaploMobileHeaderV167 = true;
+    const header = document.querySelector('.topbar');
+    if(!header) return;
+    document.body.classList.add('v167HasMobileTopbar');
+    let lastY = window.scrollY || 0;
+    let ticking = false;
+    function isMobileLike(){
+      try{
+        return window.matchMedia('(max-width: 860px)').matches || window.matchMedia('(pointer: coarse)').matches;
+      }catch(_){ return window.innerWidth <= 860; }
+    }
+    function isMenuOpen(){
+      const nav = document.getElementById('nav') || header.querySelector('nav');
+      return !!(nav && (nav.classList.contains('open') || nav.classList.contains('navOpen')));
+    }
+    function showHeader(){ document.body.classList.remove('v167MobileHeaderHidden'); }
+    function hideHeader(){ document.body.classList.add('v167MobileHeaderHidden'); }
+    function update(){
+      ticking = false;
+      if(!isMobileLike() || isMenuOpen()) { showHeader(); lastY = window.scrollY || 0; return; }
+      const y = window.scrollY || 0;
+      const diff = y - lastY;
+      if(y < 24 || diff < -2) showHeader();
+      else if(diff > 5 && y > 90) hideHeader();
+      lastY = y;
+    }
+    window.addEventListener('scroll', () => {
+      if(!ticking){ ticking = true; requestAnimationFrame(update); }
+    }, {passive:true});
+    window.addEventListener('resize', () => { showHeader(); lastY = window.scrollY || 0; }, {passive:true});
+    document.addEventListener('click', (e) => { if(e.target.closest('.menuBtn')) showHeader(); }, true);
+  }
+
+
   function v130OpenReportNav(event){
     if(event && typeof event.preventDefault === 'function') event.preventDefault();
     closeMenu();
@@ -108,6 +144,7 @@
   window.v39OpenLogin = window.v40OpenLogin;
   async function renderHeader(){
     ensureMobileMenuButton();
+    initMobileHeaderV167();
     const nav = document.getElementById('nav');
     if(!nav) return;
     let user = null, profile = null;
@@ -121,6 +158,7 @@
   }
   document.addEventListener('DOMContentLoaded', () => {
     ensureMobileMenuButton();
+    initMobileHeaderV167();
     renderHeader();
     try { window.supabaseDirect?.auth?.onAuthStateChange?.(() => setTimeout(renderHeader, 60)); } catch(e) {}
     setTimeout(() => { if(document.body.classList.contains('auth-loading')) renderHeader(); }, 1200);
