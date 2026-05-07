@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="hu">
 <head>
   <link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/favicon.png">
@@ -7,8 +7,8 @@
   <link rel="apple-touch-icon" href="https://epitesi-naplo.eu/favicon.png">
   <meta name="theme-color" content="#0f172a">
 
-  <meta property="og:title" content="ĂśgyfĂ©lriport â€“ Ă‰pĂ­tĂ©sNaplĂł AI PRO">
-  <meta property="og:description" content="ĂtadĂˇsra kĂ©sz Ă©pĂ­tĂ©si naplĂł, fotĂłkkal Ă©s dokumentĂˇciĂłval.">
+  <meta property="og:title" content="Ügyfélriport – ÉpítésNapló AI PRO">
+  <meta property="og:description" content="Átadásra kész építési napló, fotókkal és dokumentációval.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://epitesi-naplo.eu/og-epitesi-naplo-v106.png">
   <meta property="og:image:secure_url" content="https://epitesi-naplo.eu/og-epitesi-naplo-v106.png">
@@ -18,59 +18,59 @@
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Admin Inbox â€“ Ă‰pĂ­tĂ©sNaplĂł AI PRO</title>
-  <link rel="stylesheet" href="style.css?v=171" />
+  <title>Admin Inbox – ÉpítésNapló AI PRO</title>
+  <link rel="stylesheet" href="style.css?v=172" />
 </head>
 <body class="auth-loading">
   <header class="topbar">
     <a class="brand" href="index.html">
-      <img src="favicon.svg" alt="Ă‰pĂ­tĂ©sNaplĂł ikon" class="brandIcon" />
-      <div><strong>Admin Inbox</strong><span>ĂĽzenetek â€˘ teendĹ‘k â€˘ vĂˇlasz</span></div>
+      <img src="favicon.svg" alt="ÉpítésNapló ikon" class="brandIcon" />
+      <div><strong>Admin Inbox</strong><span>üzenetek • teendők • válasz</span></div>
     </a>
     <nav id="nav">
-      <a href="index.html">FĹ‘oldal</a>
-      <button id="loginBtn" class="btn small" onclick="openAuthModal()">BelĂ©pĂ©s</button>
-      <button id="logoutBtn" class="btn small ghost hidden" onclick="window.location.href='logout.html'">KilĂ©pĂ©s</button>
+      <a href="index.html">Főoldal</a>
+      <button id="loginBtn" class="btn small" onclick="openAuthModal()">Belépés</button>
+      <button id="logoutBtn" class="btn small ghost hidden" onclick="window.location.href='logout.html'">Kilépés</button>
     </nav>
   </header>
 
   <main class="inboxShell">
     <div class="inboxHeader">
       <div>
-        <p class="badge">CĂ©gweb26 admin kĂ¶zpont</p>
-        <h1>BeĂ©rkezett admin ĂĽzenetek</h1>
-        <p class="muted">Itt lĂˇtod a felhasznĂˇlĂłk tĂˇmogatĂˇsi kĂ©rĂ©seit Ă©s kĂ©rdĂ©seit. A vĂˇlasz gomb a sajĂˇt levelezĹ‘det nyitja meg.</p>
+        <p class="badge">Cégweb26 admin központ</p>
+        <h1>Beérkezett admin üzenetek</h1>
+        <p class="muted">Itt látod a felhasználók támogatási kéréseit és kérdéseit. A válasz gomb a saját leveleződet nyitja meg.</p>
       </div>
-      <button class="btn primary" onclick="loadInbox()">FrissĂ­tĂ©s</button>
+      <button class="btn primary" onclick="loadInbox()">Frissítés</button>
     </div>
 
     <section class="card wide">
       <div class="adminToolbar">
-        <input id="inboxSearch" placeholder="KeresĂ©s nĂ©v, email, tĂˇrgy vagy ĂĽzenet alapjĂˇn" oninput="renderInbox()" />
+        <input id="inboxSearch" placeholder="Keresés név, email, tárgy vagy üzenet alapján" oninput="renderInbox()" />
         <select id="inboxFilter" onchange="renderInbox()">
-          <option value="all">Ă–sszes</option>
-          <option value="new">Csak Ăşj</option>
+          <option value="all">Összes</option>
+          <option value="new">Csak új</option>
           <option value="read">Elolvasott</option>
         </select>
       </div>
-      <div id="inboxList" class="inboxGrid"><p class="muted">BetĂ¶ltĂ©s...</p></div>
+      <div id="inboxList" class="inboxGrid"><p class="muted">Betöltés...</p></div>
     </section>
   </main>
 
   <div id="authModal" class="modal hidden">
     <div class="modalContent">
-      <button class="closeBtn" onclick="closeAuthModal()">Ă—</button>
-      <h2>Admin belĂ©pĂ©s</h2>
+      <button class="closeBtn" onclick="closeAuthModal()">×</button>
+      <h2>Admin belépés</h2>
       <p class="muted">Admin email: cegweb26@gmail.com</p>
-      <input id="authName" placeholder="NĂ©v / cĂ©gnĂ©v" />
-      <input id="authEmail" placeholder="Email cĂ­m" type="email" />
-      <button class="btn primary full" onclick="loginUser()">BelĂ©pĂ©si link kĂ©rĂ©se</button>
+      <input id="authName" placeholder="Név / cégnév" />
+      <input id="authEmail" placeholder="Email cím" type="email" />
+      <button class="btn primary full" onclick="loginUser()">Belépési link kérése</button>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-adapter.js?v=110"></script>
-  <script src="header-v40.js?v=171"></script>
+  <script src="header-v40.js?v=172"></script>
   <script>
     let inboxUser = null;
     let inboxMessages = [];
@@ -81,7 +81,7 @@
     async function loginUser(){
       const name = safeEl('authName').value.trim() || 'Admin';
       const email = safeEl('authEmail').value.trim();
-      if(!email) return alert('Adj meg email cĂ­met.');
+      if(!email) return alert('Adj meg email címet.');
       await window.EpitesNaploAPI.signInOrSignUp(email,name);
     }
     async function logoutUser(){ window.location.href='logout.html'; }
@@ -92,9 +92,9 @@
       inboxUser = await window.EpitesNaploAPI.getCurrentUser();
       safeEl('loginBtn').classList.toggle('hidden', !!inboxUser);
       safeEl('logoutBtn').classList.toggle('hidden', !inboxUser);
-      if(!inboxUser){ safeEl('inboxList').innerHTML='<p class="muted">BelĂ©pĂ©s szĂĽksĂ©ges.</p>'; return; }
+      if(!inboxUser){ safeEl('inboxList').innerHTML='<p class="muted">Belépés szükséges.</p>'; return; }
       if(inboxUser.email !== window.EPITESNAPLO_CONFIG.adminEmail){
-        safeEl('inboxList').innerHTML='<p class="muted">Ez az oldal csak adminnak lĂˇthatĂł.</p>';
+        safeEl('inboxList').innerHTML='<p class="muted">Ez az oldal csak adminnak látható.</p>';
         return;
       }
       await loadInbox();
@@ -114,12 +114,12 @@
       safeEl('inboxList').innerHTML = list.map(m=>`
         <article class="inboxMessage ${(m.status||'new')==='new'?'new':''}">
           <span class="statusPill">${escapeHtml(m.status||'new')}</span>
-          <h3>${escapeHtml(m.subject||'Ăśzenet')}</h3>
-          <div class="messageMeta">${escapeHtml(m.name||'')} â€˘ ${escapeHtml(m.email||'')} â€˘ ${formatDate(m.created_at)}</div>
+          <h3>${escapeHtml(m.subject||'Üzenet')}</h3>
+          <div class="messageMeta">${escapeHtml(m.name||'')} • ${escapeHtml(m.email||'')} • ${formatDate(m.created_at)}</div>
           <p>${escapeHtml(m.message||'')}</p>
           <button class="btn small ghost" onclick="markRead('${m.id}')">Elolvasva</button>
-          <a class="btn small primary replyLink" href="mailto:${escapeHtml(m.email||'')}?subject=${encodeURIComponent('VĂˇlasz: '+(m.subject||'Ăśzenet'))}">VĂˇlasz emailben</a>
-        </article>`).join('') || '<p class="muted">Nincs ilyen ĂĽzenet.</p>';
+          <a class="btn small primary replyLink" href="mailto:${escapeHtml(m.email||'')}?subject=${encodeURIComponent('Válasz: '+(m.subject||'Üzenet'))}">Válasz emailben</a>
+        </article>`).join('') || '<p class="muted">Nincs ilyen üzenet.</p>';
     }
 
     async function markRead(id){

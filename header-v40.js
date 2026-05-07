@@ -73,50 +73,6 @@
     }
   }
 
-  function setupAutoHideHeader(){
-    const topbar = document.querySelector('.topbar');
-    if(!topbar || topbar.dataset.v171AutoHideReady) return;
-    topbar.dataset.v171AutoHideReady = '1';
-
-    let lastY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
-    let ticking = false;
-
-    function menuIsOpen(){
-      const nav = document.getElementById('nav') || topbar.querySelector('nav');
-      return !!(nav && (nav.classList.contains('open') || nav.classList.contains('navOpen')));
-    }
-
-    function show(){
-      topbar.classList.remove('headerHidden');
-    }
-
-    function update(){
-      ticking = false;
-      const y = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
-      const diff = y - lastY;
-
-      if(y < 72 || menuIsOpen()){
-        show();
-      } else if(diff > 6){
-        topbar.classList.add('headerHidden');
-      } else if(diff < -2){
-        show();
-      }
-
-      lastY = y;
-    }
-
-    window.addEventListener('scroll', () => {
-      if(!ticking){
-        ticking = true;
-        requestAnimationFrame(update);
-      }
-    }, { passive:true });
-
-    window.addEventListener('focusin', show, { passive:true });
-    window.addEventListener('resize', show, { passive:true });
-  }
-
   // V169: hamburger menü védő javítás mobilra.
   // Ha valamelyik oldal régi inline onclickot vagy cache-elt fejlécet használ,
   // ez akkor is elkapja a menü gomb érintését.
@@ -195,7 +151,6 @@
   }
   document.addEventListener('DOMContentLoaded', () => {
     ensureMobileMenuButton();
-    setupAutoHideHeader();
     renderHeader();
     try { window.supabaseDirect?.auth?.onAuthStateChange?.(() => setTimeout(renderHeader, 60)); } catch(e) {}
     setTimeout(() => {
@@ -203,9 +158,67 @@
         document.body.classList.remove('auth-loading');
         document.body.classList.add('auth-ready');
         ensureMobileMenuButton();
-        setupAutoHideHeader();
         renderHeader();
       }
     }, 900);
+  });
+})();
+
+// ===== V172: V170 stabil alap + automatikusan elbujó fejléc =====
+(function(){
+  if(window.__v172ScrollHeaderFix) return;
+  window.__v172ScrollHeaderFix = true;
+
+  function ready(fn){
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+
+  ready(function(){
+    const topbar = document.querySelector('.topbar');
+    if(!topbar) return;
+
+    let lastY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+    let ticking = false;
+
+    function navOpen(){
+      const nav = document.getElementById('nav') || topbar.querySelector('nav');
+      return !!(nav && (nav.classList.contains('open') || nav.classList.contains('navOpen')));
+    }
+
+    function showHeader(){
+      topbar.classList.remove('v172HeaderHidden');
+    }
+
+    function applyState(){
+      ticking = false;
+      const y = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+      const delta = y - lastY;
+
+      topbar.classList.toggle('v172MenuOpen', navOpen());
+
+      if(y < 70 || navOpen()){
+        showHeader();
+      } else if(delta > 7){
+        topbar.classList.add('v172HeaderHidden');
+      } else if(delta < -1){
+        showHeader();
+      }
+
+      lastY = y;
+    }
+
+    window.addEventListener('scroll', function(){
+      if(!ticking){
+        ticking = true;
+        window.requestAnimationFrame(applyState);
+      }
+    }, { passive:true });
+
+    window.addEventListener('resize', showHeader, { passive:true });
+    window.addEventListener('focusin', showHeader);
+    document.addEventListener('click', function(){
+      setTimeout(applyState, 0);
+    }, true);
   });
 })();

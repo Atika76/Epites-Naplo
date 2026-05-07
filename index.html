@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="hu">
 <head>
   <link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/favicon.png">
@@ -7,8 +7,8 @@
   <link rel="apple-touch-icon" href="https://epitesi-naplo.eu/favicon.png">
   <meta name="theme-color" content="#0f172a">
 
-  <meta property="og:title" content="ĂśgyfĂ©lriport â€“ Ă‰pĂ­tĂ©sNaplĂł AI PRO">
-  <meta property="og:description" content="ĂtadĂˇsra kĂ©sz Ă©pĂ­tĂ©si naplĂł, fotĂłkkal Ă©s dokumentĂˇciĂłval.">
+  <meta property="og:title" content="Ügyfélriport – ÉpítésNapló AI PRO">
+  <meta property="og:description" content="Átadásra kész építési napló, fotókkal és dokumentációval.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://epitesi-naplo.eu/og-epitesi-naplo-v106.png">
   <meta property="og:image:secure_url" content="https://epitesi-naplo.eu/og-epitesi-naplo-v106.png">
@@ -18,183 +18,183 @@
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Ă‰pĂ­tĂ©sNaplĂł AI PRO</title>
-  <!-- V106: Messenger/Facebook megosztĂˇsi elĹ‘nĂ©zet -->
+  <title>ÉpítésNapló AI PRO</title>
+  <!-- V106: Messenger/Facebook megosztási előnézet -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://epitesi-naplo.eu/og-epitesi-naplo-v106.png" />
 
-  <meta name="description" content="Ă‰pĂ­tĹ‘ipari ĂĽgyfĂ©lriport rendszer fotĂłs dokumentĂˇciĂłval, AI jelentĂ©ssel, PDF exporttal Ă©s PayPal fizetĂ©ssel." />
-  <link rel="stylesheet" href="style.css?v=171" />
+  <meta name="description" content="Építőipari ügyfélriport rendszer fotós dokumentációval, AI jelentéssel, PDF exporttal és PayPal fizetéssel." />
+  <link rel="stylesheet" href="style.css?v=172" />
 </head>
 
 <body class="auth-loading">
   <header class="topbar">
     <a class="brand" href="#home">
-      <img src="favicon.svg" alt="Ă‰pĂ­tĂ©sNaplĂł ikon" class="brandIcon" />
+      <img src="favicon.svg" alt="ÉpítésNapló ikon" class="brandIcon" />
       <div>
-        <strong>Ă‰pĂ­tĂ©sNaplĂł AI PRO</strong>
-        <span>Ă©pĂ­tĂ©si naplĂł â€˘ AI ellenĹ‘rzĂ©s â€˘ automatikus Pro</span>
+        <strong>ÉpítésNapló AI PRO</strong>
+        <span>építési napló • AI ellenőrzés • automatikus Pro</span>
       </div>
     </a>
 
-    <button class="menuBtn" onclick="toggleMenu()">â°</button>
+    <button class="menuBtn" onclick="toggleMenu()">☰</button>
 
     <nav id="nav">
-      <a href="#naplo">NaplĂł</a>
+      <a href="#naplo">Napló</a>
       <a href="#ai">AI</a>
       <a href="#riport">Riport</a>
-      <a href="#kapcsolat-admin">Admin ĂĽzenet</a>
-      <a href="profile.html" id="profileNavLink" class="hidden">FiĂłkom</a>
+      <a href="#kapcsolat-admin">Admin üzenet</a>
+      <a href="profile.html" id="profileNavLink" class="hidden">Fiókom</a>
       <a href="admin-messages.html" id="adminMessagesNavLink" class="hidden">Admin inbox</a>
       <a href="admin-panel.html" id="adminPanelNavLink" class="hidden">Admin panel</a>
       <a href="#admin" id="adminNavLink" class="hidden">Admin</a>
-      <button id="notificationBtn" class="btn small ghost hidden" onclick="toggleNotificationPanel()">đź”” <span id="notificationCount">0</span></button>
-      <button id="loginBtn" class="btn small" onclick="openAuthModal()">BelĂ©pĂ©s / RegisztrĂˇciĂł</button>
-      <button id="logoutBtn" class="btn small ghost hidden" onclick="window.location.href='logout.html'">KilĂ©pĂ©s</button>
+      <button id="notificationBtn" class="btn small ghost hidden" onclick="toggleNotificationPanel()">🔔 <span id="notificationCount">0</span></button>
+      <button id="loginBtn" class="btn small" onclick="openAuthModal()">Belépés / Regisztráció</button>
+      <button id="logoutBtn" class="btn small ghost hidden" onclick="window.location.href='logout.html'">Kilépés</button>
     </nav>
   </header>
 
   <aside id="notificationPanel" class="notificationPanel hidden">
-    <div class="panelTop"><b>Ă‰rtesĂ­tĂ©sek</b><button class="closeMini" onclick="toggleNotificationPanel()">Ă—</button></div>
-    <div id="notificationList" class="notificationList"><p class="muted">Nincs Ăşj Ă©rtesĂ­tĂ©s.</p></div>
+    <div class="panelTop"><b>Értesítések</b><button class="closeMini" onclick="toggleNotificationPanel()">×</button></div>
+    <div id="notificationList" class="notificationList"><p class="muted">Nincs új értesítés.</p></div>
   </aside>
 
   <section id="publicReportView" class="publicReportView hidden">
     <div class="publicReportCard">
       <div class="publicReportTop">
-        <strong>Ă‰pĂ­tĂ©sNaplĂł ĂĽgyfĂ©lriport</strong>
-        <span>Megosztott jelentĂ©s</span>
+        <strong>ÉpítésNapló ügyfélriport</strong>
+        <span>Megosztott jelentés</span>
       </div>
       <div id="publicReportContent">
-        <p>Riport betĂ¶ltĂ©se...</p>
+        <p>Riport betöltése...</p>
       </div>
-      <button class="btn primary" onclick="window.print()">NyomtatĂˇs / PDF mentĂ©s</button>
+      <button class="btn primary" onclick="window.print()">Nyomtatás / PDF mentés</button>
     </div>
   </section>
 
 
   <section id="home" class="hero">
     <div>
-      <p class="badge">ProfesszionĂˇlis Ă©pĂ­tĂ©si naplĂł</p>
-      <h1>ĂtlĂˇthatĂł munkanaplĂł, nyugodtabb ĂĽgyfelek.</h1>
+      <p class="badge">Professzionális építési napló</p>
+      <h1>Átlátható munkanapló, nyugodtabb ügyfelek.</h1>
       <p class="lead">
-        FotĂłk, videĂłk, AI Ă¶sszegzĂ©s, PDF riport Ă©s jĂłvĂˇhagyhatĂł ĂĽgyfĂ©llink egy helyen. A megrendelĹ‘ pontosan lĂˇtja, hol tart a munka, te pedig rendezett dokumentĂˇciĂłval dolgozol.
+        Fotók, videók, AI összegzés, PDF riport és jóváhagyható ügyféllink egy helyen. A megrendelő pontosan látja, hol tart a munka, te pedig rendezett dokumentációval dolgozol.
       </p>
 
       <div class="heroActions">
-        <a class="btn primary" href="#naplo">NaplĂł indĂ­tĂˇsa</a>
-        <button id="heroRegisterBtn" class="btn ghost" onclick="openAuthModal()">RegisztrĂˇciĂł</button>
+        <a class="btn primary" href="#naplo">Napló indítása</a>
+        <button id="heroRegisterBtn" class="btn ghost" onclick="openAuthModal()">Regisztráció</button>
       </div>
 
       <p class="muted featureLine">
-        SajĂˇt projektek â€˘ ĂśgyfĂ©lriport â€˘ PDF ĂˇtadĂˇs â€˘ AI elĹ‘szĹ±rĂ©s
+        Saját projektek • Ügyfélriport • PDF átadás • AI előszűrés
       </p>
     </div>
 
     <aside class="card summary">
       <div class="summaryTop">
-        <h3>FiĂłk Ăˇllapot</h3>
-        <span class="liveDot" id="accountBadge">VendĂ©g mĂłd</span>
+        <h3>Fiók állapot</h3>
+        <span class="liveDot" id="accountBadge">Vendég mód</span>
       </div>
 
       <div class="profileBox">
-        <b id="currentUserName">VendĂ©g felhasznĂˇlĂł</b>
+        <b id="currentUserName">Vendég felhasználó</b>
         <span id="currentUserEmail">Nincs bejelentkezve</span>
-        <small id="currentPlanText">Csomag: VendĂ©g</small>
+        <small id="currentPlanText">Csomag: Vendég</small>
         <small id="currentAiCreditsText" class="creditLine">AI riport kredit: 0 db</small>
       </div>
 
       <div class="stats">
         <div><b id="statProjects">0</b><span>projekt</span></div>
-        <div><b id="statEntries">0</b><span>naplĂł</span></div>
-        <div><b id="statRisks">0</b><span>kockĂˇzat</span></div>
+        <div><b id="statEntries">0</b><span>napló</span></div>
+        <div><b id="statRisks">0</b><span>kockázat</span></div>
       </div>
 
-      <p class="muted">A rendszer segĂ­t a projektek, hibĂˇk Ă©s naplĂłbejegyzĂ©sek rendezett kezelĂ©sĂ©ben.</p>
+      <p class="muted">A rendszer segít a projektek, hibák és naplóbejegyzések rendezett kezelésében.</p>
     </aside>
   </section>
 
   <section class="benefits">
     <div class="benefit">
-      <b>đź‘¤ SajĂˇt fiĂłkos hasznĂˇlat</b>
-      <p>A felhasznĂˇlĂł sajĂˇt projektjeit Ă©s naplĂłbejegyzĂ©seit kezeli.</p>
+      <b>👤 Saját fiókos használat</b>
+      <p>A felhasználó saját projektjeit és naplóbejegyzéseit kezeli.</p>
     </div>
     <div class="benefit">
-      <b>đź’ł Automatikus fizetĂ©s</b>
-      <p>Sikeres PayPal fizetĂ©s utĂˇn a kivĂˇlasztott csomag automatikusan aktivĂˇlĂłdik.</p>
+      <b>💳 Automatikus fizetés</b>
+      <p>Sikeres PayPal fizetés után a kiválasztott csomag automatikusan aktiválódik.</p>
     </div>
     <div class="benefit">
-      <b>đź§‘â€Ťđź’Ľ Admin ĂˇttekintĂ©s</b>
-      <p>Adminban lĂˇthatĂł a regisztrĂˇciĂł, a fizetĂ©s Ă©s a csomagĂˇllapot.</p>
+      <b>🧑‍💼 Admin áttekintés</b>
+      <p>Adminban látható a regisztráció, a fizetés és a csomagállapot.</p>
     </div>
   </section>
 
   <main class="grid">
     <section class="card wide" id="subscription">
-      <h2>Csomag Ă©s hozzĂˇfĂ©rĂ©s</h2>
-      <p class="muted">Indulj ingyen 1 projekttel. A pĂ©nzt hozĂł funkciĂłk â€“ AI, PDF, ĂĽgyfĂ©l link Ă©s jĂłvĂˇhagyĂˇs â€“ fizetĹ‘s csomagban nyĂ­lnak meg. PayPal fizetĂ©s utĂˇn a csomag automatikusan aktivĂˇlĂłdik.</p>
+      <h2>Csomag és hozzáférés</h2>
+      <p class="muted">Indulj ingyen 1 projekttel. A pénzt hozó funkciók – AI, PDF, ügyfél link és jóváhagyás – fizetős csomagban nyílnak meg. PayPal fizetés után a csomag automatikusan aktiválódik.</p>
 
       <div class="planGrid fourPlans">
         <div class="planCard">
           <h3>Ingyenes</h3>
           <strong>0 Ft</strong>
-          <p>1 hĂ©t ingyenes prĂłba, 1 projekt alap naplĂłzĂˇssal. AI, PDF Ă©s ĂĽgyfĂ©l link fizetĹ‘s csomagban Ă©rhetĹ‘ el.</p>
+          <p>1 hét ingyenes próba, 1 projekt alap naplózással. AI, PDF és ügyfél link fizetős csomagban érhető el.</p>
         </div>
 
         <div class="planCard featured">
           <h3>Alap</h3>
-          <strong>2 990 Ft / hĂł</strong>
-          <p>3 projekt, AI napi jelentĂ©s, PDF export, ĂĽgyfĂ©l link Ă©s jĂłvĂˇhagyĂˇs.</p>
+          <strong>2 990 Ft / hó</strong>
+          <p>3 projekt, AI napi jelentés, PDF export, ügyfél link és jóváhagyás.</p>
           <div id="paypal-starter" class="paypalBox"></div>
         </div>
 
         <div class="planCard featured">
           <h3>Pro</h3>
-          <strong>4 990 Ft / hĂł</strong>
-          <p>15 projekt, AI riport, PDF, ĂĽgyfĂ©l jĂłvĂˇhagyĂˇs, szĂˇmla/kĂ¶ltsĂ©g riport Ă©s profi kivitelezĹ‘i hasznĂˇlat.</p>
+          <strong>4 990 Ft / hó</strong>
+          <p>15 projekt, AI riport, PDF, ügyfél jóváhagyás, számla/költség riport és profi kivitelezői használat.</p>
           <div id="paypal-pro" class="paypalBox"></div>
         </div>
 
         <div class="planCard featured">
           <h3>Business</h3>
-          <strong>8 990 Ft / hĂł</strong>
-          <p><b>BevezetĹ‘ Ăˇr: 8 990 Ft / hĂł</b><br>KorlĂˇtlan kĂ¶zeli hasznĂˇlat, admin ĂˇttekintĂ©s, ĂĽgyfĂ©lriport, PDF, AI Ă©s cĂ©ges mĹ±kĂ¶dĂ©shez.</p>
+          <strong>8 990 Ft / hó</strong>
+          <p><b>Bevezető ár: 8 990 Ft / hó</b><br>Korlátlan közeli használat, admin áttekintés, ügyfélriport, PDF, AI és céges működéshez.</p>
           <div id="paypal-business" class="paypalBox"></div>
         </div>
       </div>
-      <div id="publicPlanNotice" class="notice">RegisztrĂˇciĂł utĂˇn 1 hĂ©tig ingyen kiprĂłbĂˇlhatĂł 1 projekttel. FizetĂ©s utĂˇn automatikusan aktivĂˇlĂłdik az Alap / Pro / Business csomag.</div>
-      <div id="adminOnlyPlanNotice" class="adminFreeNote hidden">Admin tesztmĂłd: teljes hozzĂˇfĂ©rĂ©s fizetĂ©s nĂ©lkĂĽl.</div>
+      <div id="publicPlanNotice" class="notice">Regisztráció után 1 hétig ingyen kipróbálható 1 projekttel. Fizetés után automatikusan aktiválódik az Alap / Pro / Business csomag.</div>
+      <div id="adminOnlyPlanNotice" class="adminFreeNote hidden">Admin tesztmód: teljes hozzáférés fizetés nélkül.</div>
 
       <div id="limitBox" class="notice"></div>
     </section>
 
     <section class="card wide creditHelpSection" id="ai-kreditek">
-      <h2>AI kreditek â€“ kĂĽlĂ¶n fizetĹ‘s rĂ©szletes riportokhoz</h2>
-      <p class="muted"><b>Az elĹ‘fizetĂ©s</b> a rendszer hasznĂˇlatĂˇhoz kell. <b>Az AI kredit</b> egy kĂĽlĂ¶n, rĂ©szletes AI riport indĂ­tĂˇsĂˇra valĂł. Egy rĂ©szletes AI riport 1 kreditet hasznĂˇl fel.</p>
+      <h2>AI kreditek – külön fizetős részletes riportokhoz</h2>
+      <p class="muted"><b>Az előfizetés</b> a rendszer használatához kell. <b>Az AI kredit</b> egy külön, részletes AI riport indítására való. Egy részletes AI riport 1 kreditet használ fel.</p>
       <div class="planGrid twoPlans">
         <div class="planCard featured">
           <h3>1 AI kredit</h3>
           <strong>390 Ft</strong>
-          <p>1 rĂ©szletes AI Ă©pĂ­tĂ©si kockĂˇzati riport indĂ­tĂˇsĂˇra.</p>
+          <p>1 részletes AI építési kockázati riport indítására.</p>
           <div id="paypal-ai-credit-1-home" class="paypalBox"></div>
         </div>
         <div class="planCard featured">
           <h3>10 AI kredit</h3>
           <strong>2 990 Ft</strong>
-          <p>TĂ¶bb projekthez, jobb Ăˇron. FizetĂ©s utĂˇn automatikusan jĂłvĂˇĂ­rĂłdik.</p>
+          <p>Több projekthez, jobb áron. Fizetés után automatikusan jóváíródik.</p>
           <div id="paypal-ai-credit-10-home" class="paypalBox"></div>
         </div>
       </div>
-      <div class="notice">A megvĂˇsĂˇrolt krediteket fent, a <b>FiĂłk Ăˇllapot</b> rĂ©sznĂ©l lĂˇtod: â€žAI riport kredit: ... dbâ€ť. Admin fiĂłknĂˇl kĂ©zzel is jĂłvĂˇĂ­rhatĂł kredit az admin panelen.</div>
+      <div class="notice">A megvásárolt krediteket fent, a <b>Fiók állapot</b> résznél látod: „AI riport kredit: ... db”. Admin fióknál kézzel is jóváírható kredit az admin panelen.</div>
     </section>
 
     <section id="naplo" class="card">
-      <h2>1. Projekt Ă©s naplĂłbejegyzĂ©s</h2>
-      <p class="muted">Hozz lĂ©tre projektet, majd a rĂ©szletes naplĂłzĂˇst a projekt sajĂˇt oldalĂˇn folytasd. Ott talĂˇlod a fotĂł/videĂł kosarat, biztonsĂˇgos GPS-t, anyagokat, riportot Ă©s ĂĽgyfĂ©ljĂłvĂˇhagyĂˇst.</p>
+      <h2>1. Projekt és naplóbejegyzés</h2>
+      <p class="muted">Hozz létre projektet, majd a részletes naplózást a projekt saját oldalán folytasd. Ott találod a fotó/videó kosarat, biztonságos GPS-t, anyagokat, riportot és ügyféljóváhagyást.</p>
 
       <div class="formRow">
-        <input id="projectName" placeholder="Projekt neve, pl. CsalĂˇdi hĂˇz felĂşjĂ­tĂˇs â€“ Esztergom" />
-        <button class="btn primary" onclick="addProject()">Projekt hozzĂˇadĂˇsa</button>
+        <input id="projectName" placeholder="Projekt neve, pl. Családi ház felújítás – Esztergom" />
+        <button class="btn primary" onclick="addProject()">Projekt hozzáadása</button>
       </div>
 
       <div id="activeProjectHint" class="notice hidden"></div>
@@ -203,56 +203,56 @@
         <select id="entryProject"></select>
 
         <select id="workPhase">
-          <option value="AlapozĂˇs">AlapozĂˇs</option>
-          <option value="FalazĂˇs">FalazĂˇs</option>
-          <option value="BetonozĂˇs">BetonozĂˇs</option>
-          <option value="VakolĂˇs">VakolĂˇs</option>
-          <option value="SzigetelĂ©s">SzigetelĂ©s</option>
-          <option value="TĂ©rkĹ‘ / jĂˇrda">TĂ©rkĹ‘ / jĂˇrda</option>
-          <option value="KerĂ­tĂ©s / lĂˇbazat">KerĂ­tĂ©s / lĂˇbazat</option>
-          <option value="EgyĂ©b">EgyĂ©b</option>
+          <option value="Alapozás">Alapozás</option>
+          <option value="Falazás">Falazás</option>
+          <option value="Betonozás">Betonozás</option>
+          <option value="Vakolás">Vakolás</option>
+          <option value="Szigetelés">Szigetelés</option>
+          <option value="Térkő / járda">Térkő / járda</option>
+          <option value="Kerítés / lábazat">Kerítés / lábazat</option>
+          <option value="Egyéb">Egyéb</option>
         </select>
-        <input id="customWorkPhase" class="v35CustomWorkPhase hidden" type="text" placeholder="SajĂˇt munkafĂˇzis, pl. zsaluzĂˇs, tetĹ‘ javĂ­tĂˇs, bontĂˇs..." />
+        <input id="customWorkPhase" class="v35CustomWorkPhase hidden" type="text" placeholder="Saját munkafázis, pl. zsaluzás, tető javítás, bontás..." />
 
         <select id="entryStatus">
           <option value="Folyamatban">Folyamatban</option>
-          <option value="KĂ©sz">KĂ©sz</option>
-          <option value="EllenĹ‘rzĂ©sre vĂˇr">EllenĹ‘rzĂ©sre vĂˇr</option>
-          <option value="EllenĹ‘rzĂ©s szĂĽksĂ©ges">EllenĹ‘rzĂ©s szĂĽksĂ©ges</option>
+          <option value="Kész">Kész</option>
+          <option value="Ellenőrzésre vár">Ellenőrzésre vár</option>
+          <option value="Ellenőrzés szükséges">Ellenőrzés szükséges</option>
         </select>
 
         <select id="priority">
-          <option value="NormĂˇl">NormĂˇl</option>
+          <option value="Normál">Normál</option>
           <option value="Fontos">Fontos</option>
-          <option value="SĂĽrgĹ‘s">SĂĽrgĹ‘s</option>
+          <option value="Sürgős">Sürgős</option>
         </select>
 
-        <input id="responsible" placeholder="FelelĹ‘s" />
-        <input id="weather" placeholder="IdĹ‘jĂˇrĂˇs / helyszĂ­n" />
+        <input id="responsible" placeholder="Felelős" />
+        <input id="weather" placeholder="Időjárás / helyszín" />
 
         <div class="textNoteBlock">
-          <label for="entryNote"><b>SzĂ¶veges leĂ­rĂˇs</b><span>Legyen ĂˇtlĂˇthatĂł: munka, helyszĂ­n, anyag, hiba/eltĂ©rĂ©s kĂĽlĂ¶n sorban.</span></label>
+          <label for="entryNote"><b>Szöveges leírás</b><span>Legyen átlátható: munka, helyszín, anyag, hiba/eltérés külön sorban.</span></label>
           <textarea id="entryNote" placeholder="Pl.
-- Munka: vakolat javĂ­tĂˇs
-- HelyszĂ­n: nappali fal
-- EltĂ©rĂ©s: hajszĂˇlrepedĂ©s
-- KĂ¶vetkezĹ‘ lĂ©pĂ©s: alapozĂˇs Ă©s glettelĂ©s"></textarea>
+- Munka: vakolat javítás
+- Helyszín: nappali fal
+- Eltérés: hajszálrepedés
+- Következő lépés: alapozás és glettelés"></textarea>
         </div>
         <input id="entryFile" type="file" accept="image/*,video/*" multiple />
-        <small class="muted">TĂ¶bb fotĂłt is feltĂ¶lthetsz egy bejegyzĂ©shez. Mobilon is mĹ±kĂ¶dik.</small>
+        <small class="muted">Több fotót is feltölthetsz egy bejegyzéshez. Mobilon is működik.</small>
       </div>
 
-      <button class="btn primary full v38HiddenMainEntry" onclick="addEntry()">NaplĂłbejegyzĂ©s mentĂ©se Ă©s AI elemzĂ©s</button>
+      <button class="btn primary full v38HiddenMainEntry" onclick="addEntry()">Naplóbejegyzés mentése és AI elemzés</button>
 
       <div class="calendarTools v38HiddenMainEntry">
-        <h3>NaptĂˇr szerinti naplĂł</h3>
+        <h3>Naptár szerinti napló</h3>
         <div class="formGrid">
           <input id="dateFilter" type="date" onchange="renderEntries()" />
           <select id="riskFilter" onchange="renderEntries()">
-            <option value="all">Ă–sszes bejegyzĂ©s</option>
-            <option value="Magas">Magas kockĂˇzat</option>
-            <option value="KĂ¶zepes">KĂ¶zepes kockĂˇzat</option>
-            <option value="Alacsony">Alacsony kockĂˇzat</option>
+            <option value="all">Összes bejegyzés</option>
+            <option value="Magas">Magas kockázat</option>
+            <option value="Közepes">Közepes kockázat</option>
+            <option value="Alacsony">Alacsony kockázat</option>
           </select>
         </div>
       </div>
@@ -262,213 +262,213 @@
     </section>
 
     <section id="ai" class="card">
-      <h2>2. AI ellenĹ‘rzĹ‘</h2>
-      <p class="muted">A rendszer a megadott leĂ­rĂˇs alapjĂˇn automatikusan jelzi a lehetsĂ©ges hibĂˇkat Ă©s kockĂˇzatokat.</p>
+      <h2>2. AI ellenőrző</h2>
+      <p class="muted">A rendszer a megadott leírás alapján automatikusan jelzi a lehetséges hibákat és kockázatokat.</p>
 
       <div id="aiLastResult" class="result">
-        <b>AI elemzĂ©s:</b>
-        <p>MĂ©g nincs elemzett bejegyzĂ©s.</p>
+        <b>AI elemzés:</b>
+        <p>Még nincs elemzett bejegyzés.</p>
       </div>
 
       <div class="futureBox">
-        <b>AI elemzĂ©si informĂˇciĂł</b>
-        <p>Az elemzĂ©s a naplĂłbejegyzĂ©s szĂ¶vege, stĂˇtusza Ă©s munkafĂˇzisa alapjĂˇn kĂ©szĂĽl.</p>
+        <b>AI elemzési információ</b>
+        <p>Az elemzés a naplóbejegyzés szövege, státusza és munkafázisa alapján készül.</p>
       </div>
     </section>
 
     <section id="hibak" class="card v38MainAdvanced hidden">
-      <h2>3. HibĂˇk / javĂ­tĂˇsok</h2>
+      <h2>3. Hibák / javítások</h2>
 
       <div class="formGrid">
         <select id="taskProject"></select>
-        <input id="taskTitle" placeholder="EltĂ©rĂ©s / feladat" />
-        <input id="taskOwner" placeholder="FelelĹ‘s" />
+        <input id="taskTitle" placeholder="Eltérés / feladat" />
+        <input id="taskOwner" placeholder="Felelős" />
         <input id="taskDeadline" type="date" />
       </div>
 
-      <button class="btn primary full" onclick="addTask()">KĂ©zi teendĹ‘ hozzĂˇadĂˇsa</button>
+      <button class="btn primary full" onclick="addTask()">Kézi teendő hozzáadása</button>
       <div id="taskList" class="list"></div>
     </section>
 
     <section id="riport" class="card v38MainAdvanced hidden">
-      <h2>4. Riport elĹ‘nĂ©zet</h2>
+      <h2>4. Riport előnézet</h2>
 
       <div class="reportGrid">
-        <div><b id="reportOpen">0</b><span>nyitott teendĹ‘</span></div>
-        <div><b id="reportUrgent">0</b><span>sĂĽrgĹ‘s ĂĽgy</span></div>
-        <div><b id="reportReview">0</b><span>ellenĹ‘rzĂ©sre vĂˇr</span></div>
-        <div><b id="reportHighRisk">0</b><span>magas kockĂˇzat</span></div>
+        <div><b id="reportOpen">0</b><span>nyitott teendő</span></div>
+        <div><b id="reportUrgent">0</b><span>sürgős ügy</span></div>
+        <div><b id="reportReview">0</b><span>ellenőrzésre vár</span></div>
+        <div><b id="reportHighRisk">0</b><span>magas kockázat</span></div>
       </div>
 
       <div id="reportText" class="reportText"></div>
-      <button class="btn ghost full" onclick="copyReport()">Riport szĂ¶veg mĂˇsolĂˇsa</button>
+      <button class="btn ghost full" onclick="copyReport()">Riport szöveg másolása</button>
     </section>
 
     <section id="ugyfel-riport" class="card">
-      <h2>5. ĂśgyfĂ©lnek kĂĽldhetĹ‘ riport</h2>
-      <p class="muted">VĂˇlassz projektet, majd kĂ©szĂ­ts ĂĽgyfĂ©lnek kĂĽldhetĹ‘ jelentĂ©st. A PDF export fizetĹ‘s csomaghoz valĂł prĂ©mium funkciĂł.</p>
+      <h2>5. Ügyfélnek küldhető riport</h2>
+      <p class="muted">Válassz projektet, majd készíts ügyfélnek küldhető jelentést. A PDF export fizetős csomaghoz való prémium funkció.</p>
 
       <div class="formGrid">
         <select id="clientReportProject"></select>
-        <button class="btn primary" onclick="generateClientReport(this)">Riport elĹ‘kĂ©szĂ­tĂ©se</button>
+        <button class="btn primary" onclick="generateClientReport(this)">Riport előkészítése</button>
       </div>
 
       <div id="clientReportPreview" class="reportText">
-        <p class="muted">MĂ©g nincs elĹ‘kĂ©szĂ­tett ĂĽgyfĂ©lriport.</p>
+        <p class="muted">Még nincs előkészített ügyfélriport.</p>
       </div>
 
-      <button class="btn ghost full" onclick="copyClientReport(this)">ĂśgyfĂ©lriport szĂ¶veg mĂˇsolĂˇsa</button>
-      <button class="btn primary full" onclick="downloadClientReportPdf(this)">PDF jelentĂ©s letĂ¶ltĂ©se</button>
-      <button class="btn ghost full" onclick="createAndCopyClientLink(this)">BiztonsĂˇgos ĂĽgyfĂ©l link lĂ©trehozĂˇsa</button>
-      <button class="btn ghost full" onclick="copyClientShareLink(this)">UtolsĂł ĂĽgyfĂ©l link mĂˇsolĂˇsa</button>
+      <button class="btn ghost full" onclick="copyClientReport(this)">Ügyfélriport szöveg másolása</button>
+      <button class="btn primary full" onclick="downloadClientReportPdf(this)">PDF jelentés letöltése</button>
+      <button class="btn ghost full" onclick="createAndCopyClientLink(this)">Biztonságos ügyfél link létrehozása</button>
+      <button class="btn ghost full" onclick="copyClientShareLink(this)">Utolsó ügyfél link másolása</button>
       <div class="formGrid notificationGrid">
-        <input id="clientEmail" type="email" placeholder="ĂśgyfĂ©l email cĂ­me (opcionĂˇlis)" />
-        <input id="clientPhone" placeholder="ĂśgyfĂ©l telefonszĂˇma SMS-hez (opcionĂˇlis)" />
+        <input id="clientEmail" type="email" placeholder="Ügyfél email címe (opcionális)" />
+        <input id="clientPhone" placeholder="Ügyfél telefonszáma SMS-hez (opcionális)" />
       </div>
-      <button class="btn ghost full" onclick="createShareText(this)">MegoszthatĂł ĂĽzenet kĂ©szĂ­tĂ©se</button>
-      <button class="btn primary full" onclick="sendClientNotification(this)">Email Ă©rtesĂ­tĂ©s kĂĽldĂ©se / SMS szĂ¶veg elĹ‘kĂ©szĂ­tĂ©se</button>
+      <button class="btn ghost full" onclick="createShareText(this)">Megosztható üzenet készítése</button>
+      <button class="btn primary full" onclick="sendClientNotification(this)">Email értesítés küldése / SMS szöveg előkészítése</button>
       <div id="clientNotifyResult" class="notice hidden"></div>
     </section>
 
     <section id="kapcsolat-admin" class="card">
-      <h2>6. Ăśzenet az adminnak</h2>
-      <p class="muted">Itt tudsz hibĂˇt, kĂ©rdĂ©st vagy fejlesztĂ©si kĂ©rĂ©st kĂĽldeni az adminnak. Az ĂĽzenet mentĂ©sre kerĂĽl, Ă©s email Ă©rtesĂ­tĂ©s megy a CĂ©gweb26 admin cĂ­mre.</p>
+      <h2>6. Üzenet az adminnak</h2>
+      <p class="muted">Itt tudsz hibát, kérdést vagy fejlesztési kérést küldeni az adminnak. Az üzenet mentésre kerül, és email értesítés megy a Cégweb26 admin címre.</p>
 
       <div class="formGrid">
-        <input id="supportSubject" name="support_topic_not_email" autocomplete="off" autocapitalize="sentences" spellcheck="true" data-lpignore="true" data-form-type="other" placeholder="TĂˇrgy, pl. Nem mĹ±kĂ¶dik a PDF letĂ¶ltĂ©s" />
-        <textarea id="supportMessage" placeholder="ĂŤrd le pontosan, mi a problĂ©ma vagy mit szeretnĂ©l kĂ©rni..."></textarea>
+        <input id="supportSubject" name="support_topic_not_email" autocomplete="off" autocapitalize="sentences" spellcheck="true" data-lpignore="true" data-form-type="other" placeholder="Tárgy, pl. Nem működik a PDF letöltés" />
+        <textarea id="supportMessage" placeholder="Írd le pontosan, mi a probléma vagy mit szeretnél kérni..."></textarea>
       </div>
 
-      <button class="btn primary full" onclick="sendSupportMessage()">Ăśzenet kĂĽldĂ©se az adminnak</button>
+      <button class="btn primary full" onclick="sendSupportMessage()">Üzenet küldése az adminnak</button>
       <div id="supportResult" class="notice hidden"></div>
     </section>
 
     <section id="admin" class="card wide hidden">
-      <h2>Admin ĂˇttekintĂ©s</h2>
-      <p class="muted">Itt lĂˇthatĂłk a regisztrĂˇlt felhasznĂˇlĂłk, elĹ‘fizetĂ©sek Ă©s PayPal fizetĂ©sek. Admin fiĂłkkal bĂˇrmely felhasznĂˇlĂł projektjeit meg tudod nĂ©zni tesztelĂ©shez.</p>
+      <h2>Admin áttekintés</h2>
+      <p class="muted">Itt láthatók a regisztrált felhasználók, előfizetések és PayPal fizetések. Admin fiókkal bármely felhasználó projektjeit meg tudod nézni teszteléshez.</p>
 
       <div class="adminToolbar">
-        <input id="adminSearch" placeholder="KeresĂ©s nĂ©v vagy email alapjĂˇn" oninput="renderAdmin()" />
+        <input id="adminSearch" placeholder="Keresés név vagy email alapján" oninput="renderAdmin()" />
         <select id="adminFilter" onchange="renderAdmin()">
-          <option value="all">Ă–sszes</option>
-          <option value="trial">PrĂłba</option>
+          <option value="all">Összes</option>
+          <option value="trial">Próba</option>
           <option value="pro">Pro</option>
-          <option value="expired">LejĂˇrt</option>
+          <option value="expired">Lejárt</option>
         </select>
       </div>
 
-      <h3>FelhasznĂˇlĂłk</h3>
+      <h3>Felhasználók</h3>
       <div id="adminList" class="list"></div>
 
-      <h3>Admin ĂĽzenetek / tĂˇmogatĂˇsi kĂ©rĂ©sek</h3>
-      <p class="muted">Teljes inbox kĂĽlĂ¶n oldalon: <a href="admin-messages.html">admin-messages.html</a></p>
+      <h3>Admin üzenetek / támogatási kérések</h3>
+      <p class="muted">Teljes inbox külön oldalon: <a href="admin-messages.html">admin-messages.html</a></p>
       <div id="adminSupportList" class="list"></div>
 
-      <h3>FizetĂ©sek</h3>
+      <h3>Fizetések</h3>
       <div id="paymentList" class="list"></div>
 
-      <h3>Riport takarĂ­tĂˇs</h3>
-      <p class="muted">RĂ©gi teszt riportok, Ăˇrva public_reports/report_documents/report_events sorok tĂ¶rlĂ©se. Akkor hasznĂˇld, ha tĂ¶rĂ¶lt projekt utĂˇn bent maradtak riport rekordok.</p>
-      <button class="btn ghost full" type="button" onclick="cleanupOrphanReportsV139(this)">RĂ©gi riportok Ă©s esemĂ©nyek takarĂ­tĂˇsa</button>
+      <h3>Riport takarítás</h3>
+      <p class="muted">Régi teszt riportok, árva public_reports/report_documents/report_events sorok törlése. Akkor használd, ha törölt projekt után bent maradtak riport rekordok.</p>
+      <button class="btn ghost full" type="button" onclick="cleanupOrphanReportsV139(this)">Régi riportok és események takarítása</button>
     </section>
 
 
 
     <section id="pro-eszkozok" class="card wide proTools v38MainAdvanced hidden">
-      <h2>7. PĂ©nztermelĹ‘ PRO eszkĂ¶zĂ¶k</h2>
-      <p class="muted">AI riport, anyaglista, kĂ¶ltsĂ©gbecslĂ©s Ă©s szĂˇmla-elĹ‘kĂ©szĂ­tĂ©s egy helyen.</p>
+      <h2>7. Pénztermelő PRO eszközök</h2>
+      <p class="muted">AI riport, anyaglista, költségbecslés és számla-előkészítés egy helyen.</p>
       <div class="toolGrid">
-        <div class="toolCard"><b>đź“¸ AI fotĂł + kockĂˇzat felismerĂ©s</b><p>ĂtnĂ©zi a kivĂˇlasztott projekt fotĂłit Ă©s szĂ¶vegeit.</p><button class="btn primary full" onclick="runAiPhotoRecognition()">AI fotĂłelemzĂ©s indĂ­tĂˇsa</button></div>
-        <div class="toolCard"><b>đź“Š Automatikus kĂ¶ltsĂ©gvetĂ©s</b><p>Anyag + munkadĂ­j becslĂ©s hibĂˇkra Ă©s beavatkozĂˇsokra.</p><button class="btn primary full" onclick="generateAutoBudget()">KĂ¶ltsĂ©gvetĂ©s kĂ©szĂ­tĂ©se</button></div>
-        <div class="toolCard"><b>đź§ľ SzĂˇmla / dĂ­jbekĂ©rĹ‘ elĹ‘kĂ©szĂ­tĂ©s</b><p>NyomtathatĂł szĂˇmla-elĹ‘kĂ©szĂ­tĹ‘.</p><button class="btn primary full" onclick="generateInvoiceDraft()">SzĂˇmla vĂˇzlat kĂ©szĂ­tĂ©se</button></div>
-        <div class="toolCard creditTool"><b>đź’° AI kredit vĂˇsĂˇrlĂˇs</b><p>1 AI riport kredit 390 Ft, 10 kredit 2 990 Ft. Itt tudsz kreditet venni, fizetĂ©s utĂˇn automatikusan jĂłvĂˇĂ­rĂłdik.</p><div class="creditBadge">AI kreditek: <b id="aiCreditBadge">0</b> db</div><button class="btn primary full" onclick="preparePaidAiReportOffer()">AI kredit vĂˇsĂˇrlĂˇs / riport indĂ­tĂˇs</button></div>
+        <div class="toolCard"><b>📸 AI fotó + kockázat felismerés</b><p>Átnézi a kiválasztott projekt fotóit és szövegeit.</p><button class="btn primary full" onclick="runAiPhotoRecognition()">AI fotóelemzés indítása</button></div>
+        <div class="toolCard"><b>📊 Automatikus költségvetés</b><p>Anyag + munkadíj becslés hibákra és beavatkozásokra.</p><button class="btn primary full" onclick="generateAutoBudget()">Költségvetés készítése</button></div>
+        <div class="toolCard"><b>🧾 Számla / díjbekérő előkészítés</b><p>Nyomtatható számla-előkészítő.</p><button class="btn primary full" onclick="generateInvoiceDraft()">Számla vázlat készítése</button></div>
+        <div class="toolCard creditTool"><b>💰 AI kredit vásárlás</b><p>1 AI riport kredit 390 Ft, 10 kredit 2 990 Ft. Itt tudsz kreditet venni, fizetés után automatikusan jóváíródik.</p><div class="creditBadge">AI kreditek: <b id="aiCreditBadge">0</b> db</div><button class="btn primary full" onclick="preparePaidAiReportOffer()">AI kredit vásárlás / riport indítás</button></div>
       </div>
-      <div id="proToolsResult" class="reportText"><p class="muted">VĂˇlassz projektet az ĂĽgyfĂ©lriport rĂ©sznĂ©l, majd indĂ­tsd el valamelyik PRO eszkĂ¶zt.</p></div>
+      <div id="proToolsResult" class="reportText"><p class="muted">Válassz projektet az ügyfélriport résznél, majd indítsd el valamelyik PRO eszközt.</p></div>
     </section>
 
     <section class="card wide">
-      <h2>RendszerfunkciĂłk</h2>
-      <p class="muted">Az Ă‰pĂ­tĂ©sNaplĂł fĹ‘bb funkciĂłi egy helyen.</p>
+      <h2>Rendszerfunkciók</h2>
+      <p class="muted">Az ÉpítésNapló főbb funkciói egy helyen.</p>
 
-      <div class="checkGrid featureExplainGrid" aria-label="KattinthatĂł rendszerfunkciĂłk magyarĂˇzattal">
-        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('fiok')">âś… felhasznĂˇlĂłi fiĂłkok <span>RĂ©szletek</span></button>
-        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('paypal')">âś… PayPal ellenĹ‘rzĂ©s <span>RĂ©szletek</span></button>
-        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('csomag')">âś… automatikus csomagaktivĂˇlĂˇs <span>RĂ©szletek</span></button>
-        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('adminFizetes')">âś… admin fizetĂ©skĂ¶vetĂ©s <span>RĂ©szletek</span></button>
-        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('projekt')">âś… projektkezelĂ©s <span>RĂ©szletek</span></button>
-        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('naplo')">âś… naplĂłbejegyzĂ©sek <span>RĂ©szletek</span></button>
-        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('ai')">âś… AI elemzĂ©s <span>RĂ©szletek</span></button>
-        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('riport')">âś… riport elĹ‘nĂ©zet <span>RĂ©szletek</span></button>
-        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('foto')">âś… AI fotĂłelemzĂ©s <span>RĂ©szletek</span></button>
-        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('koltseg')">âś… automatikus kĂ¶ltsĂ©gvetĂ©s <span>RĂ©szletek</span></button>
-        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('szamla')">âś… szĂˇmla-elĹ‘kĂ©szĂ­tĂ©s <span>RĂ©szletek</span></button>
-        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('upsell')">âś… fizetĹ‘s AI riport upsell <span>RĂ©szletek</span></button>
+      <div class="checkGrid featureExplainGrid" aria-label="Kattintható rendszerfunkciók magyarázattal">
+        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('fiok')">✅ felhasználói fiókok <span>Részletek</span></button>
+        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('paypal')">✅ PayPal ellenőrzés <span>Részletek</span></button>
+        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('csomag')">✅ automatikus csomagaktiválás <span>Részletek</span></button>
+        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('adminFizetes')">✅ admin fizetéskövetés <span>Részletek</span></button>
+        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('projekt')">✅ projektkezelés <span>Részletek</span></button>
+        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('naplo')">✅ naplóbejegyzések <span>Részletek</span></button>
+        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('ai')">✅ AI elemzés <span>Részletek</span></button>
+        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('riport')">✅ riport előnézet <span>Részletek</span></button>
+        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('foto')">✅ AI fotóelemzés <span>Részletek</span></button>
+        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('koltseg')">✅ automatikus költségvetés <span>Részletek</span></button>
+        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('szamla')">✅ számla-előkészítés <span>Részletek</span></button>
+        <button type="button" class="featureExplainItem" onclick="openFeatureExplain('upsell')">✅ fizetős AI riport upsell <span>Részletek</span></button>
       </div>
     </section>
   </main>
 
   <div id="authModal" class="modal hidden">
     <div class="modalContent authModalContent">
-      <button class="closeBtn" onclick="closeAuthModal()">Ă—</button>
-      <h2>BelĂ©pĂ©s / RegisztrĂˇciĂł</h2>
-      <p class="muted">MostantĂłl jelszĂłval is belĂ©phetsz, Ă­gy nem kell minden alkalommal email linket kĂ©rned.</p>
+      <button class="closeBtn" onclick="closeAuthModal()">×</button>
+      <h2>Belépés / Regisztráció</h2>
+      <p class="muted">Mostantól jelszóval is beléphetsz, így nem kell minden alkalommal email linket kérned.</p>
 
       <div class="authTabs">
-        <button id="authTabLogin" class="authTab active" type="button" onclick="setAuthMode('login')">BelĂ©pĂ©s jelszĂłval</button>
-        <button id="authTabRegister" class="authTab" type="button" onclick="setAuthMode('register')">Ăšj regisztrĂˇciĂł</button>
+        <button id="authTabLogin" class="authTab active" type="button" onclick="setAuthMode('login')">Belépés jelszóval</button>
+        <button id="authTabRegister" class="authTab" type="button" onclick="setAuthMode('register')">Új regisztráció</button>
         <button id="authTabMagic" class="authTab" type="button" onclick="setAuthMode('magic')">Email link</button>
       </div>
 
       <div id="authNameWrap" class="authField hidden">
-        <label>NĂ©v / cĂ©gnĂ©v</label>
-        <input id="authName" placeholder="Pl. Attila Ă‰pĂ­tĹ‘ Kft." autocomplete="name" />
+        <label>Név / cégnév</label>
+        <input id="authName" placeholder="Pl. Attila Építő Kft." autocomplete="name" />
       </div>
 
       <div class="authField">
-        <label>Email cĂ­m</label>
+        <label>Email cím</label>
         <input id="authEmail" placeholder="email@pelda.hu" type="email" autocomplete="email" />
       </div>
 
       <div id="authPasswordWrap" class="authField">
-        <label>JelszĂł</label>
+        <label>Jelszó</label>
         <div class="passwordWrap">
-          <input id="authPassword" placeholder="LegalĂˇbb 6 karakter" type="password" autocomplete="current-password" />
-          <button class="passwordToggle" type="button" onclick="toggleAuthPassword()" aria-label="JelszĂł megjelenĂ­tĂ©se">đź‘</button>
+          <input id="authPassword" placeholder="Legalább 6 karakter" type="password" autocomplete="current-password" />
+          <button class="passwordToggle" type="button" onclick="toggleAuthPassword()" aria-label="Jelszó megjelenítése">👁</button>
         </div>
-        <button id="forgotPasswordBtn" class="linkBtn" type="button" onclick="requestPasswordReset()">Elfelejtett jelszĂł?</button>
+        <button id="forgotPasswordBtn" class="linkBtn" type="button" onclick="requestPasswordReset()">Elfelejtett jelszó?</button>
       </div>
 
-      <button id="authSubmitBtn" class="btn primary full" onclick="handleAuthSubmit()">BelĂ©pĂ©s</button>
-      <button id="magicLinkBtn" class="btn ghost full hidden" onclick="requestMagicLink()">BelĂ©pĂ©si link kĂ©rĂ©se emailben</button>
+      <button id="authSubmitBtn" class="btn primary full" onclick="handleAuthSubmit()">Belépés</button>
+      <button id="magicLinkBtn" class="btn ghost full hidden" onclick="requestMagicLink()">Belépési link kérése emailben</button>
 
       <div id="authHelp" class="authHelp">
-        <b>Tipp:</b> ha mĂˇr regisztrĂˇltĂˇl, hasznĂˇld a jelszavas belĂ©pĂ©st. Az email linket csak akkor kĂ©rd, ha elfelejtetted a jelszavad vagy mĂˇsik eszkĂ¶zĂ¶n lĂ©pnĂ©l be.
+        <b>Tipp:</b> ha már regisztráltál, használd a jelszavas belépést. Az email linket csak akkor kérd, ha elfelejtetted a jelszavad vagy másik eszközön lépnél be.
       </div>
 
-      <p class="muted smallText">BelĂ©pĂ©s utĂˇn sajĂˇt projekteket, naplĂłbejegyzĂ©seket, ĂĽgyfĂ©lriportokat Ă©s AI elemzĂ©seket kezelhetsz.</p>
+      <p class="muted smallText">Belépés után saját projekteket, naplóbejegyzéseket, ügyfélriportokat és AI elemzéseket kezelhetsz.</p>
     </div>
   </div>
 
 
   <div id="featureExplainModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="featureExplainTitle">
     <div class="modalContent featureExplainModalContent">
-      <button class="closeBtn" type="button" onclick="closeFeatureExplain()">Ă—</button>
-      <p class="badge">RendszerfunkciĂł magyarĂˇzat</p>
-      <h2 id="featureExplainTitle">FunkciĂł magyarĂˇzata</h2>
+      <button class="closeBtn" type="button" onclick="closeFeatureExplain()">×</button>
+      <p class="badge">Rendszerfunkció magyarázat</p>
+      <h2 id="featureExplainTitle">Funkció magyarázata</h2>
       <div id="featureExplainBody" class="featureExplainBody"></div>
-      <button class="btn primary full" type="button" onclick="closeFeatureExplain()">Ă‰rtem</button>
+      <button class="btn primary full" type="button" onclick="closeFeatureExplain()">Értem</button>
     </div>
   </div>
   <footer>
-    <strong>Ă‰pĂ­tĂ©sNaplĂł AI PRO</strong>
-    <p>Ă‰pĂ­tĹ‘ipari naplĂł AI kockĂˇzatelemzĂ©ssel, PayPal fizetĂ©ssel Ă©s automatikus Pro aktivĂˇlĂˇssal.</p>
+    <strong>ÉpítésNapló AI PRO</strong>
+    <p>Építőipari napló AI kockázatelemzéssel, PayPal fizetéssel és automatikus Pro aktiválással.</p>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://www.paypal.com/sdk/js?client-id=AQsaQCLj0og2wsfMoDKAqxJieD2cgXwWq5cssAJCJbO2KoYE8LGHCREyR4vMzMfKZK68qw6EY7IAxMYF&currency=HUF"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="supabase-adapter.js?v=152"></script>
-  <script src="header-v40.js?v=171"></script>
+  <script src="header-v40.js?v=172"></script>
   <script src="project-v149-performance-upload-optimizer.js?v=152"></script>
   <script src="unified-photo-viewer-v152.js?v=152"></script>
   <script src="script.js?v=152"></script>
