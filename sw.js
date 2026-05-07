@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-ai-pro-v170-mobile-report-menu-fix';
+﻿const CACHE_NAME = 'epitesnaplo-ai-pro-v171-scroll-header-speed-fix';
 const APP_SHELL = [
   './',
   './index.html',
@@ -47,9 +47,9 @@ self.addEventListener('fetch', event => {
 });
 
 self.addEventListener('push', event => {
-  const data = event.data ? event.data.json() : { title: 'ÉpítésNapló AI PRO', body: 'Új értesítés érkezett.' };
-  event.waitUntil(self.registration.showNotification(data.title || 'ÉpítésNapló AI PRO', {
-    body: data.body || data.message || 'Új értesítés érkezett.',
+  const data = event.data ? event.data.json() : { title: 'Ă‰pĂ­tĂ©sNaplĂł AI PRO', body: 'Ăšj Ă©rtesĂ­tĂ©s Ă©rkezett.' };
+  event.waitUntil(self.registration.showNotification(data.title || 'Ă‰pĂ­tĂ©sNaplĂł AI PRO', {
+    body: data.body || data.message || 'Ăšj Ă©rtesĂ­tĂ©s Ă©rkezett.',
     icon: './favicon.svg',
     badge: './favicon.svg'
   }));
