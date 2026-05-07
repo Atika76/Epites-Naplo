@@ -7,16 +7,21 @@
     const nav = document.getElementById('nav');
     const btn = document.querySelector('.menuBtn');
     if(nav) nav.classList.remove('open','navOpen');
+    document.body.classList.remove('mobileMenuOpen');
     if(btn) btn.setAttribute('aria-expanded','false');
   }
-  function toggleMenu(){
+  function toggleMenu(event){
+    if(event && typeof event.preventDefault === 'function') event.preventDefault();
+    if(event && typeof event.stopPropagation === 'function') event.stopPropagation();
     const nav = document.getElementById('nav');
     const btn = document.querySelector('.menuBtn');
-    if(!nav) return;
-    const open = !nav.classList.contains('open');
+    if(!nav) return false;
+    const open = !(nav.classList.contains('open') || nav.classList.contains('navOpen'));
     nav.classList.toggle('open', open);
     nav.classList.toggle('navOpen', open);
+    document.body.classList.toggle('mobileMenuOpen', open);
     if(btn) btn.setAttribute('aria-expanded', String(open));
+    return false;
   }
   window.toggleMenu = toggleMenu;
   window.closeMobileMenu = closeMenu;
@@ -38,7 +43,11 @@
     btn.setAttribute('aria-controls','nav');
     btn.setAttribute('aria-expanded', nav.classList.contains('open') ? 'true' : 'false');
     btn.textContent = '☰';
-    btn.onclick = toggleMenu;
+    btn.onclick = null;
+    if(!btn.dataset.v168MenuClickReady){
+      btn.dataset.v168MenuClickReady = '1';
+      btn.addEventListener('click', toggleMenu, false);
+    }
     if(!nav.dataset.mobileMenuReady){
       nav.dataset.mobileMenuReady = '1';
       nav.addEventListener('click', (e) => {
@@ -50,45 +59,10 @@
       document.documentElement.dataset.mobileMenuOutsideReady = '1';
       document.addEventListener('click', (e) => {
         if(window.innerWidth > 860) return;
+        if(e.target && e.target.closest && e.target.closest('.menuBtn')) return;
         if(!topbar.contains(e.target)) closeMenu();
-      });
+      }, true);
     }
-  }
-
-
-  function initMobileHeaderV167(){
-    if (window.__epitesNaploMobileHeaderV167) return;
-    window.__epitesNaploMobileHeaderV167 = true;
-    const header = document.querySelector('.topbar');
-    if(!header) return;
-    document.body.classList.add('v167HasMobileTopbar');
-    let lastY = window.scrollY || 0;
-    let ticking = false;
-    function isMobileLike(){
-      try{
-        return window.matchMedia('(max-width: 860px)').matches || window.matchMedia('(pointer: coarse)').matches;
-      }catch(_){ return window.innerWidth <= 860; }
-    }
-    function isMenuOpen(){
-      const nav = document.getElementById('nav') || header.querySelector('nav');
-      return !!(nav && (nav.classList.contains('open') || nav.classList.contains('navOpen')));
-    }
-    function showHeader(){ document.body.classList.remove('v167MobileHeaderHidden'); }
-    function hideHeader(){ document.body.classList.add('v167MobileHeaderHidden'); }
-    function update(){
-      ticking = false;
-      if(!isMobileLike() || isMenuOpen()) { showHeader(); lastY = window.scrollY || 0; return; }
-      const y = window.scrollY || 0;
-      const diff = y - lastY;
-      if(y < 24 || diff < -2) showHeader();
-      else if(diff > 5 && y > 90) hideHeader();
-      lastY = y;
-    }
-    window.addEventListener('scroll', () => {
-      if(!ticking){ ticking = true; requestAnimationFrame(update); }
-    }, {passive:true});
-    window.addEventListener('resize', () => { showHeader(); lastY = window.scrollY || 0; }, {passive:true});
-    document.addEventListener('click', (e) => { if(e.target.closest('.menuBtn')) showHeader(); }, true);
   }
 
 
@@ -144,7 +118,6 @@
   window.v39OpenLogin = window.v40OpenLogin;
   async function renderHeader(){
     ensureMobileMenuButton();
-    initMobileHeaderV167();
     const nav = document.getElementById('nav');
     if(!nav) return;
     let user = null, profile = null;
@@ -158,7 +131,6 @@
   }
   document.addEventListener('DOMContentLoaded', () => {
     ensureMobileMenuButton();
-    initMobileHeaderV167();
     renderHeader();
     try { window.supabaseDirect?.auth?.onAuthStateChange?.(() => setTimeout(renderHeader, 60)); } catch(e) {}
     setTimeout(() => { if(document.body.classList.contains('auth-loading')) renderHeader(); }, 1200);
