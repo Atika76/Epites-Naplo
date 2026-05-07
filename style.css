@@ -21,6 +21,12 @@ body {
     var(--bg);
   color: var(--text);
 }
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
 a { color: inherit; text-decoration: none; }
 .hidden { display: none !important; }
 .topbar {
@@ -148,7 +154,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
   display: flex; justify-content: space-between; gap: 12px; align-items: flex-start;
   background: rgba(255,255,255,.055); border: 1px solid var(--line);
   padding: 12px; border-radius: 16px;
+  min-width: 0;
 }
+.item > div { min-width: 0; max-width: 100%; }
+.item b { overflow-wrap: anywhere; }
 .item small { color: var(--muted); display: block; margin-top: 4px; }
 .itemActions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 .tag { padding: 6px 10px; border-radius: 999px; font-size: 12px; background: var(--panel2); color: var(--muted); white-space: nowrap; display: inline-block; margin: 3px; }
@@ -212,6 +221,94 @@ footer strong { color: var(--text); }
   .brand span { display: none; }
   .item { flex-direction: column; }
   .itemActions { justify-content: flex-start; }
+}
+
+/* ===== V170 mobile portrait overflow fix ===== */
+@media (max-width: 720px) {
+  .card,
+  .benefit,
+  .planCard,
+  .item,
+  input,
+  select,
+  textarea,
+  button,
+  .btn {
+    max-width: 100%;
+  }
+  h1,
+  h2,
+  h3,
+  .lead,
+  .muted,
+  .brand strong,
+  .brand span,
+  .item b,
+  .item small {
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+  h1 {
+    font-size: clamp(34px, 12vw, 52px);
+    line-height: 1.04;
+    letter-spacing: 0;
+  }
+  h2 {
+    font-size: clamp(24px, 8vw, 32px);
+    line-height: 1.12;
+  }
+  .grid,
+  .benefits,
+  .hero {
+    width: 100%;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .card {
+    border-radius: 18px;
+    padding: 18px;
+  }
+  #naplo h2::after {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.66em;
+    line-height: 1.2;
+  }
+  #naplo .formRow {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  #naplo .formRow input,
+  #naplo .formRow .btn {
+    width: 100%;
+    min-width: 0;
+  }
+  #projectList.list {
+    width: 100%;
+    overflow: hidden;
+  }
+  #projectList .item {
+    width: 100%;
+  }
+  #projectList .itemActions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-content: stretch;
+  }
+  #projectList .itemActions .btn,
+  #projectList .itemActions .tag {
+    width: 100%;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+  }
+  #projectList .itemActions .dangerBtn {
+    justify-content: center;
+  }
 }
 
 .featureLine {

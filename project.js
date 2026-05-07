@@ -4656,6 +4656,9 @@ document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeReportCe
   function injectHead(html){
     let out = String(html || '');
     if(!/<!doctype|<html/i.test(out)) out = `<!doctype html><html lang="hu"><head><link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/favicon.png"><link rel="shortcut icon" href="https://epitesi-naplo.eu/favicon.ico"><link rel="apple-touch-icon" href="https://epitesi-naplo.eu/favicon.png"><meta name="theme-color" content="#0f172a"><meta charset="utf-8"><title>${esc(projectTitle())}</title></head><body>${out}</body></html>`;
+    if(!/<meta[^>]+name=["']viewport["']/i.test(out)){
+      out = out.includes('</head>') ? out.replace('</head>', '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head>') : out;
+    }
     if(!out.includes('v100-approved-report-css')) out = out.includes('</head>') ? out.replace('</head>', `${reportCss()}</head>`) : out.replace(/<body/i, `<head><link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/favicon.png"><link rel="shortcut icon" href="https://epitesi-naplo.eu/favicon.ico"><link rel="apple-touch-icon" href="https://epitesi-naplo.eu/favicon.png"><meta name="theme-color" content="#0f172a"><meta charset="utf-8">${reportCss()}</head><body`);
     if(!out.includes('v100Lightbox')) out = out.includes('</body>') ? out.replace('</body>', `${lightboxScript()}</body>`) : out + lightboxScript();
     return out;
