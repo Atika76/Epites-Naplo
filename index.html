@@ -39,17 +39,13 @@
 
     <button class="menuBtn" onclick="toggleMenu()">☰</button>
 
-    <nav id="nav" class="v175CleanNav">
+    <nav id="nav" class="v178CleanNav">
       <a href="#home">Főoldal</a>
-      <a href="#systemFeatures" class="guestReadableNav">Rendszerfunkciók</a>
-      <a href="#demo" class="guestReadableNav">Demo</a>
-      <a href="#naplo" class="userWorkNav">Projektjeim</a>
-      <a href="#ugyfel-riport" class="userWorkNav">Riportok</a>
-      <a href="#subscription" id="packagesNavLink">Csomagok</a>
-      <a href="profile.html" id="profileNavLink" class="hidden">Fiókom</a>
-      <a href="admin-messages.html" id="adminMessagesNavLink" class="hidden">Admin inbox</a>
-      <a href="admin-panel.html" id="adminPanelNavLink" class="hidden">Admin panel</a>
-      <a href="#admin" id="adminNavLink" class="hidden">Admin</a>
+      <a href="#systemFeatures" id="systemFeaturesNavLink" class="guestNavLink">Rendszerfunkciók</a>
+      <a href="#naplo" class="userWorkNav">Napló</a>
+      <a href="#ugyfel-riport" class="userWorkNav">Riport</a>
+      <a href="profile.html" id="profileNavLink" class="hidden userWorkNav">Fiókom</a>
+      <a href="admin-panel.html" id="adminNavLink" class="hidden adminNavLink">Admin</a>
       <button id="notificationBtn" class="btn small ghost hidden" onclick="toggleNotificationPanel()">🔔 <span id="notificationCount">0</span></button>
       <button id="loginBtn" class="btn small" onclick="openAuthModal()">Belépés / Regisztráció</button>
       <button id="logoutBtn" class="btn small ghost hidden" onclick="window.location.href='logout.html'">Kilépés</button>
@@ -362,7 +358,7 @@
       <div id="supportResult" class="notice hidden"></div>
     </section>
 
-    <section id="admin" class="card wide hidden">
+    <section id="admin" class="card wide hidden homeAdminOverviewDeprecated">
       <h2>Admin áttekintés</h2>
       <p class="muted">Itt láthatók a regisztrált felhasználók, előfizetések és PayPal fizetések. Admin fiókkal bármely felhasználó projektjeit meg tudod nézni teszteléshez.</p>
 
@@ -405,7 +401,7 @@
       <div id="proToolsResult" class="reportText"><p class="muted">Válassz projektet az ügyfélriport résznél, majd indítsd el valamelyik PRO eszközt.</p></div>
     </section>
 
-    <section id="systemFeatures" class="card wide">
+    <section id="systemFeatures" class="card wide publicSystemFeatures">
       <h2>Rendszerfunkciók</h2>
       <p class="muted">Az ÉpítésNapló főbb funkciói egy helyen.</p>
 
@@ -491,7 +487,7 @@
   <script src="project-v149-performance-upload-optimizer.js?v=152"></script>
   <script src="unified-photo-viewer-v152.js?v=152"></script>
   <script src="script.js?v=152"></script>
-  <script src="ui-v175-role-cleanup.js?v=177"></script>
+  <script src="ui-v178-role-cleanup.js?v=178"></script>
   <script src="unified-photo-viewer-v152.js?v=152-final"></script>
   <div id="toast" class="toast hidden"></div>
 </body>

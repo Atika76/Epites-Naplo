@@ -118,17 +118,21 @@
     const reportNav = current === 'project.html'
       ? `<a href="#reportCenterV69" onclick="event.preventDefault(); if(typeof window.openReportCenterV69 === 'function'){ window.openReportCenterV69(); }">Riport</a>`
       : '<a href="#riport" onclick="return window.v130OpenReportNav(event)">Riport</a>';
+    if (!logged) {
+      return `
+        <a href="index.html#home">Főoldal</a>
+        <a id="systemFeaturesNavLink" href="index.html#systemFeatures">Rendszerfunkciók</a>
+        ${loginBtn}
+      `;
+    }
     return `
       <a href="index.html#home">Főoldal</a>
       <a href="index.html#naplo">Napló</a>
-      <a href="index.html#subscription">Csomagok</a>
       ${reportNav}
-      ${logged ? '<a id="profileNavLink" href="profile.html">Fiókom</a>' : ''}
-      ${isAdmin ? '<a id="adminMessagesNavLink" href="admin-messages.html">Admin inbox</a>' : ''}
-      ${isAdmin ? '<a id="adminPanelNavLink" href="admin-panel.html">Admin panel</a>' : ''}
-      ${isAdmin && isIndex() ? '<a id="adminNavLink" href="index.html#admin">Admin</a>' : ''}
-      ${logged ? '<span class="adminPill">'+(isAdmin?'Admin':'Felhasználó')+'</span>' : ''}
-      ${logged ? logoutBtn : loginBtn}
+      <a id="profileNavLink" href="profile.html">Fiókom</a>
+      ${isAdmin ? '<a id="adminNavLink" href="admin-panel.html">Admin</a>' : ''}
+      <span class="adminPill">${isAdmin ? 'Admin' : 'Felhasználó'}</span>
+      ${logoutBtn}
     `;
   }
   window.v40OpenLogin = function(){

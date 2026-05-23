@@ -3082,8 +3082,8 @@ function requireLoginV38(message){
     if(target.closest('#authModal') || target.closest('#guestLockModalV38') || target.closest('#subscription') || target.id === 'heroRegisterBtn') return;
     const href = target.getAttribute && target.getAttribute('href');
     if(href && (
-      href.startsWith('#home') || href.startsWith('#subscription') || href.startsWith('#mire-jo') || href.startsWith('#demo') ||
-      href.startsWith('index.html#home') || href.startsWith('index.html#subscription') || href.startsWith('index.html#mire-jo') || href.startsWith('index.html#demo')
+      href.startsWith('#home') || href.startsWith('#subscription') || href.startsWith('#demo') || href.startsWith('#systemFeatures') ||
+      href.startsWith('index.html#home') || href.startsWith('index.html#subscription') || href.startsWith('index.html#demo') || href.startsWith('index.html#systemFeatures')
     )) return;
     if(target.matches('input, select, textarea') || target.onclick || target.tagName === 'BUTTON'){
       e.preventDefault();

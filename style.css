@@ -2355,3 +2355,50 @@ body.v175Logged .guestReadableNav {
     margin: 14px 10px;
   }
 }
+
+/* V178 – tiszta főoldal és konkrét helyre rendezett funkciók */
+.v178CleanNav .userWorkNav,
+.v178CleanNav .adminNavLink,
+.v178CleanNav .guestNavLink { white-space: nowrap; }
+
+/* A rendszerfunkciók a főoldalon legyenek láthatók vendégként is. */
+#systemFeatures.publicSystemFeatures,
+body:not(.v175Admin) #systemFeatures.publicSystemFeatures,
+body.v178Guest #systemFeatures.publicSystemFeatures,
+body.v178Logged #systemFeatures.publicSystemFeatures,
+body.v178Admin #systemFeatures.publicSystemFeatures {
+  display: block !important;
+}
+
+/* Admin áttekintés ne legyen a főoldalon, mert külön admin-panel.html van. */
+#admin.homeAdminOverviewDeprecated {
+  display: none !important;
+}
+
+/* Belépett/fizetett felhasználónál a fizetési blokkok ne zsúfolják a főoldalt. */
+body.v178Paid #subscription,
+body.v178Paid #ai-kreditek {
+  display: none !important;
+}
+
+body.v178Guest .userWorkNav,
+body.v178Logged .guestNavLink,
+body:not(.v178Admin) .adminNavLink {
+  display: none !important;
+}
+
+body.v178Logged #loginBtn { display: none !important; }
+body.v178Guest #logoutBtn { display: none !important; }
+
+/* A régi, túl magyarázós blokk ebben a verzióban nincs használatban. */
+#mire-jo { display: none !important; }
+
+@media (max-width: 760px) {
+  .v178CleanNav {
+    gap: 8px;
+  }
+  .v178CleanNav a,
+  .v178CleanNav button {
+    font-size: .92rem;
+  }
+}
