@@ -3079,10 +3079,12 @@ function requireLoginV38(message){
     if(state.user) return;
     const target = e.target.closest('button, a, input, select, textarea');
     if(!target) return;
-    // V175: a bemutató, demo, csomag és magyarázó részek regisztráció nélkül is olvashatók.
-    if(target.closest('#authModal') || target.closest('#guestLockModalV38') || target.closest('#subscription') || target.closest('#v175PublicInfo') || target.closest('#featureExplainModal') || target.closest('.featureExplainItem') || target.id === 'heroRegisterBtn') return;
+    if(target.closest('#authModal') || target.closest('#guestLockModalV38') || target.closest('#subscription') || target.id === 'heroRegisterBtn') return;
     const href = target.getAttribute && target.getAttribute('href');
-    if(href && (href.startsWith('#home') || href.startsWith('#subscription') || href.startsWith('#mire-jo') || href.startsWith('#public-demo') || href.startsWith('index.html#home') || href.startsWith('index.html#subscription') || href.startsWith('index.html#mire-jo') || href.startsWith('index.html#public-demo'))) return;
+    if(href && (
+      href.startsWith('#home') || href.startsWith('#subscription') || href.startsWith('#mire-jo') || href.startsWith('#demo') ||
+      href.startsWith('index.html#home') || href.startsWith('index.html#subscription') || href.startsWith('index.html#mire-jo') || href.startsWith('index.html#demo')
+    )) return;
     if(target.matches('input, select, textarea') || target.onclick || target.tagName === 'BUTTON'){
       e.preventDefault();
       e.stopPropagation();

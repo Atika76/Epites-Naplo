@@ -24,7 +24,7 @@
   <meta name="twitter:image" content="https://epitesi-naplo.eu/og-epitesi-naplo-v106.png" />
 
   <meta name="description" content="Építőipari ügyfélriport rendszer fotós dokumentációval, AI jelentéssel, PDF exporttal és PayPal fizetéssel." />
-  <link rel="stylesheet" href="style.css?v=175" />
+  <link rel="stylesheet" href="style.css?v=172" />
 </head>
 
 <body class="auth-loading">
@@ -39,11 +39,13 @@
 
     <button class="menuBtn" onclick="toggleMenu()">☰</button>
 
-    <nav id="nav">
-      <a href="#naplo">Napló</a>
-      <a href="#ai">AI</a>
-      <a href="#riport">Riport</a>
-      <a href="#kapcsolat-admin">Admin üzenet</a>
+    <nav id="nav" class="v175CleanNav">
+      <a href="#home">Főoldal</a>
+      <a href="#mire-jo" class="guestReadableNav">Mire jó?</a>
+      <a href="#demo" class="guestReadableNav">Demo</a>
+      <a href="#naplo" class="userWorkNav">Projektjeim</a>
+      <a href="#ugyfel-riport" class="userWorkNav">Riportok</a>
+      <a href="#subscription" id="packagesNavLink">Csomagok</a>
       <a href="profile.html" id="profileNavLink" class="hidden">Fiókom</a>
       <a href="admin-messages.html" id="adminMessagesNavLink" class="hidden">Admin inbox</a>
       <a href="admin-panel.html" id="adminPanelNavLink" class="hidden">Admin panel</a>
@@ -83,6 +85,7 @@
 
       <div class="heroActions">
         <a class="btn primary" href="#naplo">Napló indítása</a>
+        <a class="btn ghost" href="#mire-jo">Mire használható?</a>
         <button id="heroRegisterBtn" class="btn ghost" onclick="openAuthModal()">Regisztráció</button>
       </div>
 
@@ -116,16 +119,46 @@
 
   <section class="benefits">
     <div class="benefit">
-      <b>👤 Saját projektjeid egy helyen</b>
-      <p>Minden munka külön projektben marad: napló, fotók, anyagok, riportok és határidők.</p>
+      <b>👤 Saját fiókos használat</b>
+      <p>A felhasználó saját projektjeit és naplóbejegyzéseit kezeli.</p>
     </div>
     <div class="benefit">
-      <b>✅ Megrendelői jóváhagyás</b>
-      <p>Az ügyfél külön linken tud visszajelezni, kérdezni és pluszmunkát elfogadni.</p>
+      <b>💳 Automatikus fizetés</b>
+      <p>Sikeres PayPal fizetés után a kiválasztott csomag automatikusan aktiválódik.</p>
     </div>
     <div class="benefit">
-      <b>🧾 Riport és bizonyíték</b>
-      <p>Átadható PDF/HTML riport készül, hogy ne utólag kelljen keresgélni a bizonyítékokat.</p>
+      <b>🤝 Megrendelői együttműködés</b>
+      <p>Ügyfél link, jóváhagyás, megjegyzések és pluszmunka egy rendezett felületen.</p>
+    </div>
+  </section>
+
+
+  <section id="mire-jo" class="card wide v175PublicInfo">
+    <p class="badge">Regisztráció nélkül olvasható</p>
+    <h2>Mire használható az ÉpítésNapló AI PRO?</h2>
+    <p class="muted">Az oldal célja, hogy egy kivitelező ne WhatsApp üzenetekből, szétszórt fotókból és emlékezetből próbálja bizonyítani, mi történt a munkán. A napló, fotók, napi leírások, ügyfélriportok és jóváhagyások egy helyre kerülnek.</p>
+    <div class="v175InfoGrid">
+      <div class="v175InfoCard"><b>📸 Fotós dokumentáció</b><p>Napi fotók, videók és megjegyzések projektenként rendezve.</p></div>
+      <div class="v175InfoCard"><b>📝 Napi munkanapló</b><p>Munka, anyag, időjárás, felelős, státusz és eltérés külön napi bejegyzésként.</p></div>
+      <div class="v175InfoCard"><b>🤝 Ügyfélriport</b><p>A megrendelő átlátható összefoglalót kap, nem nyers belső jegyzeteket.</p></div>
+      <div class="v175InfoCard"><b>💰 Pluszmunka jóváhagyás</b><p>A váratlan pluszmunkák indoklással és árral külön rögzíthetők.</p></div>
+      <div class="v175InfoCard"><b>🧾 Bizonyítható átadás</b><p>Riport, PDF, link és idővonal segít vita vagy elszámolás esetén.</p></div>
+      <div class="v175InfoCard"><b>🤖 AI előszűrés</b><p>A rendszer segíthet észrevenni a hiányos vagy kockázatos bejegyzéseket.</p></div>
+    </div>
+  </section>
+
+  <section id="demo" class="card wide v175PublicInfo">
+    <p class="badge">Demo előnézet</p>
+    <h2>Így nézne ki egy egyszerű projekt használat közben</h2>
+    <p class="muted">Ez egy olvasható bemutató rész. Nem kell hozzá regisztrálni, nem ment adatot és nem terheli a Supabase-t.</p>
+    <div class="v175DemoFlow">
+      <div><span>1</span><b>Projekt létrehozása</b><p>Példa: Családi ház felújítás – Esztergom.</p></div>
+      <div><span>2</span><b>Napi bejegyzés</b><p>„Elkészült a falazás első üteme, 2 fő dolgozott, 18 °C, fotók csatolva.”</p></div>
+      <div><span>3</span><b>Ügyfélriport</b><p>A megrendelő egy tiszta, olvasható összefoglalót kap.</p></div>
+      <div><span>4</span><b>Jóváhagyás</b><p>Az ügyfél megjegyzést írhat vagy elfogadhatja a rögzített pluszmunkát.</p></div>
+    </div>
+    <div class="notice v175PublicNotice">
+      A saját projekt létrehozásához, képfeltöltéshez, PDF-hez és mentéshez már regisztráció szükséges. A bemutató viszont szabadon olvasható.
     </div>
   </section>
 
@@ -330,7 +363,7 @@
       <div id="clientNotifyResult" class="notice hidden"></div>
     </section>
 
-    <section id="kapcsolat-admin" class="card">
+    <section id="kapcsolat-admin" class="card userOnlyBlock">
       <h2>6. Üzenet az adminnak</h2>
       <p class="muted">Itt tudsz hibát, kérdést vagy fejlesztési kérést küldeni az adminnak. Az üzenet mentésre kerül, és email értesítés megy a Cégweb26 admin címre.</p>
 
@@ -386,7 +419,7 @@
       <div id="proToolsResult" class="reportText"><p class="muted">Válassz projektet az ügyfélriport résznél, majd indítsd el valamelyik PRO eszközt.</p></div>
     </section>
 
-    <section class="card wide">
+    <section id="systemFeatures" class="card wide adminOnlyBlock hidden">
       <h2>Rendszerfunkciók</h2>
       <p class="muted">Az ÉpítésNapló főbb funkciói egy helyen.</p>
 
@@ -468,11 +501,11 @@
   <script src="https://www.paypal.com/sdk/js?client-id=AQsaQCLj0og2wsfMoDKAqxJieD2cgXwWq5cssAJCJbO2KoYE8LGHCREyR4vMzMfKZK68qw6EY7IAxMYF&currency=HUF"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="supabase-adapter.js?v=152"></script>
-  <script src="header-v40.js?v=175"></script>
+  <script src="header-v40.js?v=172"></script>
   <script src="project-v149-performance-upload-optimizer.js?v=152"></script>
   <script src="unified-photo-viewer-v152.js?v=152"></script>
-  <script src="script.js?v=175"></script>
-  <script src="v175-role-clean-ui.js?v=175"></script>
+  <script src="script.js?v=152"></script>
+  <script src="ui-v175-role-cleanup.js?v=175b"></script>
   <script src="unified-photo-viewer-v152.js?v=152-final"></script>
   <div id="toast" class="toast hidden"></div>
 </body>

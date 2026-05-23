@@ -32,7 +32,7 @@
     if(!section) return;
     const body = section.querySelector(':scope > .v174AccordionBody');
     const header = section.querySelector(':scope > .v174AccordionHeader');
-    const mark = section.querySelector(':scope > .v174AccordionIcon');
+    const mark = (header && header.querySelector('.v174AccordionIcon')) || section.querySelector('.v174AccordionIcon');
     section.classList.toggle('v174Open', !!open);
     section.classList.toggle('v174Closed', !open);
     if(body) body.hidden = !open;
