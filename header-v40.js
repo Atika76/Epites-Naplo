@@ -1,5 +1,5 @@
 (function(){
-  const ADMIN_EMAILS = ['cegweb26@gmail.com','atika.76@windowslive.com'];
+  const ADMIN_EMAILS = ['cegweb26@gmail.com'];
   function isAdminEmail(email){ return ADMIN_EMAILS.includes(String(email||'').toLowerCase()); }
   function page(){ return (location.pathname.split('/').pop() || 'index.html').toLowerCase(); }
   function isIndex(){ const p = page(); return p === 'index.html' || p === ''; }
@@ -131,7 +131,6 @@
       ${reportNav}
       <a id="profileNavLink" href="profile.html">Fiókom</a>
       ${isAdmin ? '<a id="adminNavLink" href="admin-panel.html">Admin</a>' : ''}
-      <span class="adminPill">${isAdmin ? 'Admin' : 'Felhasználó'}</span>
       ${logoutBtn}
     `;
   }
