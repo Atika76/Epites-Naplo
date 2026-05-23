@@ -2191,3 +2191,51 @@ body.v69ModalOpen{overflow:hidden;}
 .v173ClientGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:14px}.v173ClientBox{border:1px solid rgba(148,163,184,.28);background:linear-gradient(180deg,rgba(248,250,252,.95),rgba(255,255,255,.98));border-radius:20px;padding:18px;color:#0f172a}.v173ClientBox h3{margin:0 0 8px;color:#0f172a}.v173ClientBox input,.v173ClientBox textarea,.v173ShareInput{width:100%;border:1px solid #cbd5e1;background:#fff;color:#0f172a;border-radius:14px;padding:13px 14px;margin:8px 0;font-size:15px}.v173ClientBox textarea{resize:vertical}.v173ClientActions{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}.v173ClientList{display:grid;gap:10px;margin-top:12px}.v173Empty{border:1px dashed #cbd5e1;background:#f8fafc;color:#475569;border-radius:14px;padding:13px;line-height:1.45}.v173Empty.warn{background:#fff7ed;border-color:#fdba74;color:#9a3412}.v173MiniRow,.v173Message,.v173ExtraRow{border:1px solid #e2e8f0;background:#fff;border-radius:16px;padding:13px;box-shadow:0 8px 24px rgba(15,23,42,.06)}.v173MiniRow{display:flex;align-items:center;justify-content:space-between;gap:12px}.v173MiniRow small,.v173Message small,.v173ClientDecision small{display:block;color:#64748b;margin-top:3px}.v173MessageTop,.v173ExtraHead,.v173ExtraMeta{display:flex;align-items:center;justify-content:space-between;gap:12px}.v173Message p,.v173ExtraRow p{white-space:pre-wrap;color:#334155;margin:9px 0}.v173Message.question{border-left:5px solid #f59e0b}.v173Message.issue{border-left:5px solid #ef4444}.v173Message.approval{border-left:5px solid #22c55e}.v173Status{display:inline-flex;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:900}.v173Status.ok{background:#dcfce7;color:#166534}.v173Status.info{background:#dbeafe;color:#1d4ed8}.v173Status.warn{background:#ffedd5;color:#9a3412}.v173Status.danger{background:#fee2e2;color:#991b1b}.v173ExtraMeta strong{font-size:18px;color:#b45309}.v173ExtraMeta span{color:#64748b;font-size:13px}.v173ClientDecision{background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d;border-radius:14px;padding:10px;margin:10px 0}.v173ExtraActions{display:flex;justify-content:flex-end;margin-top:8px}.v173ClientMessagesPanel{margin-top:16px}.v173ClientCollabPanel.isLoading{opacity:.82}.btn.mini{padding:7px 10px;border-radius:10px;font-size:12px;line-height:1.1}
 @media(max-width:780px){.v173ClientGrid{grid-template-columns:1fr}.v173ClientActions .btn{width:100%}.v173MiniRow,.v173MessageTop,.v173ExtraHead,.v173ExtraMeta{align-items:flex-start;flex-direction:column}.v173ExtraActions .btn{width:100%}}
 @media print{.v173ClientCollabPanel{break-inside:avoid;page-break-inside:avoid}}
+
+/* ===== V174 – kinézet és használhatóság: lenyitható projektblokkok, kevesebb görgetés ===== */
+.projectPageShell{padding-bottom:86px!important;}
+.v174Accordion{padding:0!important;overflow:hidden!important;border-color:rgba(56,189,248,.18)!important;background:linear-gradient(180deg,rgba(15,23,42,.96),rgba(2,6,23,.96))!important;}
+.v174AccordionHeader{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;text-align:left;border:0;background:linear-gradient(135deg,rgba(15,23,42,.98),rgba(8,47,73,.78));color:#f8fafc;padding:18px 20px;cursor:pointer;min-height:68px;}
+.v174AccordionHeader:hover{background:linear-gradient(135deg,rgba(20,31,55,.98),rgba(14,116,144,.55));}
+.v174AccordionText{display:flex;flex-direction:column;gap:4px;line-height:1.2;}
+.v174AccordionText strong{font-size:18px;letter-spacing:-.02em;}
+.v174AccordionText small{font-size:13px;color:#94a3b8;font-weight:700;line-height:1.35;}
+.v174AccordionIcon{display:inline-grid;place-items:center;min-width:38px;width:38px;height:38px;border-radius:999px;background:#f59e0b;color:#111827;font-size:28px;font-weight:950;box-shadow:0 10px 28px rgba(245,158,11,.22);}
+.v174AccordionBody{padding:16px!important;border-top:1px solid rgba(148,163,184,.14);}
+.v174Accordion.v174Closed{margin-bottom:10px!important;}
+.v174Accordion.v174Closed .v174AccordionHeader{border-radius:inherit;}
+.v174Accordion.v174Open{box-shadow:0 18px 60px rgba(2,6,23,.35)!important;}
+
+.v174JumpBar{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:99990;display:flex;gap:6px;align-items:center;justify-content:center;max-width:min(96vw,620px);padding:8px;border:1px solid rgba(148,163,184,.24);border-radius:999px;background:rgba(2,6,23,.92);backdrop-filter:blur(14px);box-shadow:0 18px 50px rgba(0,0,0,.45);}
+.v174JumpBar button{border:1px solid rgba(148,163,184,.20);border-radius:999px;background:rgba(15,23,42,.95);color:#e2e8f0;font-weight:900;font-size:12px;padding:10px 12px;cursor:pointer;white-space:nowrap;}
+.v174JumpBar button:hover{background:#f59e0b;color:#111827;border-color:#f59e0b;}
+
+/* V174 – a V173 megrendelői rész egységesítése a sötét prémium dizájnnal */
+.v173ClientCollabPanel{background:linear-gradient(180deg,rgba(8,47,73,.92),rgba(2,6,23,.98))!important;border:1px solid rgba(56,189,248,.25)!important;}
+.v173ClientGrid{gap:14px!important;}
+.v173ClientBox{background:linear-gradient(180deg,rgba(15,23,42,.96),rgba(8,13,28,.98))!important;border:1px solid rgba(148,163,184,.20)!important;color:#e5edf7!important;box-shadow:0 12px 34px rgba(0,0,0,.20)!important;}
+.v173ClientBox h3{color:#f8fafc!important;}
+.v173ClientBox .muted,.v173ClientBox p.muted{color:#94a3b8!important;}
+.v173ClientBox input,.v173ClientBox textarea,.v173ShareInput{background:#071224!important;border:1px solid rgba(148,163,184,.26)!important;color:#f8fafc!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)!important;}
+.v173ClientBox input::placeholder,.v173ClientBox textarea::placeholder,.v173ShareInput::placeholder{color:#64748b!important;}
+.v173MiniRow,.v173Message,.v173ExtraRow{background:linear-gradient(180deg,rgba(15,23,42,.95),rgba(2,6,23,.98))!important;border:1px solid rgba(148,163,184,.18)!important;color:#e2e8f0!important;box-shadow:0 8px 24px rgba(0,0,0,.20)!important;}
+.v173Message p,.v173ExtraRow p{color:#cbd5e1!important;}
+.v173MiniRow small,.v173Message small,.v173ClientDecision small,.v173ExtraMeta span{color:#94a3b8!important;}
+.v173Empty{background:rgba(15,23,42,.65)!important;border-color:rgba(148,163,184,.24)!important;color:#94a3b8!important;}
+.v173ExtraMeta strong{color:#f59e0b!important;}
+.v173ClientDecision{background:rgba(34,197,94,.10)!important;border-color:rgba(34,197,94,.28)!important;color:#bbf7d0!important;}
+
+@media(max-width:780px){
+  .projectPageShell{padding-left:10px!important;padding-right:10px!important;padding-bottom:92px!important;}
+  .projectHero.card{margin-bottom:10px!important;}
+  .projectTwoCol{display:block!important;}
+  .v174AccordionHeader{padding:15px 14px;min-height:62px;}
+  .v174AccordionText strong{font-size:16px;}
+  .v174AccordionText small{font-size:12px;}
+  .v174AccordionIcon{width:34px;height:34px;min-width:34px;font-size:24px;}
+  .v174AccordionBody{padding:12px!important;}
+  .v174JumpBar{bottom:8px;width:calc(100vw - 14px);overflow-x:auto;justify-content:flex-start;border-radius:18px;}
+  .v174JumpBar button{font-size:11px;padding:9px 10px;}
+  .v173ClientGrid{grid-template-columns:1fr!important;}
+  .v173ClientBox{padding:14px!important;border-radius:16px!important;}
+}
