@@ -1,4 +1,4 @@
-/* V175b – szerepkör szerinti menü, publikus bemutató és fizetési blokkok tisztítása.
+/* V177 – V175b alap: tiszta főoldal, publikus Rendszerfunkciók, fizetési blokkok rendezése.
    Csak frontend javítás: nem hoz létre Supabase hívást és nem kell hozzá új SQL. */
 (function(){
   'use strict';
@@ -83,7 +83,8 @@
     $('#adminMessagesNavLink')?.classList.toggle('hidden', !admin);
     $('#adminPanelNavLink')?.classList.toggle('hidden', !admin);
     $('#adminNavLink')?.classList.toggle('hidden', !admin);
-    $('#systemFeatures')?.classList.toggle('hidden', !admin);
+    // A rendszerfunkciók nyilvános bemutató blokk: vendégnek is látszódhat.
+    $('#systemFeatures')?.classList.remove('hidden');
     $('#admin')?.classList.toggle('hidden', !admin);
 
     document.body.classList.toggle('v175Guest', !logged);
@@ -117,8 +118,8 @@
     const logged = isLoggedIn();
     // A támogatási/admin üzenet csak belépett felhasználónak látszódjon.
     $$('.userOnlyBlock').forEach(el => el.classList.toggle('hidden', !logged));
-    // A rendszerfunkciók nem értékesítési tartalom, ezért csak admin lássa.
-    if (!isAdminUser()) $('#systemFeatures')?.classList.add('hidden');
+    // A rendszerfunkciók legyen olvasható vendégnek is; ez mutatja be, mire képes az oldal.
+    $('#systemFeatures')?.classList.remove('hidden');
   }
 
   function refresh(){
