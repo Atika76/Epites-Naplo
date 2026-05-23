@@ -1798,3 +1798,196 @@ window.EpitesNaploAPI = {
     return result;
   };
 })();
+
+// ===== V173: megrendelői együttműködés + végleges projekt-törlés =====
+(function(){
+  const api = window.EpitesNaploAPI;
+  const db = window.supabaseDirect;
+  if(!api || !db || api.__v173ClientCollabAndDelete) return;
+  api.__v173ClientCollabAndDelete = true;
+
+  const oldDeleteProject = api.deleteProject?.bind(api);
+  const missing = e => /does not exist|schema cache|not found|relation .* does not exist|function .* does not exist|column .* does not exist|42P01|42703|PGRST/i.test(String(e?.message || e || ''));
+  const siteBase = () => String(window.EPITESNAPLO_SITE_URL || location.origin || 'https://epitesi-naplo.eu').replace(/\/$/, '');
+  const token = () => {
+    try{
+      if(window.crypto?.randomUUID) return window.crypto.randomUUID().replace(/-/g,'') + Math.random().toString(36).slice(2,8);
+    }catch(_){ }
+    return (Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).replace(/[^a-z0-9]/gi,'');
+  };
+  async function userRequired(){ const user = await api.getCurrentUser?.(); if(!user) throw new Error('Nincs bejelentkezve.'); return user; }
+  async function safeDelete(table, filters){
+    try{
+      let q = db.from(table).delete();
+      (filters || []).forEach(([col, value]) => { q = q.eq(col, value); });
+      const { error } = await q;
+      if(error && !missing(error)) throw error;
+    }catch(e){ if(!missing(e)) throw e; }
+  }
+  async function safeSelect(table, build){
+    try{
+      let q = db.from(table).select('*');
+      q = build ? build(q) : q;
+      const { data, error } = await q;
+      if(error && !missing(error)) throw error;
+      return data || [];
+    }catch(e){ if(!missing(e)) console.warn('V173 select hiba '+table+':', e?.message || e); return []; }
+  }
+  async function removeStorageFolder(bucket, prefix, depth){
+    depth = depth || 0;
+    if(!bucket || !prefix || depth > 6) return;
+    let listed;
+    try{ listed = await db.storage.from(bucket).list(prefix, { limit:1000, sortBy:{ column:'name', order:'asc' } }); }catch(_){ return; }
+    if(listed?.error || !Array.isArray(listed?.data) || !listed.data.length) return;
+    const files = [];
+    for(const item of listed.data){
+      if(!item?.name) continue;
+      const path = `${prefix}/${item.name}`;
+      const isFolder = !item.id && !item.updated_at && !item.created_at && !item.last_accessed_at && !item.metadata;
+      if(isFolder) await removeStorageFolder(bucket, path, depth + 1);
+      else files.push(path);
+    }
+    for(let i=0;i<files.length;i+=100){
+      try{ await db.storage.from(bucket).remove(files.slice(i, i+100)); }catch(_){ }
+    }
+  }
+  async function cleanupProjectStorage(userId, projectId){
+    const buckets = ['project-videos','project-media','media-files','report-media','project-images','entry-images','hirdetes-kepek'];
+    const prefixes = [`${userId}/${projectId}`, String(projectId)];
+    for(const bucket of buckets){
+      for(const prefix of prefixes){ await removeStorageFolder(bucket, prefix, 0); }
+    }
+  }
+
+  api.createClientProjectLinkV173 = async function({ projectId, clientName = '', clientEmail = '' } = {}){
+    const user = await userRequired();
+    if(!projectId) throw new Error('Hiányzó projekt azonosító.');
+    try{
+      const { data, error } = await db.rpc('create_client_project_link_v173', {
+        p_project_id: projectId,
+        p_client_name: String(clientName || '').trim(),
+        p_client_email: String(clientEmail || '').trim()
+      });
+      if(error && !missing(error)) throw error;
+      if(!error && data){
+        const row = Array.isArray(data) ? data[0] : data;
+        const cleanToken = row?.token || row?.client_token || row;
+        return { ...(typeof row === 'object' ? row : {}), token: cleanToken, share_url: `${siteBase()}/view.html?client=${encodeURIComponent(cleanToken)}` };
+      }
+    }catch(e){ if(!missing(e)) throw e; }
+
+    // Tartalék mentés, ha a V173 SQL nincs még futtatva. RLS mellett ez csak akkor működik, ha a táblák és policy-k már megvannak.
+    const cleanToken = token();
+    const { data, error } = await db.from('client_project_links').insert({
+      user_id: user.id,
+      project_id: projectId,
+      client_name: String(clientName || '').trim(),
+      client_email: String(clientEmail || '').trim(),
+      token: cleanToken,
+      is_active: true
+    }).select().single();
+    if(error) throw new Error('Megrendelői link létrehozási hiba. Futtasd a supabase-v173-client-collab-clean-delete.sql fájlt a Supabase SQL Editorban. Részlet: ' + (error.message || error));
+    return { ...data, token: data?.token || cleanToken, share_url: `${siteBase()}/view.html?client=${encodeURIComponent(data?.token || cleanToken)}` };
+  };
+
+  api.getProjectClientCollabV173 = async function(projectId){
+    await userRequired();
+    if(!projectId) return { links:[], messages:[], extra_works:[] };
+    try{
+      const { data, error } = await db.rpc('get_project_client_collab_v173', { p_project_id: projectId });
+      if(error && !missing(error)) throw error;
+      if(!error && data) return data;
+    }catch(e){ if(!missing(e)) console.warn('V173 együttműködés RPC hiba:', e?.message || e); }
+    const links = await safeSelect('client_project_links', q => q.eq('project_id', projectId).order('created_at', { ascending:false }).limit(20));
+    const messages = await safeSelect('client_project_messages', q => q.eq('project_id', projectId).order('created_at', { ascending:false }).limit(80));
+    const extra_works = await safeSelect('project_extra_works', q => q.eq('project_id', projectId).order('created_at', { ascending:false }).limit(80));
+    return { links, messages, extra_works };
+  };
+
+  api.saveProjectExtraWorkV173 = async function({ projectId, title, description, amount } = {}){
+    const user = await userRequired();
+    if(!projectId) throw new Error('Hiányzó projekt azonosító.');
+    if(!String(title || '').trim()) throw new Error('A pluszmunka címe hiányzik.');
+    const { data, error } = await db.from('project_extra_works').insert({
+      user_id: user.id,
+      project_id: projectId,
+      title: String(title || '').trim().slice(0,200),
+      description: String(description || '').trim().slice(0,4000),
+      amount: Number(String(amount || '0').replace(/[^0-9.-]/g,'')) || 0,
+      status: 'pending'
+    }).select().single();
+    if(error) throw new Error('Pluszmunka mentési hiba. Futtasd a V173 SQL fájlt. Részlet: ' + (error.message || error));
+    return data;
+  };
+
+  api.deleteProjectExtraWorkV173 = async function(extraWorkId){
+    await userRequired();
+    if(!extraWorkId) return true;
+    const { error } = await db.from('project_extra_works').delete().eq('id', extraWorkId);
+    if(error && !missing(error)) throw error;
+    return true;
+  };
+
+  api.clientGetProjectCollabV173 = async function({ clientToken = '', reportToken = '' } = {}){
+    const { data, error } = await db.rpc('client_get_project_collab_v173', {
+      p_token: String(clientToken || '').trim(),
+      p_report_token: String(reportToken || '').trim()
+    });
+    if(error) throw error;
+    return data || { ok:false, messages:[], extra_works:[] };
+  };
+
+  api.clientAddProjectNoteV173 = async function({ clientToken = '', reportToken = '', name = '', email = '', message = '', type = 'note' } = {}){
+    if(!String(message || '').trim()) throw new Error('Írj be megjegyzést vagy kérdést.');
+    const { data, error } = await db.rpc('client_add_project_note_v173', {
+      p_token: String(clientToken || '').trim(),
+      p_report_token: String(reportToken || '').trim(),
+      p_name: String(name || '').trim(),
+      p_email: String(email || '').trim(),
+      p_message: String(message || '').trim(),
+      p_type: String(type || 'note').trim()
+    });
+    if(error) throw error;
+    return data;
+  };
+
+  api.clientDecideExtraWorkV173 = async function({ clientToken = '', reportToken = '', extraWorkId, decision = 'accepted', name = '', email = '', message = '' } = {}){
+    if(!extraWorkId) throw new Error('Hiányzó pluszmunka azonosító.');
+    const { data, error } = await db.rpc('client_decide_extra_work_v173', {
+      p_token: String(clientToken || '').trim(),
+      p_report_token: String(reportToken || '').trim(),
+      p_extra_work_id: extraWorkId,
+      p_decision: String(decision || 'accepted').trim(),
+      p_name: String(name || '').trim(),
+      p_email: String(email || '').trim(),
+      p_message: String(message || '').trim()
+    });
+    if(error) throw error;
+    return data;
+  };
+
+  api.deleteProject = async function(projectId){
+    const user = await userRequired();
+    if(!projectId) throw new Error('Hiányzó projekt azonosító.');
+    try{ await cleanupProjectStorage(user.id, projectId); }catch(e){ console.warn('V173 storage előtakarítás figyelmeztetés:', e?.message || e); }
+    try{
+      const { data, error } = await db.rpc('delete_project_full_v173', { p_project_id: projectId });
+      if(!error && data !== false) return true;
+      if(error && !missing(error)) throw error;
+    }catch(e){
+      if(!missing(e)) console.warn('V173 RPC projekt törlés nem sikerült, tartalék törlés indul:', e?.message || e);
+    }
+
+    const tables = [
+      'client_project_messages','project_extra_works','client_project_links',
+      'report_events','report_documents','report_approvals','public_reports','notifications','media_files',
+      'project_members','project_materials','project_invoices','ai_photo_analyses','tasks','diary_entries','entries'
+    ];
+    for(const table of tables) await safeDelete(table, [['project_id', projectId]]);
+    try{ const { error } = await db.from('projects').delete().eq('id', projectId).eq('user_id', user.id); if(error && !missing(error)) throw error; }catch(e){
+      if(oldDeleteProject) return oldDeleteProject(projectId);
+      throw e;
+    }
+    return true;
+  };
+})();

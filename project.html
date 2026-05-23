@@ -20,7 +20,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Projekt napló – ÉpítésNapló AI PRO</title>
   <meta name="description" content="Külön projekt napló oldal napi bejegyzésekkel, időjárással, anyagfelhasználással és számla összesítéssel." />
-  <link rel="stylesheet" href="style.css?v=172" />
+  <link rel="stylesheet" href="style.css?v=173" />
 </head>
 <body class="auth-loading">
   <header class="topbar">
@@ -54,6 +54,7 @@
           <a class="proActionCard backAction" href="index.html#naplo"><span>Vissza</span><b>Főoldal</b><small>Projektlista és gyors indítás</small></a>
           <button class="proActionCard primaryAction" type="button" onclick="scrollToDailyForm()"><span>Napló</span><b>Mai bejegyzés írása</b><small>Munka, fotó, videó, anyag</small></button>
           <button class="proActionCard v69ReportAction" type="button" onclick="openReportCenterV69()"><span>Riport</span><b>Riportok és átadás</b><small>Heti, lezáró, PDF/HTML, ügyfél link</small></button>
+          <button class="proActionCard v173ClientAction" type="button" onclick="document.getElementById('v173ClientCollabPanel')?.scrollIntoView({behavior:'smooth',block:'start'});"><span>Ügyfél</span><b>Megrendelői felület</b><small>Megjegyzés, jóváhagyás, pluszmunka</small></button>
           <a id="financeLink" class="proActionCard" href="#"><span>Ft</span><b>Számlák és költségek</b><small>Anyagok, számlák, összesítés</small></a>
           <button class="proActionCard" type="button" onclick="scrollToProjectStorageV69()"><span>Mentés</span><b>Projekt mentés / lezárás</b><small>Saját ZIP példány, lezárt állapot, törlés</small></button>
         </div>
@@ -146,6 +147,52 @@
       </section>
     </section>
 
+    <section class="card v173ClientCollabPanel" id="v173ClientCollabPanel">
+      <div class="sectionTop">
+        <div>
+          <p class="badge">Új: megrendelői együttműködés</p>
+          <h2>Megrendelői napló, jóváhagyás és pluszmunka</h2>
+          <p class="muted">A megrendelő nem írja át a kivitelező hivatalos naplóját. Külön felületen tud megjegyzést, kérdést, hibajelzést írni, és a pluszmunkákat jóváhagyni.</p>
+        </div>
+        <button class="btn ghost small" type="button" onclick="v173RefreshClientCollab()">Frissítés</button>
+      </div>
+
+      <div class="v173ClientGrid">
+        <section class="v173ClientBox">
+          <h3>Megrendelő meghívása</h3>
+          <p class="muted">Készíts külön ügyfél-linket. Ezen az ügyfél visszajelzést írhat, kérdezhet, hibát jelezhet, de a fő naplót nem tudja módosítani.</p>
+          <div class="formGrid compactForm">
+            <input id="v173ClientName" placeholder="Megrendelő neve / cég" />
+            <input id="v173ClientEmail" placeholder="Megrendelő email címe" />
+          </div>
+          <div class="v173ClientActions">
+            <button id="v173CreateClientLinkBtn" class="btn primary" type="button" onclick="v173CreateClientLink()">Megrendelői link készítése</button>
+            <button class="btn ghost" type="button" onclick="v173MailClientLink()">Email előkészítése</button>
+            <button class="btn ghost" type="button" onclick="v173OpenClientLink()">Megnyitás próbaként</button>
+          </div>
+          <input id="v173ClientShareUrl" class="v173ShareInput" readonly placeholder="Itt jelenik meg a megrendelői link" onclick="this.select()" />
+          <button class="btn ghost full" type="button" onclick="v173CopyMainClientLink()">Link másolása</button>
+          <div id="v173ClientLinksBox" class="v173ClientList"></div>
+        </section>
+
+        <section class="v173ClientBox">
+          <h3>Pluszmunka rögzítése jóváhagyásra</h3>
+          <p class="muted">A megrendelő saját oldalán elfogadhatja, kérdést írhat hozzá, vagy elutasíthatja. Vita esetén nyoma marad.</p>
+          <input id="v173ExtraTitle" placeholder="Pluszmunka címe, pl. régi vakolat leverése" />
+          <input id="v173ExtraAmount" type="number" min="0" step="1000" placeholder="Ár / becsült összeg Ft-ban" />
+          <textarea id="v173ExtraDescription" rows="4" placeholder="Indoklás, részletek, miért merült fel a pluszmunka"></textarea>
+          <button id="v173SaveExtraWorkBtn" class="btn primary full" type="button" onclick="v173SaveExtraWork()">Pluszmunka mentése</button>
+          <div id="v173ExtraWorksBox" class="v173ClientList"></div>
+        </section>
+      </div>
+
+      <section class="v173ClientBox v173ClientMessagesPanel">
+        <h3>Megrendelői bejegyzések</h3>
+        <p class="muted">Itt jelennek meg az ügyfél kérdései, észrevételei, hibajelzései és jóváhagyási megjegyzései.</p>
+        <div id="v173ClientMessagesBox" class="v173ClientList"></div>
+      </section>
+    </section>
+
     <section class="card">
       <div class="sectionTop">
         <div><h2>Napi bejegyzések idővonala</h2><p class="muted">Itt átláthatóan látod, melyik napon mi történt, milyen képek készültek, milyen anyagokat használtatok és milyen AI jelzések voltak.</p></div>
@@ -190,7 +237,7 @@
 
   <div id="toast" class="toast hidden"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-adapter.js?v=150"></script>
+  <script src="supabase-adapter.js?v=173"></script>
   <script src="header-v40.js?v=172"></script>
   <script src="v19-pro-features.js?v=76"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -207,6 +254,7 @@
   <script src="project-v129-current-upload-basket-fix.js?v=129"></script>
   <script src="project-v134-report-entry-photo-fix.js?v=134"></script>
   <script src="project-v149-performance-upload-optimizer.js?v=150"></script>
+  <script src="project-v173-client-collab-cleanup.js?v=173"></script>
   <script src="unified-photo-viewer-v152.js?v=152"></script>
   <div id="reportCenterV69" class="v69Modal hidden" role="dialog" aria-modal="true" aria-labelledby="reportCenterTitleV69">
     <div class="v69ModalBackdrop" onclick="closeReportCenterV69()"></div>
