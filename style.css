@@ -2239,3 +2239,58 @@ body.v69ModalOpen{overflow:hidden;}
   .v173ClientGrid{grid-template-columns:1fr!important;}
   .v173ClientBox{padding:14px!important;border-radius:16px!important;}
 }
+
+/* ===== V175: szerepkör szerinti tiszta főoldal, kevesebb zsúfoltság ===== */
+.v175HiddenByPlan{display:none!important;}
+.v175PublicInfo{grid-column:1/-1;margin-top:18px;background:linear-gradient(180deg,rgba(15,23,42,.96),rgba(8,47,73,.72))!important;border:1px solid rgba(56,189,248,.18)!important;}
+.v175PublicInfo h2{font-size:clamp(28px,4vw,44px);margin:8px 0 10px;letter-spacing:-.04em;}
+.v175Lead{max-width:980px;font-size:16px;line-height:1.7;}
+.v175InfoGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:18px;}
+.v175InfoGrid article{background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.16);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:8px;min-height:138px;}
+.v175InfoGrid b{color:#f8fafc;font-size:16px;}
+.v175InfoGrid span{color:#94a3b8;font-size:13px;line-height:1.55;font-weight:700;}
+.v175DemoBox{margin-top:16px;padding:18px;border-radius:18px;background:rgba(2,6,23,.46);border:1px solid rgba(245,158,11,.28);display:grid;grid-template-columns:1.2fr 1fr;gap:16px;align-items:center;}
+.v175DemoBox h3{margin:0 0 8px;font-size:22px;}
+.v175DemoSteps{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;}
+.v175DemoSteps span{padding:10px 12px;border-radius:999px;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.35);color:#fbbf24;font-weight:950;font-size:12px;}
+.v175Anchor{position:relative;top:-95px;}
+.v175PaidStatusCard{grid-column:1/-1;background:linear-gradient(135deg,rgba(6,78,59,.42),rgba(15,23,42,.96))!important;border-color:rgba(34,197,94,.24)!important;}
+.v175PaidTop{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
+.v175PaidTop h2{margin:4px 0 6px;}
+.v175StatusGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px;}
+.v175StatusGrid div{background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.16);border-radius:16px;padding:14px;}
+.v175StatusGrid b{display:block;color:#f8fafc;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.v175StatusGrid span{display:block;color:#94a3b8;font-size:12px;font-weight:800;margin-top:4px;text-transform:uppercase;letter-spacing:.04em;}
+.v175GuestLockedCard .formRow,
+.v175GuestLockedCard .formGrid,
+.v175GuestLockedCard .calendarTools,
+.v175GuestLockedCard #projectList,
+.v175GuestLockedCard #entryList,
+.v175GuestLockedCard > .btn{display:none!important;}
+.v175GuestNaploPreview{display:none;margin:14px 0!important;}
+.v175Guest .v175GuestNaploPreview{display:block;}
+.v175Guest #kapcsolat-admin{display:none!important;}
+.v175Guest #ugyfel-riport .formGrid,
+.v175Guest #ugyfel-riport .reportText,
+.v175Guest #ugyfel-riport button,
+.v175Guest #ugyfel-riport .notificationGrid,
+.v175Guest #ugyfel-riport .notice{display:none!important;}
+.v175Guest #ugyfel-riport::after{content:'Ügyfélriportot saját projektből tudsz készíteni belépés után. A bemutató és a csomagok regisztráció nélkül is olvashatók.';display:block;margin-top:12px;padding:14px;border-radius:14px;background:rgba(15,23,42,.75);border:1px solid rgba(148,163,184,.16);color:#cbd5e1;font-weight:800;line-height:1.5;}
+.v175AdminOnlyBlock.hidden{display:none!important;}
+body:not(.v175Admin) #admin,
+body:not(.v175Admin) #adminMessagesNavLink,
+body:not(.v175Admin) #adminPanelNavLink,
+body:not(.v175Admin) #adminNavLink{display:none!important;}
+.v175PlanNavLink{font-weight:900;}
+@media(max-width:900px){
+  .v175InfoGrid{grid-template-columns:1fr 1fr;}
+  .v175DemoBox{grid-template-columns:1fr;}
+  .v175DemoSteps{justify-content:flex-start;}
+  .v175PaidTop{flex-direction:column;}
+  .v175StatusGrid{grid-template-columns:1fr;}
+}
+@media(max-width:560px){
+  .v175InfoGrid{grid-template-columns:1fr;}
+  .v175PublicInfo{padding:16px!important;}
+  .v175DemoSteps span{width:100%;text-align:center;}
+}

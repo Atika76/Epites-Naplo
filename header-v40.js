@@ -116,19 +116,34 @@
     const loginBtn = '<button id="loginBtn" class="btn small" type="button" onclick="window.v40OpenLogin()">Belépés / Regisztráció</button>';
     const logoutBtn = `<button id="${logoutId}" class="btn small ghost" type="button" onclick="window.location.href='logout.html'">Kilépés</button>`;
     const reportNav = current === 'project.html'
-      ? `<a href="#reportCenterV69" onclick="event.preventDefault(); if(typeof window.openReportCenterV69 === 'function'){ window.openReportCenterV69(); }">Riport</a>`
-      : '<a href="#riport" onclick="return window.v130OpenReportNav(event)">Riport</a>';
+      ? `<a href="#reportCenterV69" onclick="event.preventDefault(); if(typeof window.openReportCenterV69 === 'function'){ window.openReportCenterV69(); }">Riportok</a>`
+      : '<a href="#riport" onclick="return window.v130OpenReportNav(event)">Riportok</a>';
+
+    // V175: egyszerűbb menürendszer. A látogató olvashat és demót nézhet regisztráció nélkül,
+    // a fizetés/csomag külön menüpont, az admin menük pedig csak adminnak jelennek meg.
+    const adminNav = isAdmin
+      ? `<a id="adminNavLink" href="${isIndex() ? 'index.html#admin' : 'admin-panel.html'}">Admin</a>`
+      : '';
+
+    if(!logged){
+      return `
+        <a href="index.html#home">Főoldal</a>
+        <a href="index.html#mire-jo">Mire jó?</a>
+        <a href="index.html#public-demo">Demo</a>
+        <a href="index.html#subscription">Csomagok</a>
+        ${loginBtn}
+      `;
+    }
+
     return `
       <a href="index.html#home">Főoldal</a>
-      <a href="index.html#naplo">Napló</a>
-      <a href="index.html#subscription">Csomagok</a>
+      <a href="index.html#naplo">Projektjeim</a>
       ${reportNav}
-      ${logged ? '<a id="profileNavLink" href="profile.html">Fiókom</a>' : ''}
-      ${isAdmin ? '<a id="adminMessagesNavLink" href="admin-messages.html">Admin inbox</a>' : ''}
-      ${isAdmin ? '<a id="adminPanelNavLink" href="admin-panel.html">Admin panel</a>' : ''}
-      ${isAdmin && isIndex() ? '<a id="adminNavLink" href="index.html#admin">Admin</a>' : ''}
-      ${logged ? '<span class="adminPill">'+(isAdmin?'Admin':'Felhasználó')+'</span>' : ''}
-      ${logged ? logoutBtn : loginBtn}
+      <a href="index.html#subscription" class="v175PlanNavLink">Csomagom</a>
+      <a id="profileNavLink" href="profile.html">Fiókom</a>
+      ${adminNav}
+      <span class="adminPill">${isAdmin ? 'Admin' : 'Felhasználó'}</span>
+      ${logoutBtn}
     `;
   }
   window.v40OpenLogin = function(){
