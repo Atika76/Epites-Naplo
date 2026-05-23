@@ -1,5 +1,5 @@
 (function(){
-  const ADMIN_EMAILS = ['cegweb26@gmail.com'];
+  const ADMIN_EMAILS = ['cegweb26@gmail.com','atika.76@windowslive.com'];
   function isAdminEmail(email){ return ADMIN_EMAILS.includes(String(email||'').toLowerCase()); }
   function page(){ return (location.pathname.split('/').pop() || 'index.html').toLowerCase(); }
   function isIndex(){ const p = page(); return p === 'index.html' || p === ''; }
