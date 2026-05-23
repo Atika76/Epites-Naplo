@@ -1,9 +1,9 @@
-/* V175b – szerepkör szerinti menü, publikus bemutató és fizetési blokkok tisztítása.
-   Csak frontend javítás: nem hoz létre Supabase hívást és nem kell hozzá új SQL. */
+/* V178 – tiszta főoldal és szerepkör szerinti menü.
+   V175b alapból, csak frontend rendezés: nincs új Supabase SQL. */
 (function(){
   'use strict';
-  if (window.__epnV175RoleCleanup) return;
-  window.__epnV175RoleCleanup = true;
+  if (window.__epnV178RoleCleanup) return;
+  window.__epnV178RoleCleanup = true;
 
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
@@ -53,7 +53,7 @@
       <div>
         <p class="badge">Aktív hozzáférés</p>
         <h2>Csomagod aktív</h2>
-        <p class="muted">Nem mutatjuk a nagy fizetési blokkokat, hogy a munkaoldal ne legyen zsúfolt.</p>
+        <p class="muted">Nem mutatjuk a nagy fizetési blokkokat, hogy a főoldal ne legyen zsúfolt.</p>
       </div>
       <div class="v175ActivePlanGrid">
         <div><b id="v175PlanCopy">Csomag: –</b><span>Hozzáférés állapota</span></div>
@@ -61,10 +61,9 @@
         <div><a class="btn ghost full" href="profile.html">Fiók / csomag kezelése</a></div>
       </div>
     `;
-    const credit = $('#ai-kreditek');
-    const sub = $('#subscription');
-    if (credit && credit.parentNode) credit.parentNode.insertBefore(card, credit.nextSibling);
-    else if (sub && sub.parentNode) sub.parentNode.insertBefore(card, sub.nextSibling);
+    const subscription = $('#subscription');
+    if (subscription && subscription.parentNode) subscription.parentNode.insertBefore(card, subscription.nextSibling);
+    else document.querySelector('main')?.prepend(card);
     return card;
   }
 
@@ -72,24 +71,24 @@
     const logged = isLoggedIn();
     const admin = isAdminUser();
 
-    $$('.guestReadableNav').forEach(el => el.classList.toggle('hidden', logged));
+    document.body.classList.toggle('v178Guest', !logged);
+    document.body.classList.toggle('v178Logged', logged);
+    document.body.classList.toggle('v178Admin', admin);
+    document.body.classList.toggle('v178Paid', isPaid(plan));
+
+    // Fejléc logika:
+    // Vendég: Főoldal + Rendszerfunkciók + Belépés
+    // Belépett felhasználó: Főoldal + Napló + Riport + Fiókom + Kilépés
+    // Admin: ugyanaz + egyetlen Admin menüpont, külön admin panelre.
+    $('#systemFeaturesNavLink')?.classList.toggle('hidden', logged);
     $$('.userWorkNav').forEach(el => el.classList.toggle('hidden', !logged));
-    const packages = $('#packagesNavLink');
-    if (packages) {
-      packages.textContent = isPaid(plan) ? 'Csomagom' : 'Csomagok';
-      packages.setAttribute('href', isPaid(plan) ? '#v175ActivePlanCard' : '#subscription');
-    }
-
-    $('#adminMessagesNavLink')?.classList.toggle('hidden', !admin);
-    $('#adminPanelNavLink')?.classList.toggle('hidden', !admin);
+    $('#profileNavLink')?.classList.toggle('hidden', !logged);
     $('#adminNavLink')?.classList.toggle('hidden', !admin);
-    $('#systemFeatures')?.classList.toggle('hidden', !admin);
-    $('#admin')?.classList.toggle('hidden', !admin);
 
-    document.body.classList.toggle('v175Guest', !logged);
-    document.body.classList.toggle('v175Logged', logged);
-    document.body.classList.toggle('v175Admin', admin);
-    document.body.classList.toggle('v175Paid', isPaid(plan));
+    // Régi többes admin/csomag menük biztos elrejtése, ha egy korábbi script még módosítaná őket.
+    $('#packagesNavLink')?.classList.add('hidden');
+    $('#adminMessagesNavLink')?.classList.add('hidden');
+    $('#adminPanelNavLink')?.classList.add('hidden');
   }
 
   function refreshPayments(plan){
@@ -104,8 +103,8 @@
       active.classList.remove('hidden');
       const planText = ($('#currentPlanText')?.textContent || 'Csomag: aktív').trim();
       const creditText = ($('#currentAiCreditsText')?.textContent || 'AI riport kredit: 0 db').trim();
-      $('#v175PlanCopy').textContent = planText;
-      $('#v175CreditCopy').textContent = creditText;
+      $('#v175PlanCopy') && ($('#v175PlanCopy').textContent = planText);
+      $('#v175CreditCopy') && ($('#v175CreditCopy').textContent = creditText);
     } else {
       if (sub) sub.classList.remove('hidden');
       if (credits) credits.classList.remove('hidden');
@@ -113,22 +112,29 @@
     }
   }
 
-  function refreshGuestBlocks(){
+  function refreshBlocks(){
     const logged = isLoggedIn();
-    // A támogatási/admin üzenet csak belépett felhasználónak látszódjon.
+    const admin = isAdminUser();
+
+    // Üzenet az adminnak csak belépett felhasználónak kell.
     $$('.userOnlyBlock').forEach(el => el.classList.toggle('hidden', !logged));
-    // A rendszerfunkciók nem értékesítési tartalom, ezért csak admin lássa.
-    if (!isAdminUser()) $('#systemFeatures')?.classList.add('hidden');
+
+    // Admin áttekintés ne legyen a főoldalon: van külön admin-panel.html.
+    $('#admin')?.classList.add('hidden');
+    $('#admin') && ($('#admin').style.display = 'none');
+
+    // Rendszerfunkciók legyen olvasható a főoldalon vendégnek is.
+    $('#systemFeatures')?.classList.remove('hidden');
+    $('#systemFeatures') && ($('#systemFeatures').style.display = '');
   }
 
   function refresh(){
     const plan = getPlan();
     refreshNav(plan);
     refreshPayments(plan);
-    refreshGuestBlocks();
+    refreshBlocks();
   }
 
-  // A régi render() futása után is rendezze újra a felületet.
   const oldRender = window.render;
   if (typeof oldRender === 'function') {
     window.render = function(){
@@ -144,7 +150,6 @@
     setTimeout(refresh, 1000);
   });
 
-  // Supabase auth állapot és később betöltődő profil miatt pár gyors frissítés.
   let ticks = 0;
   const timer = setInterval(() => {
     refresh();
@@ -152,5 +157,5 @@
     if (ticks > 12) clearInterval(timer);
   }, 700);
 
-  window.epnV175RefreshRoleUi = refresh;
+  window.epnV178RefreshRoleUi = refresh;
 })();
