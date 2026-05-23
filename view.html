@@ -40,7 +40,7 @@
 <body>
   <header class="top">
     <div class="topInner">
-      <div class="brand"><img src="https://epitesi-naplo.eu/favicon.png" alt="ÉpítésNapló ikon"><div><h1>Építési napló ügyfél nézet</h1><p>Csak olvasható ügyfélriport. Szerkeszteni nem lehet.</p></div></div>
+      <div class="brand"><img src="https://epitesi-naplo.eu/favicon.png" alt="ÉpítésNapló ikon"><div><h1>Építési napló ügyfél nézet</h1><p>Ügyfélriport és külön megrendelői visszajelzés. A kivitelezői napló nem módosítható.</p></div></div>
       <div class="actions">
         <button id="reportMenuBtn" class="reportMenuBtn" type="button" aria-label="Riport műveletek" aria-expanded="false" onclick="toggleReportMenu(event)">&#9776;</button>
         <div id="reportMenu" class="reportMenu" role="menu">
@@ -56,10 +56,11 @@
     <section id="approvalBox" class="approvalBox hidden"></section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-adapter.js?v=150"></script>
+  <script src="supabase-adapter.js?v=173"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="unified-photo-viewer-v152.js?v=152"></script>
   <script src="view-v110-final-public-clean.js?v=150"></script>
+  <script src="view-v173-client-collab.js?v=173"></script>
   <script src="unified-photo-viewer-v152.js?v=152-final"></script>
   <script>
     function closeReportMenu(){

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-ai-pro-v172-v170-alap-fejlec-gorgetes-fix';
+const CACHE_NAME = 'epitesnaplo-ai-pro-v173-client-collab-clean-delete';
 const APP_SHELL = [
   './',
   './index.html',
@@ -13,6 +13,8 @@ const APP_SHELL = [
   './script.js',
   './project.js',
   './project-v149-performance-upload-optimizer.js',
+  './project-v173-client-collab-cleanup.js',
+  './view-v173-client-collab.js',
   './project-finance.js',
   './profile.js',
   './header-v40.js',

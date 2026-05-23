@@ -36,6 +36,13 @@
     currentToken=tokenFromUrl(); const box=$('publicReportContent');
     if(!currentToken){
       try{
+        const clientOnlyToken = new URLSearchParams(location.search).get('client') || new URLSearchParams(location.search).get('ugyfel') || '';
+        if(clientOnlyToken){
+          box.innerHTML='<h2>Megrendelői napló betöltése...</h2><p>A projekt ügyfélfelülete pillanatokon belül megjelenik.</p>';
+          return;
+        }
+      }catch(_){}
+      try{
         const pid = localStorage.getItem('epitesnaplo_last_project_id') || localStorage.getItem('epitesnaplo_current_project_id') || '';
         if(pid){
           window.location.replace('project.html?id=' + encodeURIComponent(pid) + '&openReport=1');
