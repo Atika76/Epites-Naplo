@@ -2572,3 +2572,108 @@ section[id],main[id],.card[id],.projectPageShell[id],#systemFeatures,#naplo{
     border-radius:12px!important;
   }
 }
+
+/* ===== V180 CLEAN: EXTRA keskeny fejléc (csak fejléc méret finomítás) ===== */
+.topbar,
+.topbar.epnScrollManagedTopbar{
+  box-sizing:border-box!important;
+  min-height:44px!important;
+  height:auto!important;
+  padding:4px 18px!important;
+  gap:8px!important;
+  align-items:center!important;
+}
+.topbar .brand{
+  gap:7px!important;
+  align-items:center!important;
+  min-height:0!important;
+}
+.topbar .brandIcon{
+  width:28px!important;
+  height:28px!important;
+  min-width:28px!important;
+  min-height:28px!important;
+  border-radius:8px!important;
+  padding:2px!important;
+}
+.topbar .brand strong{
+  font-size:14px!important;
+  line-height:1!important;
+  margin:0!important;
+  letter-spacing:-.15px!important;
+}
+.topbar .brand span{
+  font-size:8.5px!important;
+  line-height:1!important;
+  margin-top:0!important;
+}
+.topbar nav{
+  gap:6px!important;
+  align-items:center!important;
+}
+.topbar nav a,
+.topbar nav button,
+.topbar nav .adminPill,
+.topbar .btn.small{
+  font-size:12px!important;
+  line-height:1!important;
+  padding:5px 7px!important;
+  min-height:28px!important;
+  border-radius:8px!important;
+}
+@media(max-width:860px){
+  .topbar,
+  .topbar.epnScrollManagedTopbar{
+    min-height:42px!important;
+    padding:4px 8px!important;
+    gap:6px!important;
+  }
+  .topbar .brand{
+    max-width:calc(100% - 44px)!important;
+    gap:6px!important;
+  }
+  .topbar .brandIcon{
+    width:26px!important;
+    height:26px!important;
+    min-width:26px!important;
+    min-height:26px!important;
+    border-radius:8px!important;
+    padding:2px!important;
+  }
+  .topbar .brand strong{
+    font-size:13px!important;
+    line-height:1!important;
+  }
+  .topbar .brand span{
+    display:block!important;
+    font-size:7.5px!important;
+    line-height:1!important;
+    max-width:min(190px, calc(100vw - 96px))!important;
+  }
+  .topbar .menuBtn{
+    width:34px!important;
+    height:32px!important;
+    min-height:32px!important;
+    padding:0!important;
+    border-radius:10px!important;
+    font-size:20px!important;
+    line-height:1!important;
+  }
+  .topbar nav#nav{
+    left:8px!important;
+    right:8px!important;
+    padding:9px!important;
+    gap:6px!important;
+    border-radius:14px!important;
+    max-height:calc(100vh - 56px)!important;
+  }
+  .topbar nav#nav a,
+  .topbar nav#nav button,
+  .topbar nav#nav .adminPill{
+    font-size:13px!important;
+    line-height:1.05!important;
+    padding:9px 11px!important;
+    border-radius:11px!important;
+    min-height:34px!important;
+  }
+}

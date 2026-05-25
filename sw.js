@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-ai-pro-v180-clean-slim-header';
+const CACHE_NAME = 'epitesnaplo-ai-pro-v180-clean-extra-slim-header';
 const APP_SHELL = [
   './',
   './index.html',
