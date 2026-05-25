@@ -220,7 +220,7 @@
 
     function headerHeight(){
       const h = Math.ceil(topbar.offsetHeight || topbar.getBoundingClientRect().height || 76);
-      return Math.max(62, h);
+      return Math.max(48, h);
     }
 
     function syncFixedHeaderSpace(){

@@ -2480,3 +2480,95 @@ section[id],main[id],.card[id],.projectPageShell[id],#systemFeatures,#naplo{
   }
 }
 @media(prefers-reduced-motion:reduce){.topbar.epnScrollManagedTopbar{transition:none!important;}}
+
+
+/* ===== V180 CLEAN: keskenyebb fejléc (csak vizuális finomítás) ===== */
+.topbar,
+.topbar.epnScrollManagedTopbar{
+  padding:7px 20px!important;
+  min-height:52px!important;
+}
+.topbar .brand{
+  gap:9px!important;
+}
+.topbar .brandIcon{
+  width:36px!important;
+  height:36px!important;
+  border-radius:11px!important;
+  padding:3px!important;
+}
+.topbar .brand strong{
+  font-size:16px!important;
+  line-height:1.05!important;
+  letter-spacing:-.2px!important;
+}
+.topbar .brand span{
+  font-size:10.5px!important;
+  line-height:1.15!important;
+  margin-top:1px!important;
+}
+.topbar nav{
+  gap:8px!important;
+}
+.topbar nav a,
+.topbar nav button,
+.topbar nav .adminPill{
+  font-size:13px!important;
+  padding:7px 9px!important;
+  border-radius:10px!important;
+}
+.topbar .btn.small{
+  padding:7px 9px!important;
+  font-size:12px!important;
+  border-radius:10px!important;
+}
+@media(max-width:860px){
+  .topbar,
+  .topbar.epnScrollManagedTopbar{
+    padding:7px 10px!important;
+    min-height:50px!important;
+    gap:8px!important;
+  }
+  .topbar .brand{
+    max-width:calc(100% - 50px)!important;
+    gap:8px!important;
+  }
+  .topbar .brandIcon{
+    width:34px!important;
+    height:34px!important;
+    border-radius:10px!important;
+    padding:3px!important;
+  }
+  .topbar .brand strong{
+    font-size:15px!important;
+    line-height:1.02!important;
+  }
+  .topbar .brand span{
+    display:block!important;
+    font-size:9.5px!important;
+    line-height:1.1!important;
+    max-width:min(210px, calc(100vw - 112px))!important;
+  }
+  .topbar .menuBtn{
+    width:40px!important;
+    height:36px!important;
+    min-height:36px!important;
+    border-radius:12px!important;
+    font-size:22px!important;
+  }
+  .topbar nav#nav{
+    left:10px!important;
+    right:10px!important;
+    padding:10px!important;
+    gap:7px!important;
+    border-radius:16px!important;
+    max-height:calc(100vh - 64px)!important;
+  }
+  .topbar nav#nav a,
+  .topbar nav#nav button,
+  .topbar nav#nav .adminPill{
+    font-size:14px!important;
+    padding:10px 12px!important;
+    border-radius:12px!important;
+  }
+}
