@@ -199,6 +199,81 @@ async function uploadVideoFilesToStorage(fileList, max = 2) {
   return uploaded;
 }
 
+
+
+// ===== V180 napi napló direkt videófeltöltés fix =====
+// A részletes "Mai napló folytatása" mentésnél nem a tömörítő réteg dönt arról,
+// hogy a kiválasztott fájl videó-e. Így az .mp4/.mov videók akkor is mentődnek,
+// ha a böngésző üres vagy furcsa MIME típust ad vissza.
+function v180DailyVideoStoragePath(file, index) {
+  const ext = (String(file?.name || '').split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp4';
+  const safeName = String(file?.name || `video.${ext}`).toLowerCase().replace(/[^a-z0-9._-]+/g, '-').slice(-90) || `video.${ext}`;
+  const userId = detailState.user?.id || 'user';
+  const projectId = detailState.project?.id || new URLSearchParams(location.search).get('id') || 'project';
+  return `${userId}/${projectId}/${Date.now()}-${index}-${safeName}`;
+}
+
+async function v180UploadDailyVideosDirect(fileList, max = 2) {
+  const files = Array.from(fileList || []).filter(file => typeof isSupportedVideoFile === 'function' ? isSupportedVideoFile(file) : String(file?.type || '').startsWith('video/')).slice(0, max);
+  if (!files.length) return [];
+
+  const client = window.supabaseDirect;
+  if (!client) {
+    alert('Videó feltöltés nem érhető el: Supabase kapcsolat nem található.');
+    return [];
+  }
+
+  let userId = detailState.user?.id || '';
+  if (!userId) {
+    try {
+      const authResult = await client.auth.getUser();
+      userId = authResult?.data?.user?.id || '';
+      if (userId && detailState.user) detailState.user.id = userId;
+    } catch (_) {}
+  }
+  if (!userId) {
+    alert('Videó feltöltés nem érhető el: nem találom a bejelentkezett felhasználót. Jelentkezz ki és be újra.');
+    return [];
+  }
+
+  const uploaded = [];
+  const MAX_VIDEO_MB = 120;
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (file.size > MAX_VIDEO_MB * 1024 * 1024) {
+      alert(`Túl nagy videó kimarad: ${file.name}\nMaximum kb. ${MAX_VIDEO_MB} MB / videó. Javasolt rövid, 10–60 mp-es videót feltölteni.`);
+      continue;
+    }
+    const storagePath = v180DailyVideoStoragePath(file, i).replace(/^user\//, `${userId}/`);
+    const contentType = typeof videoContentType === 'function' ? videoContentType(file) : (String(file.type || '').startsWith('video/') ? file.type : 'video/mp4');
+    const { error } = await client.storage.from('project-videos').upload(storagePath, file, {
+      cacheControl: '604800',
+      upsert: false,
+      contentType
+    });
+    if (error) {
+      console.warn('Napi napló videó feltöltési probléma:', error);
+      alert('Videó feltöltési probléma: ' + (error.message || error));
+      continue;
+    }
+    let signedUrl = '';
+    try {
+      const signed = await client.storage.from('project-videos').createSignedUrl(storagePath, 3600);
+      signedUrl = signed?.data?.signedUrl || '';
+    } catch (_) {}
+    uploaded.push({
+      path: storagePath,
+      src: signedUrl,
+      name: file.name,
+      type: contentType,
+      size: file.size,
+      private: true
+    });
+  }
+  return uploaded;
+}
+window.v180UploadDailyVideosDirect = v180UploadDailyVideosDirect;
+
 async function hydratePrivateVideoUrls(entries) {
   const client = window.supabaseDirect;
   if (!client || !Array.isArray(entries)) return entries || [];
@@ -421,7 +496,7 @@ async function saveDailyEntry() {
   const afterImages = await readFilesAsDataUrls(qs('afterFiles')?.files, 5);
   const generalImages = await readFilesAsDataUrls(qs('detailFiles')?.files, 10);
   const selectedVideos = Array.from(qs('detailVideos')?.files || []).filter(isSupportedVideoFile);
-  const videos = await uploadVideoFilesToStorage(qs('detailVideos')?.files, 2);
+  const videos = await v180UploadDailyVideosDirect(qs('detailVideos')?.files, 2);
   if (selectedVideos.length && !videos.length) {
     alert('A videó nem lett feltöltve, ezért a bejegyzést nem mentettem videó nélkül. Futtasd a V44 SQL-t, majd próbáld újra.');
     throw new Error('Videó feltöltés sikertelen.');
@@ -949,7 +1024,7 @@ saveDailyEntry = async function(){
   const beforeImages = await readFilesAsDataUrls(qs('beforeFiles')?.files, 5);
   const afterImages = await readFilesAsDataUrls(qs('afterFiles')?.files, 5);
   const generalImages = await readFilesAsDataUrls(qs('detailFiles')?.files, 10);
-  const videos = await uploadVideoFilesToStorage(qs('detailVideos')?.files, 2);
+  const videos = await v180UploadDailyVideosDirect(qs('detailVideos')?.files, 2);
   const materialText = materials.length ? `\n\nAnyagfelhasználás:\n${materials.map(m => `- ${m.name}: ${m.quantity} ${m.unit}${m.note ? ' (' + m.note + ')' : ''}`).join('\n')}` : '';
   const weatherText = (v19WeatherJson || qs('weatherAutoText')?.value) ? `\n\nAutomatikus időjárás: ${qs('weatherAutoText')?.value || ''}` : '';
   const gpsNote = gpsText ? `\nGPS/helyadat: ${gpsText}` : '';
@@ -3141,7 +3216,7 @@ ${localAi.nextStep}`;
     const afterImages = await readFilesAsDataUrls(qs('afterFiles')?.files, 5);
     const generalImages = await readFilesAsDataUrls(qs('detailFiles')?.files, 10);
     const selectedVideos = Array.from(qs('detailVideos')?.files || []).filter(isSupportedVideoFile);
-    const videos = await uploadVideoFilesToStorage(qs('detailVideos')?.files, 2);
+    const videos = await v180UploadDailyVideosDirect(qs('detailVideos')?.files, 2);
     if (selectedVideos.length && !videos.length) {
       return alert('A videó feltöltése nem sikerült. A fotókat mentheted videó nélkül, vagy próbáld újra kisebb videóval.');
     }

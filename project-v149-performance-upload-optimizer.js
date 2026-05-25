@@ -179,7 +179,7 @@
     const uploaded = [];
     for(let i = 0; i < files.length; i++){
       const original = files[i];
-      if(!original || !String(original.type || '').startsWith('video/')){ alert(`Ez nem videófájl, kihagyva: ${original?.name || ''}`); continue; }
+      if(!original || !(String(original.type || '').startsWith('video/') || /\.(mp4|m4v|mov|webm|3gp|3gpp|mpeg|mpg|avi)$/i.test(String(original.name || '')))){ alert(`Ez nem videófájl, kihagyva: ${original?.name || ''}`); continue; }
       const optimized = await compressVideoFileV149(original);
       if(!optimized){ alert(`A videó kimaradt, mert túl nagy volt vagy nem sikerült tömöríteni: ${original.name}`); continue; }
       if(optimized.size > VIDEO_MAX_UPLOAD_MB * MB){ alert(`Túl nagy videó kimarad: ${optimized.name}\nMaximum kb. ${VIDEO_MAX_UPLOAD_MB} MB / videó.`); continue; }
@@ -198,7 +198,7 @@
         continue;
       }
       const storagePath = `${userId}/${projectId}/${Date.now()}-${i}-${safeName}`;
-      const contentType = optimized.type || (ext === 'webm' ? 'video/webm' : 'video/mp4');
+      const contentType = optimized.type || (typeof videoContentType === 'function' ? videoContentType(optimized) : (ext === 'webm' ? 'video/webm' : ext === 'mov' ? 'video/quicktime' : 'video/mp4')); 
       const { error } = await client.storage.from('project-videos').upload(storagePath, optimized, {
         cacheControl: '604800',
         upsert: false,
