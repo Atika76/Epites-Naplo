@@ -2175,7 +2175,7 @@ body.v69ModalOpen{overflow:hidden;}
   will-change:transform;
 }
 .topbar.v172HeaderHidden{
-  transform:translateY(calc(-100% - 4px))!important;
+  transform:none!important;
 }
 .topbar:focus-within,
 .topbar.v172MenuOpen{

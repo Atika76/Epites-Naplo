@@ -167,7 +167,7 @@
   });
 })();
 
-// ===== V172: V170 stabil alap + automatikusan elbujó fejléc =====
+// ===== V181: a fejléc mindig elérhető marad görgetés közben =====
 (function(){
   if(window.__v172ScrollHeaderFix) return;
   window.__v172ScrollHeaderFix = true;
@@ -181,8 +181,6 @@
     const topbar = document.querySelector('.topbar');
     if(!topbar) return;
 
-    let lastY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
-    let lastTouchY = null;
     let ticking = false;
 
     function navOpen(){
@@ -194,44 +192,26 @@
       topbar.classList.remove('v172HeaderHidden');
     }
 
-    function revealOnBackScroll(){
-      if(topbar.classList.contains('v172HeaderHidden')) showHeader();
-    }
-
     function applyState(){
       ticking = false;
-      const y = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
-      const delta = y - lastY;
-
       topbar.classList.toggle('v172MenuOpen', navOpen());
-
-      if(y < 70 || navOpen()){
-        showHeader();
-      } else if(delta > 7){
-        topbar.classList.add('v172HeaderHidden');
-      } else if(delta < 0){
-        showHeader();
-      }
-
-      lastY = y;
+      showHeader();
     }
 
     window.addEventListener('wheel', function(e){
-      if(e.deltaY < 0) revealOnBackScroll();
+      showHeader();
     }, { passive:true });
 
     window.addEventListener('touchstart', function(e){
-      lastTouchY = e.touches && e.touches.length ? e.touches[0].clientY : null;
+      showHeader();
     }, { passive:true });
 
     window.addEventListener('touchmove', function(e){
-      const y = e.touches && e.touches.length ? e.touches[0].clientY : null;
-      if(y !== null && lastTouchY !== null && y > lastTouchY) revealOnBackScroll();
-      lastTouchY = y;
+      showHeader();
     }, { passive:true });
 
     window.addEventListener('keydown', function(e){
-      if(['ArrowUp','PageUp','Home'].includes(e.key)) revealOnBackScroll();
+      if(['ArrowUp','ArrowDown','PageUp','PageDown','Home','End','Space'].includes(e.key)) showHeader();
     }, { passive:true });
 
     window.addEventListener('scroll', function(){
