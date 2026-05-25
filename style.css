@@ -2688,3 +2688,54 @@ section[id],main[id],.card[id],.projectPageShell[id],#systemFeatures,#naplo{
   .v174JumpBar{bottom:6px!important;width:auto!important;max-width:calc(100vw - 18px)!important;padding:3px 5px!important;gap:3px!important;background:rgba(2,6,23,.14)!important;}
   .v174JumpBar button{font-size:10px!important;padding:6px 8px!important;min-height:28px!important;}
 }
+
+
+/* ===== V180 mobile bottom horizontal jump bar final fix ===== */
+@media (max-width:700px){
+  #v174JumpBar,
+  .v174JumpBar{
+    position:fixed!important;
+    left:6px!important;
+    right:6px!important;
+    bottom:calc(env(safe-area-inset-bottom, 0px) + 6px)!important;
+    transform:none!important;
+    width:auto!important;
+    max-width:none!important;
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:4px!important;
+    padding:3px 2px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    border:none!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+    scrollbar-width:none!important;
+  }
+  #v174JumpBar::-webkit-scrollbar,
+  .v174JumpBar::-webkit-scrollbar{display:none!important;}
+  #v174JumpBar button,
+  .v174JumpBar button{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:max-content!important;
+    min-height:28px!important;
+    padding:6px 9px!important;
+    font-size:10px!important;
+    line-height:1!important;
+    border:none!important;
+    border-radius:999px!important;
+    background:rgba(15,23,42,.72)!important;
+    box-shadow:none!important;
+    white-space:nowrap!important;
+  }
+}
