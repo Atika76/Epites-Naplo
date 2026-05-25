@@ -167,10 +167,10 @@
   });
 })();
 
-// ===== V184: CSAK fejlec gorgetes javitas - lefele elbujik, felfele azonnal visszajon =====
+// ===== V185: stabil fejlec gorgetes irany szerint =====
 (function(){
-  if(window.__v184HeaderScrollDirectionFix) return;
-  window.__v184HeaderScrollDirectionFix = true;
+  if(window.__v185HeaderDirectionFix) return;
+  window.__v185HeaderDirectionFix = true;
 
   function ready(fn){
     if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
@@ -181,13 +181,12 @@
     const topbar = document.querySelector('.topbar');
     if(!topbar) return;
 
-    let lastScrollY = Math.max(0, window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0);
+    let lastScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0);
     let lastTouchY = null;
     let ticking = false;
-    let forceShowUntil = 0;
 
-    function getY(){
-      return Math.max(0, window.scrollY || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0);
+    function getScrollY(){
+      return Math.max(0, window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0);
     }
 
     function navOpen(){
@@ -196,99 +195,87 @@
     }
 
     function showHeader(){
-      topbar.classList.remove('v172HeaderHidden');
-      topbar.classList.remove('v184HeaderHidden');
-      topbar.style.removeProperty('transform');
+      topbar.classList.remove('v172HeaderHidden', 'v185HeaderHidden');
+      topbar.classList.add('v185HeaderVisible');
     }
 
     function hideHeader(){
-      if(navOpen() || topbar.matches(':focus-within')) return;
-      topbar.classList.add('v172HeaderHidden');
-      topbar.classList.add('v184HeaderHidden');
+      if(navOpen()) return;
+      if(getScrollY() < 90) return;
+      topbar.classList.remove('v185HeaderVisible');
+      topbar.classList.add('v185HeaderHidden');
     }
 
-    function forceShow(){
-      forceShowUntil = Date.now() + 450;
-      showHeader();
-    }
-
-    function apply(){
+    function applyScrollDirection(){
       ticking = false;
-      const y = getY();
-      const delta = y - lastScrollY;
+      const y = getScrollY();
+      const diff = y - lastScrollY;
 
       topbar.classList.toggle('v172MenuOpen', navOpen());
 
-      // Mindig latszodjon a lap tetejen, nyitott menunel, beviteli mezonel,
-      // illetve kozvetlenul felfele gorgetesi jel utan.
-      if(y <= 40 || navOpen() || topbar.matches(':focus-within') || Date.now() < forceShowUntil){
+      if(y < 70 || navOpen()){
         showHeader();
-        lastScrollY = y;
-        return;
-      }
-
-      // Lefelegorgetes: eltunik.
-      if(delta > 3){
+      } else if(diff > 4){
+        // Lefele gorgetes: a tartalom iranyaba megyunk, fejlec elbujik.
         hideHeader();
-      }
-
-      // Felfelegorgetes: azonnal visszajon, nem csak a lap tetejen.
-      if(delta < -1){
+      } else if(diff < -1){
+        // Felfele gorgetes: AZONNAL jelenjen meg, ne csak az oldal tetejen.
         showHeader();
       }
 
       lastScrollY = y;
     }
 
-    function requestApply(){
+    function scheduleApply(){
       if(!ticking){
         ticking = true;
-        requestAnimationFrame(apply);
+        requestAnimationFrame(applyScrollDirection);
       }
     }
 
-    // Normal scroll es touchpad/eger.
-    window.addEventListener('scroll', requestApply, {passive:true});
+    // Scroll alapú iranyfigyeles.
+    window.addEventListener('scroll', scheduleApply, { passive:true });
+
+    // Egergorgetes / touchpad: mar a gesztus elejen visszahozza a fejlecet.
     window.addEventListener('wheel', function(e){
-      if(e.deltaY < 0){
-        // Egergorgo/touchpad felfele: mutasd azonnal, meg a scroll event elott.
-        forceShow();
-      }else if(e.deltaY > 0 && getY() > 80){
+      if(!e) return;
+      if(e.deltaY < -1){
+        showHeader();
+      } else if(e.deltaY > 5){
         hideHeader();
       }
-    }, {passive:true});
+      lastScrollY = getScrollY();
+    }, { passive:true });
 
-    // Mobil: ha az ujj lefele mozdul, a tartalom a lap teteje fele megy, tehat a fejlec jojjon elo.
+    // Mobil ujjmozdulat: ha az ujj lefele mozog, az oldal felfele gorget, a fejlec jojjon vissza.
     window.addEventListener('touchstart', function(e){
-      lastTouchY = e.touches && e.touches[0] ? e.touches[0].clientY : null;
-    }, {passive:true});
+      if(e.touches && e.touches.length) lastTouchY = e.touches[0].clientY;
+    }, { passive:true });
 
     window.addEventListener('touchmove', function(e){
-      if(lastTouchY == null || !e.touches || !e.touches[0]) return;
+      if(!e.touches || !e.touches.length || lastTouchY === null) return;
       const currentTouchY = e.touches[0].clientY;
-      const touchDelta = currentTouchY - lastTouchY;
-      if(touchDelta > 3){
-        // Felfele haladsz a lapon: fejlec azonnal vissza.
-        forceShow();
-      }else if(touchDelta < -5 && getY() > 80){
-        // Lefelegorgetes: fejlec elbujik.
+      const touchDiff = currentTouchY - lastTouchY;
+      if(touchDiff > 2){
+        showHeader();
+      } else if(touchDiff < -6){
         hideHeader();
       }
       lastTouchY = currentTouchY;
-    }, {passive:true});
+      lastScrollY = getScrollY();
+    }, { passive:true });
 
-    window.addEventListener('touchend', function(){ lastTouchY = null; }, {passive:true});
+    window.addEventListener('touchend', function(){ lastTouchY = null; }, { passive:true });
+    window.addEventListener('resize', showHeader, { passive:true });
+    window.addEventListener('focusin', showHeader);
 
-    // Billentyuzet es egyeb navigacios esetek.
-    window.addEventListener('keydown', function(e){
-      if(['ArrowUp','PageUp','Home'].includes(e.key)) forceShow();
-      if(['ArrowDown','PageDown','End',' '].includes(e.key) && getY() > 80) hideHeader();
-    }, {passive:true});
+    // Menü nyitáskor ne maradjon elbújva.
+    document.addEventListener('click', function(e){
+      if(e.target && e.target.closest && e.target.closest('.menuBtn')) showHeader();
+      setTimeout(scheduleApply, 0);
+    }, true);
 
-    window.addEventListener('resize', forceShow, {passive:true});
-    window.addEventListener('focusin', forceShow);
-    document.addEventListener('click', function(){ setTimeout(requestApply, 0); }, true);
-
+    // Induláskor legyen látható.
     showHeader();
   });
 })();

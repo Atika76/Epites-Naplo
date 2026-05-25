@@ -2402,3 +2402,32 @@ body.v178Guest #logoutBtn { display: none !important; }
     font-size: .92rem;
   }
 }
+
+/* ===== V185: CSAK fejléc görgetés – lefelé eltűnik, felfelé azonnal visszajön ===== */
+.topbar{
+  transition: transform .16s ease!important;
+  will-change: transform!important;
+}
+.topbar.v185HeaderHidden,
+.topbar.v172HeaderHidden.v185HeaderHidden{
+  transform: translate3d(0, calc(-100% - 8px), 0)!important;
+}
+.topbar.v185HeaderVisible,
+.topbar:focus-within,
+.topbar.v172MenuOpen{
+  transform: translate3d(0,0,0)!important;
+}
+@media (max-width: 860px){
+  body > .topbar.v185HeaderHidden,
+  .topbar.v185HeaderHidden{
+    transform: translate3d(0, calc(-100% - 8px), 0)!important;
+  }
+  body > .topbar.v185HeaderVisible,
+  .topbar.v185HeaderVisible,
+  .topbar.v172MenuOpen{
+    transform: translate3d(0,0,0)!important;
+  }
+}
+@media (prefers-reduced-motion: reduce){
+  .topbar{transition:none!important;}
+}
