@@ -1,0 +1,1 @@
+V180 stabil alaphoz készült javítás. Csak a fejléc görgetés működését javítja: lefelé eltűnik, felfelé azonnal visszajön, nyitott hamburger/riport menünél látható marad. A javítás külön cache-biztos fájlban van: header-scroll-v180-real-fix.js
