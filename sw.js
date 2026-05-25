@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-v182-projekt-menu-label-fix';
+const CACHE_NAME = 'epitesnaplo-v180-video-userid-fix';
 const APP_SHELL = [
   './',
   './index.html',

@@ -138,11 +138,11 @@
     bar.className = 'v174JumpBar';
     bar.setAttribute('aria-label','Projekt gyorsmenü');
     bar.innerHTML = `
-      <button class="v174JumpItem" type="button" data-label="Gyors" data-target="v33QuickPanel">Gyors</button>
-      <button class="v174JumpItem" type="button" data-label="Napló" data-target="dailyFormCard">Napló</button>
-      <button class="v174JumpItem" type="button" data-label="Projekt" data-target="v174ProjectSummaryCard">Projekt</button>
-      <button class="v174JumpItem" type="button" data-label="Ügyfél" data-target="v173ClientCollabPanel">Ügyfél</button>
-      <button class="v174JumpItem" type="button" data-label="Idővonal" data-target="v174TimelineCard">Idővonal</button>
+      <button class="v174JumpItem" type="button" data-target="v33QuickPanel">Gyors</button>
+      <button class="v174JumpItem" type="button" data-target="dailyFormCard">Napló</button>
+      <button class="v174JumpItem" type="button" data-target="v174ProjectSummaryCard">Projekt</button>
+      <button class="v174JumpItem" type="button" data-target="v173ClientCollabPanel">Ügyfél</button>
+      <button class="v174JumpItem" type="button" data-target="v174TimelineCard">Idővonal</button>
     `;
     bar.addEventListener('click', (ev) => {
       const btn = ev.target.closest('[data-target]');
@@ -171,41 +171,17 @@
     if(bar.parentElement !== document.body) document.body.appendChild(bar);
   }
 
-  function ensureProjectJumpItem(bar){
-    if(!bar) return bar;
-
-    // V182: a "Projekt" feliratnak akkor is meg kell jelennie,
-    // ha egy régi cache-elt menü csak a Gyors / Napló / Ügyfél / Idővonal sort hozta vissza.
-    const items = Array.from(bar.querySelectorAll('[data-target], .v174JumpItem'));
-    const hasProject = items.some(x => (x.dataset?.label || x.textContent || '').trim().toLowerCase() === 'projekt');
-    if(hasProject) return bar;
-
-    const projectBtn = document.createElement('button');
-    projectBtn.className = 'v174JumpItem';
-    projectBtn.type = 'button';
-    projectBtn.dataset.label = 'Projekt';
-    projectBtn.dataset.target = 'v174ProjectSummaryCard';
-    projectBtn.textContent = 'Projekt';
-
-    const naplo = items.find(x => (x.dataset?.label || x.textContent || '').trim().toLowerCase() === 'napló');
-    if(naplo && naplo.parentElement === bar) naplo.insertAdjacentElement('afterend', projectBtn);
-    else bar.appendChild(projectBtn);
-    return bar;
-  }
-
   function buildJumpBar(){
     let bar = document.getElementById('v174JumpBar');
     if(!bar) bar = createJumpBar();
 
     // Biztonsági ellenőrzés: ha régi ZIP/cache miatt sérült vagy hiányos a menü, újraépítjük.
     const expected = ['Gyors','Napló','Projekt','Ügyfél','Idővonal'];
-    const actual = Array.from(bar.querySelectorAll('[data-target], .v174JumpItem')).map(x => (x.dataset?.label || x.textContent || '').trim());
+    const actual = Array.from(bar.querySelectorAll('[data-target]')).map(x => (x.textContent || '').trim());
     if(expected.some(label => !actual.includes(label))){
-      const fresh = createJumpBar();
-      if(bar.isConnected) bar.replaceWith(fresh);
-      bar = fresh;
+      bar.replaceWith(createJumpBar());
+      bar = document.getElementById('v174JumpBar') || createJumpBar();
     }
-    bar = ensureProjectJumpItem(bar);
     mountJumpBar(bar);
   }
 
