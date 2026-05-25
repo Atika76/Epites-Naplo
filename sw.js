@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-ai-pro-v180-real-header-scroll-fix-20260525';
+const CACHE_NAME = 'epitesnaplo-ai-pro-v173-client-collab-clean-delete';
 const APP_SHELL = [
   './',
   './index.html',
@@ -18,7 +18,6 @@ const APP_SHELL = [
   './project-finance.js',
   './profile.js',
   './header-v40.js',
-  './header-scroll-v180-real-fix.js',
   './v19-pro-features.js',
   './supabase-adapter.js',
   './favicon.svg',

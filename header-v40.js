@@ -167,5 +167,61 @@
   });
 })();
 
+// ===== V172: V170 stabil alap + automatikusan elbujó fejléc =====
+(function(){
+  if(window.__v172ScrollHeaderFix) return;
+  window.__v172ScrollHeaderFix = true;
 
-// V180 stabil alap: a fejléc görgetését külön cache-biztos fájl kezeli.
+  function ready(fn){
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+
+  ready(function(){
+    const topbar = document.querySelector('.topbar');
+    if(!topbar) return;
+
+    let lastY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+    let ticking = false;
+
+    function navOpen(){
+      const nav = document.getElementById('nav') || topbar.querySelector('nav');
+      return !!(nav && (nav.classList.contains('open') || nav.classList.contains('navOpen')));
+    }
+
+    function showHeader(){
+      topbar.classList.remove('v172HeaderHidden');
+    }
+
+    function applyState(){
+      ticking = false;
+      const y = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+      const delta = y - lastY;
+
+      topbar.classList.toggle('v172MenuOpen', navOpen());
+
+      if(y < 70 || navOpen()){
+        showHeader();
+      } else if(delta > 7){
+        topbar.classList.add('v172HeaderHidden');
+      } else if(delta < -1){
+        showHeader();
+      }
+
+      lastY = y;
+    }
+
+    window.addEventListener('scroll', function(){
+      if(!ticking){
+        ticking = true;
+        window.requestAnimationFrame(applyState);
+      }
+    }, { passive:true });
+
+    window.addEventListener('resize', showHeader, { passive:true });
+    window.addEventListener('focusin', showHeader);
+    document.addEventListener('click', function(){
+      setTimeout(applyState, 0);
+    }, true);
+  });
+})();
