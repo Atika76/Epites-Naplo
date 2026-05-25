@@ -5195,3 +5195,284 @@ document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeReportCe
   };
   window.getEntryVideos = getEntryVideos;
 })();
+
+// ===== V180 QUICK FILE MERGE FIX: a gyorsjegyzet fájlválasztó ne írja felül az előző választást =====
+(function(){
+  if (window.__v180QuickFileMergeFixLoaded) return;
+  window.__v180QuickFileMergeFixLoaded = true;
+
+  function q(id){ return document.getElementById(id); }
+  function key(file){ return [file.name, file.size, file.lastModified, file.type].join('|'); }
+  function asArray(list){ return Array.from(list || []); }
+
+  window.v180QuickFileBasket = window.v180QuickFileBasket || [];
+
+  function getInput(){ return q('v33QuickFiles'); }
+
+  function syncQuickInput(){
+    var input = getInput();
+    if (!input || typeof DataTransfer === 'undefined') return;
+    var dt = new DataTransfer();
+    asArray(window.v180QuickFileBasket).forEach(function(file){
+      try { dt.items.add(file); } catch (_) {}
+    });
+    input.files = dt.files;
+  }
+
+  function renderQuickPreview(){
+    var input = getInput();
+    if (!input) return;
+    var box = q('v180QuickFileBasketPreview');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'v180QuickFileBasketPreview';
+      box.className = 'uploadBasketPreview v180QuickFileBasketPreview';
+      input.insertAdjacentElement('afterend', box);
+    }
+    var files = asArray(window.v180QuickFileBasket);
+    if (!files.length) {
+      box.innerHTML = '';
+      return;
+    }
+    box.innerHTML = files.map(function(file, idx){
+      var isImg = String(file.type || '').startsWith('image/');
+      var url = isImg ? URL.createObjectURL(file) : '';
+      var shortName = file.name.length > 22 ? file.name.slice(0, 19) + '...' : file.name;
+      return '<div class="uploadBasketItem v180QuickFileItem">'
+        + (isImg ? '<img src="' + url + '" alt="' + shortName.replace(/"/g, '&quot;') + '">' : '<div class="fileIcon">VID</div>')
+        + '<button type="button" data-v180-quick-remove="' + idx + '">×</button>'
+        + '<span>' + shortName.replace(/[&<>"]/g, function(ch){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]); }) + '</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  function updateQuickStatus(){
+    var files = asArray(window.v180QuickFileBasket);
+    var imgCount = files.filter(function(file){ return String(file.type || '').startsWith('image/'); }).length;
+    var videoCount = files.filter(function(file){ return String(file.type || '').startsWith('video/'); }).length;
+    if (typeof window.v33SetQuickStatus === 'function' && files.length) {
+      window.v33SetQuickStatus('<b>Kiválasztva:</b><br>' + imgCount + ' fotó, ' + videoCount + ' videó. Új fájl választásakor a korábbiak is megmaradnak.', 'info');
+    }
+  }
+
+  function bindQuickInput(){
+    var input = getInput();
+    if (!input || input.dataset.v180QuickMergeReady === '1') return;
+    input.dataset.v180QuickMergeReady = '1';
+    input.addEventListener('change', function(){
+      var previous = asArray(window.v180QuickFileBasket);
+      var map = new Map(previous.map(function(file){ return [key(file), file]; }));
+      asArray(input.files).forEach(function(file){ map.set(key(file), file); });
+      window.v180QuickFileBasket = Array.from(map.values());
+      syncQuickInput();
+      renderQuickPreview();
+      updateQuickStatus();
+    });
+    syncQuickInput();
+    renderQuickPreview();
+  }
+
+  window.v180ClearQuickFileBasket = function(){
+    window.v180QuickFileBasket = [];
+    var input = getInput();
+    if (input) input.value = '';
+    renderQuickPreview();
+  };
+
+  document.addEventListener('click', function(event){
+    var btn = event.target.closest('[data-v180-quick-remove]');
+    if (!btn) return;
+    event.preventDefault();
+    var idx = Number(btn.getAttribute('data-v180-quick-remove'));
+    var files = asArray(window.v180QuickFileBasket);
+    files.splice(idx, 1);
+    window.v180QuickFileBasket = files;
+    syncQuickInput();
+    renderQuickPreview();
+    updateQuickStatus();
+  });
+
+  function startBindingAttempts(){
+    bindQuickInput();
+    setTimeout(bindQuickInput, 400);
+    setTimeout(bindQuickInput, 1000);
+    setTimeout(bindQuickInput, 1800);
+  }
+
+  if (typeof window.v33InjectProjectPanels === 'function' && !window.v33InjectProjectPanels.__v180QuickMergeWrapped) {
+    var originalInject = window.v33InjectProjectPanels;
+    var wrappedInject = function(){
+      var result = originalInject.apply(this, arguments);
+      startBindingAttempts();
+      return result;
+    };
+    wrappedInject.__v180QuickMergeWrapped = true;
+    window.v33InjectProjectPanels = wrappedInject;
+    try { v33InjectProjectPanels = wrappedInject; } catch (_) {}
+  }
+
+  if (typeof window.v33SaveQuickEntry === 'function' && !window.v33SaveQuickEntry.__v180QuickMergeWrapped) {
+    var originalSaveQuick = window.v33SaveQuickEntry;
+    var wrappedSaveQuick = async function(){
+      syncQuickInput();
+      var result = await originalSaveQuick.apply(this, arguments);
+      window.v180ClearQuickFileBasket();
+      return result;
+    };
+    wrappedSaveQuick.__v180QuickMergeWrapped = true;
+    window.v33SaveQuickEntry = wrappedSaveQuick;
+    try { v33SaveQuickEntry = wrappedSaveQuick; } catch (_) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', startBindingAttempts);
+  startBindingAttempts();
+})();
+
+// ===== V180 QUICK GPS + WEATHER FIX: gyors mentés automatikus hely/időjárás rögzítéssel =====
+(function(){
+  if (window.__v180QuickGpsWeatherFixLoaded) return;
+  window.__v180QuickGpsWeatherFixLoaded = true;
+
+  function q(id){ return document.getElementById(id); }
+  function filesFromQuickBasket(){
+    var basket = Array.isArray(window.v180QuickFileBasket) ? window.v180QuickFileBasket : [];
+    if (basket.length) return basket;
+    return Array.from(q('v33QuickFiles')?.files || []);
+  }
+  function weatherToText(weather){
+    if (!weather) return '';
+    var parts = [];
+    if (weather.temperature !== undefined && weather.temperature !== null && weather.temperature !== '') parts.push(weather.temperature + ' °C');
+    if (weather.text) parts.push(weather.text);
+    if (weather.wind !== undefined && weather.wind !== null && weather.wind !== '') parts.push('szél: ' + weather.wind + ' km/h');
+    if (weather.precipitation !== undefined && weather.precipitation !== null && weather.precipitation !== '') parts.push('csapadék: ' + weather.precipitation + ' mm');
+    return parts.join(', ');
+  }
+  function gpsToText(gps){
+    if (!gps) return '';
+    var lat = Number(gps.lat);
+    var lon = Number(gps.lon);
+    var coords = (Number.isFinite(lat) && Number.isFinite(lon)) ? (lat.toFixed(5) + ', ' + lon.toFixed(5)) : '';
+    var accuracy = gps.accuracy ? ' • pontosság: kb. ' + Math.round(Number(gps.accuracy)) + ' m' : '';
+    return gps.address ? (gps.address + (coords ? ' (' + coords + ')' : '')) : (coords + accuracy);
+  }
+  async function captureQuickGpsWeather(){
+    var result = { gps: null, weather: null, gpsText: '', weatherText: '', locationAddress: '' };
+
+    // Mindig friss gyorsmentési adatot próbálunk kérni, ne egy régi naplózás GPS-e maradjon benne.
+    try { v19GpsJson = null; v19WeatherJson = null; } catch (_) {}
+
+    try {
+      if (typeof window.v33SetQuickStatus === 'function') {
+        window.v33SetQuickStatus('<b>Gyors mentés folyamatban...</b><br>GPS és időjárás automatikus lekérése...', 'info');
+      }
+      if (typeof fillWeatherAndGps === 'function') {
+        await fillWeatherAndGps();
+      } else if (window.EpitesNaploAPI?.getBrowserLocation) {
+        v19GpsJson = await window.EpitesNaploAPI.getBrowserLocation();
+        if (v19GpsJson && window.EpitesNaploAPI?.getWeatherForLocation) {
+          v19WeatherJson = await window.EpitesNaploAPI.getWeatherForLocation(v19GpsJson.lat, v19GpsJson.lon);
+        }
+      }
+    } catch (err) {
+      console.warn('Gyors mentés GPS/időjárás nem elérhető:', err);
+    }
+
+    result.gps = (typeof v19GpsJson !== 'undefined' && v19GpsJson) ? { ...v19GpsJson, captured_at: new Date().toISOString() } : null;
+    result.weather = (typeof v19WeatherJson !== 'undefined' && v19WeatherJson) ? { ...v19WeatherJson, captured_at: new Date().toISOString() } : null;
+    result.gpsText = gpsToText(result.gps) || (q('detailGps')?.value || '').trim();
+    result.weatherText = weatherToText(result.weather) || (q('detailWeather')?.value || q('weatherAutoText')?.value || '').trim();
+    result.locationAddress = (q('detailWorkAddress')?.value || result.gps?.address || '').trim();
+
+    if (q('detailGps') && result.gpsText) q('detailGps').value = result.gpsText;
+    if (q('detailWeather') && result.weatherText && !/nem sikerült|nem elérhető|nincs engedély/i.test(result.weatherText)) q('detailWeather').value = result.weatherText;
+    if (q('weatherAutoText')) {
+      q('weatherAutoText').value = result.weatherText || 'GPS/időjárás automatikusan nem elérhető. A gyors mentés ettől még folytatódik.';
+    }
+
+    return result;
+  }
+
+  async function saveQuickWithGpsWeather(){
+    if (!detailState.project) return alert('Nincs kiválasztott projekt.');
+    var noteBase = (q('v33QuickNote')?.value || '').trim();
+    if (!noteBase) return alert('Írj legalább egy rövid jegyzetet.');
+
+    var files = filesFromQuickBasket();
+    if (typeof window.v33SetQuickStatus === 'function') {
+      window.v33SetQuickStatus('<b>Gyors mentés folyamatban...</b><br>Fotók, videók, GPS és időjárás feldolgozása.', 'info');
+    }
+
+    var captured = await captureQuickGpsWeather();
+    files = filesFromQuickBasket();
+
+    var imageFiles = files.filter(function(file){ return String(file.type || '').startsWith('image/'); });
+    var videoFiles = files.filter(function(file){ return String(file.type || '').startsWith('video/') || (typeof isSupportedVideoFile === 'function' && isSupportedVideoFile(file)); });
+    var images = await readFilesAsDataUrls(imageFiles, 8);
+    var videos = await uploadVideoFilesToStorage(videoFiles, 2);
+    var phase = (typeof v36GetQuickWorkPhase === 'function') ? v36GetQuickWorkPhase() : (q('v33QuickPhase')?.value || 'Munka közben');
+    var status = q('v33QuickStatus')?.value || 'Folyamatban';
+    var weatherText = captured.weatherText && !/nem sikerült|nem elérhető|nincs engedély/i.test(captured.weatherText) ? captured.weatherText : 'Automatikus időjárás nem elérhető';
+    var gpsText = captured.gpsText || 'GPS/helyadat automatikusan nem elérhető vagy nincs engedélyezve';
+    var date = new Date().toISOString().slice(0, 10);
+    var note = 'Dátum: ' + date + '\n' + noteBase + '\n\nAutomatikus időjárás: ' + weatherText + '\nGPS/helyadat: ' + gpsText;
+    if (captured.locationAddress && !note.includes('Munka helyszíne/cím:')) note += '\nMunka helyszíne/cím: ' + captured.locationAddress;
+
+    var analysis = analyzeEntry({ note: note, phase: phase, status: status, priority: 'Közepes' });
+    analysis.videos = videos;
+    analysis.videoUrls = videos;
+    analysis.weatherJson = captured.weather || null;
+    analysis.gpsJson = captured.gps || (captured.gpsText ? { text: captured.gpsText, captured_at: new Date().toISOString() } : null);
+
+    var saved = await window.EpitesNaploAPI.saveEntry({
+      projectId: detailState.project.id,
+      phase: phase,
+      status: status,
+      priority: 'Közepes',
+      responsible: 'Gyors mobilos mentés',
+      weather: weatherText,
+      note: note,
+      images: images,
+      generalImages: images,
+      videos: videos,
+      videoUrls: videos,
+      image: images[0] || '',
+      analysis: analysis,
+      weatherJson: captured.weather || null,
+      gpsJson: captured.gps || (captured.gpsText ? { text: captured.gpsText, captured_at: new Date().toISOString() } : null),
+      locationAddress: captured.locationAddress || null
+    });
+
+    if (!saved?.id) throw new Error('A gyors mentés nem kapott mentett azonosítót. Ellenőrizd a Supabase kapcsolatot.');
+
+    if (q('v33QuickNote')) q('v33QuickNote').value = '';
+    if (q('v33QuickFiles')) q('v33QuickFiles').value = '';
+    if (q('v33QuickCustomPhase')) q('v33QuickCustomPhase').value = '';
+    if (typeof window.v180ClearQuickFileBasket === 'function') window.v180ClearQuickFileBasket();
+    else window.v180QuickFileBasket = [];
+
+    try { v19WeatherJson = null; v19GpsJson = null; } catch (_) {}
+    await reloadProjectEntries();
+
+    if (typeof window.v33SetQuickStatus === 'function') {
+      window.v33SetQuickStatus('<b>Gyors mentés kész.</b><br>' + images.length + ' fotó, ' + videos.length + ' videó, GPS/időjárás adat mentve, ha a böngésző engedte.', 'ok');
+    }
+    if (typeof showToast === 'function') showToast('✔ Gyors mentés kész: média + GPS/időjárás rögzítve.', 'ok');
+  }
+
+  function installQuickGpsWeatherFix(){
+    if (typeof window.v33SaveQuickEntry !== 'function') return false;
+    if (window.v33SaveQuickEntry.__v180QuickGpsWeatherWrapped) return true;
+    saveQuickWithGpsWeather.__v180QuickGpsWeatherWrapped = true;
+    window.v33SaveQuickEntry = saveQuickWithGpsWeather;
+    try { v33SaveQuickEntry = saveQuickWithGpsWeather; } catch (_) {}
+    return true;
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(installQuickGpsWeatherFix, 300);
+    setTimeout(installQuickGpsWeatherFix, 1000);
+    setTimeout(installQuickGpsWeatherFix, 1800);
+  });
+  installQuickGpsWeatherFix();
+})();
