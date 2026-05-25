@@ -5125,3 +5125,73 @@ document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeReportCe
   new MutationObserver(killOld).observe(document.documentElement,{childList:true,subtree:true});
   setInterval(killOld,900);
 })();
+
+// ===== V180: videó duplikáció javítás =====
+// Egy feltöltött videó azért jelenhetett meg többször, mert ugyanaz a videó
+// egyszerre szerepelhet a video_urls mezőben és az ai_json videos/videoUrls mezőiben is.
+// Ez csak a megjelenítésnél szűri ki a duplikációt; adatot nem töröl.
+(function(){
+  if (window.__v180VideoDuplicateFix) return;
+  window.__v180VideoDuplicateFix = true;
+
+  function asArray(value){
+    return Array.isArray(value) ? value.filter(Boolean) : (value ? [value] : []);
+  }
+
+  function rawVideoValue(item){
+    if (!item) return '';
+    if (typeof item === 'object') {
+      return item.path || item.storagePath || item.fullPath || item.src || item.url || item.publicUrl || item.signedUrl || item.name || '';
+    }
+    return String(item || '');
+  }
+
+  function videoDedupeKey(item){
+    var raw = String(rawVideoValue(item) || '').trim();
+    if (!raw) return '';
+
+    // Aláírt Supabase URL-nél a token változhat, ezért csak az objektum útvonalát hasonlítjuk.
+    try {
+      var u = new URL(raw, window.location.href);
+      var m = u.pathname.match(/\/storage\/v1\/object\/(?:sign|public)\/project-videos\/(.+)$/i);
+      if (m && m[1]) return decodeURIComponent(m[1]).replace(/^\/+/, '').toLowerCase();
+      return (u.origin + u.pathname).toLowerCase();
+    } catch (_) {}
+
+    return raw.split('?')[0].replace(/^\/+/, '').toLowerCase();
+  }
+
+  function uniqueVideosFromEntry(entry){
+    entry = entry || {};
+    var ai = entry.ai_json || entry.analysis || {};
+    var sources = [];
+
+    // Először a fő adatbázis mező, ez a legfontosabb és legtisztább forrás.
+    sources.push(entry.video_urls);
+    sources.push(entry.videoUrls);
+    sources.push(entry.videos);
+    sources.push(entry.video_url);
+
+    // Utána a régi / AI mentésekből származó másolatok.
+    sources.push(ai.video_urls);
+    sources.push(ai.videoUrls);
+    sources.push(ai.videos);
+
+    var seen = Object.create(null);
+    var out = [];
+    sources.forEach(function(src){
+      asArray(src).forEach(function(item){
+        var key = videoDedupeKey(item);
+        if (!key || seen[key]) return;
+        seen[key] = true;
+        out.push(item);
+      });
+    });
+    return out;
+  }
+
+  getEntryVideos = function(entry){
+    return uniqueVideosFromEntry(entry);
+  };
+  window.getEntryVideos = getEntryVideos;
+})();
