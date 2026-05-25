@@ -3191,3 +3191,27 @@ section[id],main[id],.card[id],.projectPageShell[id],#systemFeatures,#naplo{
     font-size:15px!important;
   }
 }
+
+
+/* ===== V182: Projekt felirat biztos helye a hamburger jobb oldali gyorsmenüben ===== */
+@media (max-width:860px){
+  body .topbar nav#nav.hasV174JumpBar.open,
+  body .topbar nav#nav.hasV174JumpBar.navOpen{
+    grid-template-columns:minmax(0,1fr) 120px!important;
+    column-gap:14px!important;
+  }
+  body .topbar nav#nav.hasV174JumpBar.open #v174JumpBar.v174InMenu .v174JumpItem[data-label="Projekt"],
+  body .topbar nav#nav.hasV174JumpBar.navOpen #v174JumpBar.v174InMenu .v174JumpItem[data-label="Projekt"],
+  body .topbar nav#nav.hasV174JumpBar.open .v174JumpBar.v174InMenu .v174JumpItem[data-label="Projekt"],
+  body .topbar nav#nav.hasV174JumpBar.navOpen .v174JumpBar.v174InMenu .v174JumpItem[data-label="Projekt"]{
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+  }
+}
+@media (max-width:430px){
+  body .topbar nav#nav.hasV174JumpBar.open,
+  body .topbar nav#nav.hasV174JumpBar.navOpen{
+    grid-template-columns:minmax(0,1fr) 104px!important;
+  }
+}

@@ -118,6 +118,9 @@
     const reportNav = current === 'project.html'
       ? `<a href="#reportCenterV69" onclick="event.preventDefault(); if(typeof window.openReportCenterV69 === 'function'){ window.openReportCenterV69(); }">Riport</a>`
       : '<a href="#riport" onclick="return window.v130OpenReportNav(event)">Riport</a>';
+    const projectNav = current === 'project.html'
+      ? `<a id="projectNavLink" href="#projectTop" onclick="event.preventDefault(); (document.querySelector('.projectHero') || document.querySelector('.projectPageShell'))?.scrollIntoView({behavior:'smooth',block:'start'});">Projekt</a>`
+      : '';
     if (!logged) {
       return `
         <a href="index.html#home">Főoldal</a>
@@ -128,6 +131,7 @@
     return `
       <a href="index.html#home">Főoldal</a>
       <a href="index.html#naplo">Napló</a>
+      ${projectNav}
       ${reportNav}
       <a id="profileNavLink" href="profile.html">Fiókom</a>
       ${isAdmin ? '<a id="adminNavLink" href="admin-panel.html">Admin</a>' : ''}
