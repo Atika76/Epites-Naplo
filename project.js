@@ -5551,3 +5551,182 @@ document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeReportCe
   });
   installQuickGpsWeatherFix();
 })();
+
+
+// ===== V180 MAI NAPLÓ VIDEÓ VÉGSŐ JAVÍTÁS =====
+// A részletes "Mai napló folytatása" ugyanazt a videófeltöltő utat használja,
+// ami a "Kiegészítés hozzáadása" résznél már működik. Mentés után még egyszer
+// ráerősítünk a video_urls / ai_json mentésre, hogy a videó biztosan megjelenjen.
+(function(){
+  if (window.__v180DailyVideoFinalFix) return;
+  window.__v180DailyVideoFinalFix = true;
+
+  function q(id){ return document.getElementById(id); }
+  function selectedFiles(id){
+    try { if (typeof window.v37InitProjectBaskets === 'function') window.v37InitProjectBaskets(); } catch(_) {}
+    try {
+      const basket = window.v37FileBaskets && Array.isArray(window.v37FileBaskets[id]) ? window.v37FileBaskets[id] : [];
+      if (basket.length) return basket.slice();
+    } catch(_) {}
+    return Array.from(q(id)?.files || []);
+  }
+  function supportedVideo(file){
+    if (!file) return false;
+    if (typeof isSupportedVideoFile === 'function') return isSupportedVideoFile(file);
+    return String(file.type || '').startsWith('video/') || /\.(mp4|m4v|mov|webm|3gp|3gpp|mpeg|mpg|avi)$/i.test(String(file.name || ''));
+  }
+  function setDailyUploadStatus(message, type){
+    try {
+      if (typeof v32SetUploadStatus === 'function') return v32SetUploadStatus(message, type || 'info');
+      let box = q('v32UploadStatus');
+      if (!box) {
+        const anchor = document.querySelector('.videoUploadBox') || q('detailVideos') || q('dailyFormCard');
+        if (anchor && anchor.parentNode) {
+          box = document.createElement('div');
+          box.id = 'v32UploadStatus';
+          box.className = 'v32UploadStatus';
+          anchor.parentNode.insertBefore(box, anchor.nextSibling);
+        }
+      }
+      if (box) { box.className = 'v32UploadStatus ' + (type || 'info'); box.innerHTML = message; }
+    } catch(_) {}
+  }
+  async function uploadDailyVideosLikeSupplement(files){
+    const videoFiles = Array.from(files || []).filter(supportedVideo).slice(0, 2);
+    if (!videoFiles.length) return [];
+    setDailyUploadStatus('<b>Videó feltöltés folyamatban...</b><br>A mai napló videója mentésre kerül.', 'info');
+    let videos = [];
+
+    // Elsőként a kiegészítésnél is működő feltöltőt használjuk.
+    try {
+      if (typeof window.uploadVideoFilesToStorage === 'function') {
+        videos = await window.uploadVideoFilesToStorage(videoFiles, 2);
+      } else if (typeof uploadVideoFilesToStorage === 'function') {
+        videos = await uploadVideoFilesToStorage(videoFiles, 2);
+      }
+    } catch (err) {
+      console.warn('Mai napló videó feltöltés első próbálkozás hiba:', err);
+    }
+
+    // Tartalék: a korábbi direkt feltöltő, ha a fenti valamiért nem ad vissza videót.
+    if ((!videos || !videos.length) && typeof window.v180UploadDailyVideosDirect === 'function') {
+      try { videos = await window.v180UploadDailyVideosDirect(videoFiles, 2); }
+      catch (err) { console.warn('Mai napló direkt videó tartalék hiba:', err); }
+    }
+    videos = Array.isArray(videos) ? videos.filter(Boolean) : [];
+    setDailyUploadStatus(videos.length ? `<b>Videó feltöltve.</b><br>${videos.length} videó bekerül a mai naplóba.` : '<b>Videó nem került mentésre.</b><br>Próbáld kisebb, rövidebb videóval.', videos.length ? 'ok' : 'warn');
+    return videos;
+  }
+  function clearDailyUploads(){
+    try { if (typeof window.v129ClearCurrentEntryUploads === 'function') return window.v129ClearCurrentEntryUploads(); } catch(_) {}
+    ['beforeFiles','afterFiles','detailFiles','detailVideos'].forEach(id => {
+      try { if (typeof window.v37ClearBasket === 'function') window.v37ClearBasket(id); } catch(_) {}
+      try { if (q(id)) q(id).value = ''; } catch(_) {}
+    });
+  }
+
+  const finalSaveDailyEntry = async function(){
+    if (!detailState.project) return alert('Nincs kiválasztott projekt.');
+    const noteBase = (q('detailNote')?.value || '').trim();
+    if (!noteBase) return alert('Írd be a mai napló leírását.');
+
+    try {
+      if (typeof window.ensureWeatherAndGpsBeforeSave === 'function') await window.ensureWeatherAndGpsBeforeSave();
+    } catch (err) { console.warn('Időjárás/GPS ellenőrzés nem sikerült:', err); }
+
+    const date = q('detailDate')?.value || new Date().toISOString().slice(0, 10);
+    const phase = typeof getSelectedWorkPhaseV34 === 'function' ? getSelectedWorkPhaseV34() : (q('detailPhase')?.value || 'Munka közben');
+    const status = q('detailStatus')?.value || 'Folyamatban';
+    const priority = q('detailPriority')?.value || 'Közepes';
+    const responsible = (q('detailResponsible')?.value || '').trim() || 'Nincs megadva';
+    const weather = (q('detailWeather')?.value || q('weatherAutoText')?.value || '').trim() || 'Nincs megadva';
+    const gpsText = (q('detailGps')?.value || '').trim();
+    const workAddress = (q('detailWorkAddress')?.value || '').trim();
+    const materials = typeof collectMaterials === 'function' ? collectMaterials() : [];
+
+    const beforeFiles = selectedFiles('beforeFiles');
+    const afterFiles = selectedFiles('afterFiles');
+    const generalFiles = selectedFiles('detailFiles');
+    const videoFiles = selectedFiles('detailVideos').filter(supportedVideo);
+
+    const beforeImages = await readFilesAsDataUrls(beforeFiles, 5);
+    const afterImages = await readFilesAsDataUrls(afterFiles, 5);
+    const generalImages = await readFilesAsDataUrls(generalFiles, 10);
+    const videos = await uploadDailyVideosLikeSupplement(videoFiles);
+
+    if (videoFiles.length && !videos.length) {
+      return alert('A videó feltöltése nem sikerült ennél a napi bejegyzésnél. Próbáld rövidebb/kisebb videóval, vagy töltsd fel utólag kiegészítésként.');
+    }
+
+    const images = [...beforeImages, ...afterImages, ...generalImages];
+    const materialText = materials.length ? `\n\nAnyagfelhasználás:\n${materials.map(m => `- ${m.name}: ${m.quantity} ${m.unit}${m.note ? ' (' + m.note + ')' : ''}`).join('\n')}` : '';
+    const mediaText = `${beforeImages.length ? `\nElőtte fotó: ${beforeImages.length} db` : ''}${afterImages.length ? `\nUtána fotó: ${afterImages.length} db` : ''}${generalImages.length ? `\nÁltalános fotó: ${generalImages.length} db` : ''}${videos.length ? `\nMunkavideó: ${videos.length} db` : ''}`;
+    const weatherText = weather ? `\nIdőjárás / körülmény: ${weather}` : '';
+    const gpsNote = gpsText ? `\nGPS/helyadat: ${gpsText}` : '';
+    const addressNote = workAddress ? `\nMunka helyszíne/cím: ${workAddress}` : '';
+    const note = `Dátum: ${date}\n${noteBase}${mediaText}${materialText}${weatherText}${gpsNote}${addressNote}`;
+
+    let analysis = analyzeEntry({ note, phase, status, priority, materials, images, videos, imageCount: images.length, videoCount: videos.length, beforeImageCount: beforeImages.length, afterImageCount: afterImages.length });
+    analysis = { ...(analysis || {}), videos, videoUrls: videos, beforeImages, afterImages, generalImages, materials };
+
+    if (images.length && window.EpitesNaploAPI?.analyzePhotoWithAI) {
+      try {
+        showToast('AI kép + szöveg kontroll készítése...', 'info');
+        const vision = await window.EpitesNaploAPI.analyzePhotoWithAI({ projectId: detailState.project.id, note, phase, status, priority, imageCount: images.length, beforeImageCount: beforeImages.length, afterImageCount: afterImages.length, images: images.slice(0, 3), videoCount: videos.length });
+        if (vision?.ok && vision.analysis) analysis = { ...vision.analysis, videos, videoUrls: videos, beforeImages, afterImages, generalImages, materials };
+      } catch (err) { console.warn('AI kép + szöveg kontroll helyi módra váltott:', err); }
+    }
+
+    if (q('detailAiPreview')) {
+      q('detailAiPreview').classList.remove('hidden');
+      q('detailAiPreview').innerHTML = `<b>AI kép + szöveg kontroll:</b> ${escapeHtml(analysis.level || 'Alacsony')} – ${escapeHtml(analysis.title || 'Elemzés')}<br><small>${escapeHtml(analysis.photoTextCheck || analysis.nextStep || '')}</small>`;
+    }
+
+    try {
+      const entryPayload = {
+        projectId: detailState.project.id,
+        phase, status, priority, responsible, weather, note,
+        images, beforeImages, afterImages, generalImages,
+        image: images[0] || '',
+        videos, videoUrls: videos,
+        analysis,
+        materials,
+        weatherJson: (typeof v19WeatherJson !== 'undefined' ? v19WeatherJson : null),
+        gpsJson: (typeof v19GpsJson !== 'undefined' && v19GpsJson) ? v19GpsJson : (gpsText ? { text: gpsText, address: workAddress || undefined, captured_at: new Date().toISOString() } : null),
+        locationAddress: workAddress || null
+      };
+      const saved = await window.EpitesNaploAPI.saveEntry(entryPayload);
+
+      // Ráerősítő frissítés: ha a sima INSERT nem tartotta meg a video_urls mezőt,
+      // akkor update-ben is rátesszük. Ezért lesz azonnal látható ugyanúgy, mint kiegészítésnél.
+      if (videos.length && saved?.id && window.EpitesNaploAPI?.updateEntry) {
+        try {
+          await window.EpitesNaploAPI.updateEntry(saved.id, {
+            video_urls: videos,
+            ai_json: { ...analysis, videos, videoUrls: videos, beforeImages, afterImages, generalImages, materials },
+            image_urls: images,
+            general_images_json: generalImages
+          });
+        } catch (err) {
+          console.warn('Mai napló videó ráerősítő update hiba:', err);
+        }
+      }
+
+      if (q('detailNote')) q('detailNote').value = '';
+      clearDailyUploads();
+      if (typeof clearMaterialRows === 'function') clearMaterialRows();
+      try { v19WeatherJson = null; v19GpsJson = null; } catch(_) {}
+      if (q('weatherAutoText')) q('weatherAutoText').value = '';
+      await reloadProjectEntries();
+      showToast('✔ Napi bejegyzés mentve a projekt idővonalába.', 'ok');
+      q('projectTimeline')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return saved;
+    } catch (err) {
+      console.error(err);
+      alert('Mentési hiba: ' + (err?.message || err || 'Ismeretlen hiba'));
+    }
+  };
+
+  window.saveDailyEntry = finalSaveDailyEntry;
+  try { saveDailyEntry = finalSaveDailyEntry; } catch(_) {}
+})();
