@@ -167,90 +167,231 @@
   });
 })();
 
-// ===== V184: eltűnő, de visszagörgetésre azonnal visszatérő fejléc =====
+// ===== V180 CLEAN REAL FIX: fix pozíciós fejléc, valódi felfelé visszajövetel =====
+// Csak a fejléc görgetését kezeli:
+// - lefelé görgetéskor eltűnik
+// - felfelé görgetéskor azonnal visszajön
+// - nyitott hamburger menünél mindig látható marad
+// - a fix fejléc miatt a tartalom kap felső helyet, így nem takarja ki a Rendszerfunkciók tetejét
 (function(){
-  if(window.__v172ScrollHeaderFix) return;
-  window.__v172ScrollHeaderFix = true;
+  if(window.__epnV180CleanHeaderScrollRealFix) return;
+  window.__epnV180CleanHeaderScrollRealFix = true;
 
   function ready(fn){
-    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once:true });
     else fn();
   }
 
   ready(function(){
-    const topbar = document.querySelector('.topbar');
+    const topbar = document.querySelector('body > .topbar') || document.querySelector('.topbar');
     if(!topbar) return;
 
-    let lastY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
-    let lastTouchY = null;
+    const SHOW_AT_TOP = 70;
+    const HIDE_AFTER = 110;
+    let lastY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0);
     let ticking = false;
+    let lastTouchY = null;
+    let lastState = '';
+
+    function getY(){
+      return Math.max(0, window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0);
+    }
+
+    function getNav(){
+      return document.getElementById('nav') || topbar.querySelector('nav');
+    }
+
+    function getMenuBtn(){
+      return topbar.querySelector('.menuBtn') || document.querySelector('.menuBtn');
+    }
 
     function navOpen(){
-      const nav = document.getElementById('nav') || topbar.querySelector('nav');
-      return !!(nav && (nav.classList.contains('open') || nav.classList.contains('navOpen')));
+      const nav = getNav();
+      const btn = getMenuBtn();
+      return !!(
+        (nav && (nav.classList.contains('open') || nav.classList.contains('navOpen'))) ||
+        (btn && btn.getAttribute('aria-expanded') === 'true')
+      );
     }
 
-    function showHeader(){
-      topbar.classList.remove('v172HeaderHidden');
-      topbar.style.removeProperty('position');
-      topbar.style.removeProperty('top');
-      topbar.style.removeProperty('left');
-      topbar.style.removeProperty('right');
-      topbar.style.removeProperty('width');
-      topbar.style.removeProperty('z-index');
-      topbar.style.removeProperty('transform');
-      topbar.style.removeProperty('opacity');
-      topbar.style.removeProperty('visibility');
-      document.body.classList.remove('hasFixedTopbar');
+    function headerFocused(){
+      return !!(document.activeElement && topbar.contains(document.activeElement));
     }
 
-    function applyState(){
+    function headerHeight(){
+      const h = Math.ceil(topbar.offsetHeight || topbar.getBoundingClientRect().height || 76);
+      return Math.max(62, h);
+    }
+
+    function syncFixedHeaderSpace(){
+      const h = headerHeight();
+      document.body.classList.add('epnFixedTopbar');
+      document.documentElement.style.setProperty('--epnTopbarSpace', h + 'px');
+      topbar.classList.add('epnScrollManagedTopbar');
+      topbar.style.setProperty('position', 'fixed', 'important');
+      topbar.style.setProperty('top', '0', 'important');
+      topbar.style.setProperty('left', '0', 'important');
+      topbar.style.setProperty('right', '0', 'important');
+      topbar.style.setProperty('width', '100%', 'important');
+      topbar.style.setProperty('z-index', '2147483000', 'important');
+    }
+
+    function setVisible(){
+      syncFixedHeaderSpace();
+      lastState = 'visible';
+      topbar.classList.remove('v172HeaderHidden','v180HeaderHidden','epnHeaderHidden');
+      topbar.classList.add('v180HeaderVisible','epnHeaderVisible');
+      topbar.style.setProperty('transform', 'translate3d(0, 0, 0)', 'important');
+      topbar.style.setProperty('opacity', '1', 'important');
+      topbar.style.setProperty('visibility', 'visible', 'important');
+      topbar.style.setProperty('pointer-events', 'auto', 'important');
+    }
+
+    function setHidden(){
+      syncFixedHeaderSpace();
+      if(navOpen() || headerFocused() || getY() < HIDE_AFTER){
+        setVisible();
+        return;
+      }
+      lastState = 'hidden';
+      topbar.classList.remove('v180HeaderVisible','epnHeaderVisible');
+      topbar.classList.add('v172HeaderHidden','v180HeaderHidden','epnHeaderHidden');
+      topbar.style.setProperty('transform', 'translate3d(0, calc(-100% - 8px), 0)', 'important');
+      topbar.style.setProperty('opacity', '0.98', 'important');
+      topbar.style.setProperty('visibility', 'visible', 'important');
+      topbar.style.setProperty('pointer-events', 'none', 'important');
+    }
+
+    function apply(){
       ticking = false;
-      const y = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+      syncFixedHeaderSpace();
+      const y = getY();
       const delta = y - lastY;
+
       topbar.classList.toggle('v172MenuOpen', navOpen());
 
-      if(y < 70 || navOpen()){
-        showHeader();
-      } else if(delta > 8){
-        topbar.classList.add('v172HeaderHidden');
+      if(navOpen() || headerFocused() || y <= SHOW_AT_TOP){
+        setVisible();
       } else if(delta < 0){
-        showHeader();
+        // Már az első felfelé mozdulásnál visszajön.
+        setVisible();
+      } else if(delta > 0 && y > HIDE_AFTER){
+        setHidden();
+      } else if(lastState !== 'hidden'){
+        setVisible();
       }
 
       lastY = y;
     }
 
+    function requestApply(){
+      if(!ticking){
+        ticking = true;
+        window.requestAnimationFrame(apply);
+      }
+    }
+
+    // Egér / touchpad: felfelé görgetésnél azonnal mutatjuk, nem várunk a lap tetejéig.
     window.addEventListener('wheel', function(e){
-      if(e.deltaY < 0) showHeader();
+      if(navOpen()){
+        setVisible();
+        return;
+      }
+      if(e.deltaY < 0){
+        setVisible();
+      }
+      requestApply();
     }, { passive:true });
 
+    // Mobil: ha az ujj lefelé húz, a lap felfelé megy, ezért azonnal jelenjen meg a fejléc.
     window.addEventListener('touchstart', function(e){
-      lastTouchY = e.touches && e.touches.length ? e.touches[0].clientY : null;
+      if(e.touches && e.touches.length) lastTouchY = e.touches[0].clientY;
     }, { passive:true });
 
     window.addEventListener('touchmove', function(e){
-      const y = e.touches && e.touches.length ? e.touches[0].clientY : null;
-      if(y !== null && lastTouchY !== null && y > lastTouchY) showHeader();
-      lastTouchY = y;
+      if(!e.touches || !e.touches.length || lastTouchY === null){
+        requestApply();
+        return;
+      }
+      const currentTouchY = e.touches[0].clientY;
+      const fingerDelta = currentTouchY - lastTouchY;
+      if(navOpen()){
+        setVisible();
+      } else if(fingerDelta > 1){
+        setVisible();
+      }
+      lastTouchY = currentTouchY;
+      requestApply();
     }, { passive:true });
+
+    window.addEventListener('touchend', function(){
+      lastTouchY = null;
+      requestApply();
+    }, { passive:true });
+
+    window.addEventListener('scroll', requestApply, { passive:true });
+    window.addEventListener('resize', function(){ syncFixedHeaderSpace(); lastY = getY(); setVisible(); }, { passive:true });
+    window.addEventListener('focusin', setVisible);
 
     window.addEventListener('keydown', function(e){
-      if(['ArrowUp','PageUp','Home'].includes(e.key)) showHeader();
-    }, { passive:true });
-
-    window.addEventListener('scroll', function(){
-      if(!ticking){
-        ticking = true;
-        window.requestAnimationFrame(applyState);
+      if(['ArrowUp','PageUp','Home'].includes(e.key)){
+        setVisible();
       }
+      requestApply();
     }, { passive:true });
 
-    window.addEventListener('resize', showHeader, { passive:true });
-    window.addEventListener('focusin', showHeader);
-    document.addEventListener('click', function(){
-      setTimeout(applyState, 0);
+    document.addEventListener('click', function(e){
+      const btn = e.target && e.target.closest ? e.target.closest('.menuBtn') : null;
+      if(btn) setVisible();
+      setTimeout(requestApply, 0);
+      setTimeout(requestApply, 80);
     }, true);
-    showHeader();
+
+    const nav = getNav();
+    const btn = getMenuBtn();
+    try{
+      const observer = new MutationObserver(function(){
+        syncFixedHeaderSpace();
+        if(navOpen()) setVisible();
+        else requestApply();
+      });
+      observer.observe(topbar, { childList:true, subtree:true });
+      if(nav) observer.observe(nav, { attributes:true, attributeFilter:['class'] });
+      if(btn) observer.observe(btn, { attributes:true, attributeFilter:['aria-expanded'] });
+    }catch(_e){}
+
+    try{
+      if('ResizeObserver' in window){
+        const ro = new ResizeObserver(function(){ syncFixedHeaderSpace(); });
+        ro.observe(topbar);
+      }
+    }catch(_e){}
+
+    // Horgonyra ugrásnál ne takarja ki a Rendszerfunkciók tetejét.
+    document.addEventListener('click', function(e){
+      const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if(!a) return;
+      const href = a.getAttribute('href') || '';
+      const hashIndex = href.indexOf('#');
+      if(hashIndex === -1) return;
+      const hash = href.slice(hashIndex + 1);
+      if(!hash) return;
+      setTimeout(function(){
+        const target = document.getElementById(hash);
+        if(!target) return;
+        syncFixedHeaderSpace();
+        const h = headerHeight();
+        const top = target.getBoundingClientRect().top + getY() - h - 16;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
+        setVisible();
+        lastY = getY();
+      }, 70);
+    }, true);
+
+    syncFixedHeaderSpace();
+    setVisible();
+    lastY = getY();
+    setTimeout(syncFixedHeaderSpace, 250);
+    setTimeout(syncFixedHeaderSpace, 1000);
   });
 })();
