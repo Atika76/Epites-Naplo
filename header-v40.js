@@ -167,11 +167,10 @@
   });
 })();
 
-// ===== V182: mobil okos fejléc – lefelé rejt, visszagörgetésre azonnal mutat =====
+// ===== V183: egyszeru, stabil fejlec gorgetes minden kepernyon =====
 (function(){
-  if(window.__v182SmartScrollHeaderFix) return;
-  window.__v182SmartScrollHeaderFix = true;
-  window.__v172ScrollHeaderFix = true;
+  if(window.__v183ScrollHeaderOnlyFix) return;
+  window.__v183ScrollHeaderOnlyFix = true;
 
   function ready(fn){
     if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
@@ -184,91 +183,59 @@
 
     let lastY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
     let ticking = false;
-    let touchY = 0;
-    let forceVisibleUntil = 0;
-
-    function now(){ return Date.now ? Date.now() : new Date().getTime(); }
 
     function navOpen(){
       const nav = document.getElementById('nav') || topbar.querySelector('nav');
       return !!(nav && (nav.classList.contains('open') || nav.classList.contains('navOpen')));
     }
 
-    function showHeader(forceMs){
+    function showHeader(){
       topbar.classList.remove('v172HeaderHidden');
-      topbar.classList.add('v182HeaderVisible');
-      if(forceMs) forceVisibleUntil = now() + forceMs;
     }
 
     function hideHeader(){
-      if(navOpen()) return;
-      if(now() < forceVisibleUntil) return;
-      topbar.classList.remove('v182HeaderVisible');
       topbar.classList.add('v172HeaderHidden');
     }
 
-    function applyState(){
+    function applyScrollHeaderState(){
       ticking = false;
-      const y = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
-      const delta = y - lastY;
+      const currentY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+      const diff = currentY - lastY;
 
       topbar.classList.toggle('v172MenuOpen', navOpen());
 
-      // Fent, menünyitásnál vagy űrlapfókusznál mindig látszódjon.
-      if(y < 70 || navOpen() || document.activeElement?.closest?.('.topbar')){
-        showHeader(250);
+      // Mindig latszodjon a lap tetejen, nyitott menunel es beviteli mezonel.
+      if(currentY <= 40 || navOpen() || topbar.matches(':focus-within')){
+        showHeader();
+        lastY = currentY;
+        return;
       }
-      // Ha a felhasználó visszafelé indul a lap teteje felé, azonnal jelenjen meg.
-      else if(delta < -1){
-        showHeader(650);
-      }
-      // Lefelé haladva, a tartalmat olvasva rejtőzzön el, hogy ne foglalja a helyet.
-      else if(delta > 8 && y > 120){
+
+      // Lefelegorgetes: fejlec eltunik, hogy ne foglalja a helyet.
+      if(diff > 2){
         hideHeader();
       }
 
-      lastY = y;
+      // Felfelegorgetes: fejlec azonnal visszajon, hogy elerheto legyen a menu.
+      if(diff < -1){
+        showHeader();
+      }
+
+      lastY = currentY;
     }
 
-    function requestApply(){
+    function requestUpdate(){
       if(!ticking){
         ticking = true;
-        window.requestAnimationFrame(applyState);
+        window.requestAnimationFrame(applyScrollHeaderState);
       }
     }
 
-    window.addEventListener('scroll', requestApply, { passive:true });
+    window.addEventListener('scroll', requestUpdate, { passive:true });
+    window.addEventListener('resize', showHeader, { passive:true });
+    window.addEventListener('focusin', showHeader);
+    document.addEventListener('click', function(){ setTimeout(applyScrollHeaderState, 0); }, true);
 
-    // Mobilon a scroll esemény néha késve jön. Ha az ujj lefelé mozdul,
-    // az általában visszagörgetés a lap teteje felé: a fejlécet azonnal mutatjuk.
-    window.addEventListener('touchstart', function(e){
-      touchY = e.touches && e.touches[0] ? e.touches[0].clientY : 0;
-    }, { passive:true });
-
-    window.addEventListener('touchmove', function(e){
-      const y = e.touches && e.touches[0] ? e.touches[0].clientY : 0;
-      if(!touchY || !y) return;
-      const fingerDelta = y - touchY;
-      if(fingerDelta > 7){
-        showHeader(750);
-      }else if(fingerDelta < -14 && (window.scrollY || document.documentElement.scrollTop || 0) > 150 && !navOpen()){
-        hideHeader();
-      }
-      touchY = y;
-    }, { passive:true });
-
-    window.addEventListener('wheel', function(e){
-      if(e.deltaY < 0) showHeader(650);
-      else if(e.deltaY > 12 && (window.scrollY || document.documentElement.scrollTop || 0) > 150) hideHeader();
-    }, { passive:true });
-
-    window.addEventListener('resize', function(){ showHeader(350); }, { passive:true });
-    window.addEventListener('focusin', function(){ showHeader(800); });
-    document.addEventListener('click', function(){
-      if(navOpen()) showHeader(1000);
-      setTimeout(requestApply, 0);
-    }, true);
-
-    showHeader(300);
+    showHeader();
   });
 })();
