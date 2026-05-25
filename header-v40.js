@@ -167,10 +167,10 @@
   });
 })();
 
-// ===== V185: stabil fejlec gorgetes irany szerint =====
+// ===== V180-STABIL: CSAK fejléc görgetés irány szerint =====
 (function(){
-  if(window.__v185HeaderDirectionFix) return;
-  window.__v185HeaderDirectionFix = true;
+  if(window.__v180StableHeaderScrollFix) return;
+  window.__v180StableHeaderScrollFix = true;
 
   function ready(fn){
     if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
@@ -181,101 +181,134 @@
     const topbar = document.querySelector('.topbar');
     if(!topbar) return;
 
-    let lastScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0);
-    let lastTouchY = null;
+    const HIDE_AFTER_Y = 80;
+    const HIDE_DELTA = 6;
+    const SHOW_DELTA = 1;
+
+    let lastY = getScrollY();
+    let touchY = null;
     let ticking = false;
 
     function getScrollY(){
-      return Math.max(0, window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0);
+      return Math.max(
+        0,
+        window.scrollY ||
+        window.pageYOffset ||
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        0
+      );
     }
 
-    function navOpen(){
-      const nav = document.getElementById('nav') || topbar.querySelector('nav');
+    function getNav(){
+      return document.getElementById('nav') || topbar.querySelector('nav');
+    }
+
+    function isMenuOpen(){
+      const nav = getNav();
       return !!(nav && (nav.classList.contains('open') || nav.classList.contains('navOpen')));
     }
 
+    function markMenuState(){
+      topbar.classList.toggle('v172MenuOpen', isMenuOpen());
+    }
+
     function showHeader(){
-      topbar.classList.remove('v172HeaderHidden', 'v185HeaderHidden');
-      topbar.classList.add('v185HeaderVisible');
+      topbar.classList.remove('v172HeaderHidden', 'v185HeaderHidden', 'v180HeaderHidden');
+      topbar.classList.add('v185HeaderVisible', 'v180HeaderVisible');
+      topbar.style.setProperty('transform', 'translate3d(0,0,0)', 'important');
+      markMenuState();
     }
 
     function hideHeader(){
-      if(navOpen()) return;
-      if(getScrollY() < 90) return;
-      topbar.classList.remove('v185HeaderVisible');
-      topbar.classList.add('v185HeaderHidden');
+      markMenuState();
+      if(isMenuOpen()){
+        showHeader();
+        return;
+      }
+      if(getScrollY() <= HIDE_AFTER_Y){
+        showHeader();
+        return;
+      }
+      topbar.classList.remove('v185HeaderVisible', 'v180HeaderVisible');
+      topbar.classList.add('v185HeaderHidden', 'v180HeaderHidden');
+      topbar.style.setProperty('transform', 'translate3d(0, calc(-100% - 8px), 0)', 'important');
     }
 
     function applyScrollDirection(){
       ticking = false;
       const y = getScrollY();
-      const diff = y - lastScrollY;
+      const delta = y - lastY;
 
-      topbar.classList.toggle('v172MenuOpen', navOpen());
+      markMenuState();
 
-      if(y < 70 || navOpen()){
+      if(isMenuOpen() || y <= HIDE_AFTER_Y){
         showHeader();
-      } else if(diff > 4){
-        // Lefele gorgetes: a tartalom iranyaba megyunk, fejlec elbujik.
+      } else if(delta < -SHOW_DELTA){
+        // Felfelé görgetés: azonnali visszajelzés, nem várjuk meg az oldal tetejét.
+        showHeader();
+      } else if(delta > HIDE_DELTA){
+        // Lefelé görgetés: a fejléc elbújik, hogy több hely maradjon a tartalomnak.
         hideHeader();
-      } else if(diff < -1){
-        // Felfele gorgetes: AZONNAL jelenjen meg, ne csak az oldal tetejen.
-        showHeader();
       }
 
-      lastScrollY = y;
+      lastY = y;
     }
 
-    function scheduleApply(){
-      if(!ticking){
-        ticking = true;
-        requestAnimationFrame(applyScrollDirection);
-      }
+    function requestApply(){
+      if(ticking) return;
+      ticking = true;
+      requestAnimationFrame(applyScrollDirection);
     }
 
-    // Scroll alapú iranyfigyeles.
-    window.addEventListener('scroll', scheduleApply, { passive:true });
+    // A fő logika: mindig a tényleges scroll pozíciót hasonlítja az előzőhöz.
+    window.addEventListener('scroll', requestApply, { passive:true });
 
-    // Egergorgetes / touchpad: mar a gesztus elejen visszahozza a fejlecet.
+    // Desktop egér / touchpad: felfelé mozdításnál már a görgetés elején megjelenik.
     window.addEventListener('wheel', function(e){
       if(!e) return;
-      if(e.deltaY < -1){
-        showHeader();
-      } else if(e.deltaY > 5){
-        hideHeader();
-      }
-      lastScrollY = getScrollY();
+      if(e.deltaY < -SHOW_DELTA) showHeader();
+      else if(e.deltaY > HIDE_DELTA) hideHeader();
     }, { passive:true });
 
-    // Mobil ujjmozdulat: ha az ujj lefele mozog, az oldal felfele gorget, a fejlec jojjon vissza.
+    // Mobil: az ujj lefelé húzása az oldal felfelé görgetését jelenti, ezért azonnal visszahozzuk a fejlécet.
     window.addEventListener('touchstart', function(e){
-      if(e.touches && e.touches.length) lastTouchY = e.touches[0].clientY;
+      if(e.touches && e.touches.length) touchY = e.touches[0].clientY;
     }, { passive:true });
 
     window.addEventListener('touchmove', function(e){
-      if(!e.touches || !e.touches.length || lastTouchY === null) return;
-      const currentTouchY = e.touches[0].clientY;
-      const touchDiff = currentTouchY - lastTouchY;
-      if(touchDiff > 2){
-        showHeader();
-      } else if(touchDiff < -6){
-        hideHeader();
-      }
-      lastTouchY = currentTouchY;
-      lastScrollY = getScrollY();
+      if(!e.touches || !e.touches.length || touchY === null) return;
+      const currentY = e.touches[0].clientY;
+      const fingerDelta = currentY - touchY;
+      if(fingerDelta > SHOW_DELTA) showHeader();
+      else if(fingerDelta < -HIDE_DELTA) hideHeader();
+      touchY = currentY;
     }, { passive:true });
 
-    window.addEventListener('touchend', function(){ lastTouchY = null; }, { passive:true });
-    window.addEventListener('resize', showHeader, { passive:true });
+    window.addEventListener('touchend', function(){ touchY = null; }, { passive:true });
+    window.addEventListener('touchcancel', function(){ touchY = null; }, { passive:true });
+    window.addEventListener('resize', function(){ lastY = getScrollY(); showHeader(); }, { passive:true });
     window.addEventListener('focusin', showHeader);
 
-    // Menü nyitáskor ne maradjon elbújva.
+    // Ha a hamburger menü kinyílik, a fejléc soha ne maradjon elbújva.
     document.addEventListener('click', function(e){
-      if(e.target && e.target.closest && e.target.closest('.menuBtn')) showHeader();
-      setTimeout(scheduleApply, 0);
+      if(e.target && e.target.closest && e.target.closest('.menuBtn')){
+        showHeader();
+        setTimeout(showHeader, 0);
+      } else {
+        setTimeout(requestApply, 0);
+      }
     }, true);
 
-    // Induláskor legyen látható.
+    const nav = getNav();
+    if(nav && window.MutationObserver){
+      new MutationObserver(function(){
+        if(isMenuOpen()) showHeader();
+        else markMenuState();
+      }).observe(nav, { attributes:true, attributeFilter:['class'] });
+    }
+
+    // Induláskor mindig látható legyen.
     showHeader();
   });
 })();
