@@ -2739,3 +2739,57 @@ section[id],main[id],.card[id],.projectPageShell[id],#systemFeatures,#naplo{
     white-space:nowrap!important;
   }
 }
+
+
+/* ===== V180 mobile hamburger embedded jumpbar fix ===== */
+@media (max-width:700px){
+  .topbar nav#nav{
+    padding-right:148px!important;
+    position:absolute!important;
+  }
+  .topbar nav#nav #v174JumpBar,
+  .topbar nav#nav .v174JumpBar{
+    position:absolute!important;
+    top:14px!important;
+    right:12px!important;
+    bottom:14px!important;
+    left:auto!important;
+    transform:none!important;
+    width:122px!important;
+    max-width:122px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    flex-wrap:nowrap!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+    padding:0!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    border:none!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+    scrollbar-width:none!important;
+  }
+  .topbar nav#nav #v174JumpBar::-webkit-scrollbar,
+  .topbar nav#nav .v174JumpBar::-webkit-scrollbar{display:none!important;}
+  .topbar nav#nav #v174JumpBar button,
+  .topbar nav#nav .v174JumpBar button{
+    width:100%!important;
+    min-width:0!important;
+    min-height:36px!important;
+    padding:9px 12px!important;
+    justify-content:flex-start!important;
+    text-align:left!important;
+    font-size:12px!important;
+    line-height:1.1!important;
+    border:none!important;
+    border-radius:999px!important;
+    background:rgba(15,23,42,.72)!important;
+    box-shadow:none!important;
+    white-space:nowrap!important;
+  }
+}

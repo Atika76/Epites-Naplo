@@ -124,25 +124,41 @@
     });
   }
 
+  function isMobileJumpBar(){
+    return !!(window.matchMedia && window.matchMedia('(max-width: 700px)').matches);
+  }
+
+  function mountJumpBar(bar){
+    if(!bar) return;
+    const nav = $('#nav');
+    if(isMobileJumpBar() && nav){
+      if(bar.parentElement !== nav) nav.appendChild(bar);
+      return;
+    }
+    if(bar.parentElement !== document.body) document.body.appendChild(bar);
+  }
+
   function buildJumpBar(){
-    if($('#v174JumpBar')) return;
-    const bar = document.createElement('nav');
-    bar.id = 'v174JumpBar';
-    bar.className = 'v174JumpBar';
-    bar.setAttribute('aria-label','Projekt gyorsmenü');
-    bar.innerHTML = `
-      <button type="button" data-target="v33QuickPanel">Gyors</button>
-      <button type="button" data-target="dailyFormCard">Napló</button>
-      <button type="button" data-target="v174ProjectSummaryCard">Projekt</button>
-      <button type="button" data-target="v173ClientCollabPanel">Ügyfél</button>
-      <button type="button" data-target="v174TimelineCard">Idővonal</button>
-    `;
-    bar.addEventListener('click', (ev) => {
-      const btn = ev.target.closest('button[data-target]');
-      if(!btn) return;
-      openAndScroll(btn.dataset.target);
-    });
-    document.body.appendChild(bar);
+    let bar = $('#v174JumpBar');
+    if(!bar){
+      bar = document.createElement('nav');
+      bar.id = 'v174JumpBar';
+      bar.className = 'v174JumpBar';
+      bar.setAttribute('aria-label','Projekt gyorsmenü');
+      bar.innerHTML = `
+        <button type="button" data-target="v33QuickPanel">Gyors</button>
+        <button type="button" data-target="dailyFormCard">Napló</button>
+        <button type="button" data-target="v174ProjectSummaryCard">Projekt</button>
+        <button type="button" data-target="v173ClientCollabPanel">Ügyfél</button>
+        <button type="button" data-target="v174TimelineCard">Idővonal</button>
+      `;
+      bar.addEventListener('click', (ev) => {
+        const btn = ev.target.closest('button[data-target]');
+        if(!btn) return;
+        openAndScroll(btn.dataset.target);
+      });
+    }
+    mountJumpBar(bar);
   }
 
   function patchExistingButtons(){
@@ -163,6 +179,7 @@
     buildAccordions();
     buildJumpBar();
     patchExistingButtons();
+    window.addEventListener('resize', buildJumpBar, { passive:true });
 
     const mo = new MutationObserver(() => buildAccordions());
     const shell = $('.projectPageShell') || document.body;
