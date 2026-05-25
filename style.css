@@ -2677,3 +2677,14 @@ section[id],main[id],.card[id],.projectPageShell[id],#systemFeatures,#naplo{
     min-height:34px!important;
   }
 }
+
+
+/* ===== V180 compact transparent jump bar fix ===== */
+.v174JumpBar{position:fixed!important;left:50%!important;bottom:8px!important;transform:translateX(-50%)!important;z-index:99990!important;display:flex!important;gap:4px!important;align-items:center!important;justify-content:center!important;max-width:min(94vw,560px)!important;padding:4px 6px!important;border:none!important;border-radius:999px!important;background:rgba(2,6,23,.24)!important;backdrop-filter:blur(6px)!important;-webkit-backdrop-filter:blur(6px)!important;box-shadow:none!important;overflow-x:auto!important;scrollbar-width:none!important;}
+.v174JumpBar::-webkit-scrollbar{display:none!important;}
+.v174JumpBar button{border:none!important;border-radius:999px!important;background:rgba(15,23,42,.72)!important;color:#e2e8f0!important;font-weight:800!important;font-size:11px!important;line-height:1!important;padding:7px 9px!important;min-height:30px!important;box-shadow:none!important;white-space:nowrap!important;opacity:.96!important;}
+.v174JumpBar button:hover,.v174JumpBar button:focus-visible{background:rgba(245,158,11,.92)!important;color:#111827!important;outline:none!important;}
+@media(max-width:700px){
+  .v174JumpBar{bottom:6px!important;width:auto!important;max-width:calc(100vw - 18px)!important;padding:3px 5px!important;gap:3px!important;background:rgba(2,6,23,.14)!important;}
+  .v174JumpBar button{font-size:10px!important;padding:6px 8px!important;min-height:28px!important;}
+}
