@@ -498,7 +498,7 @@ async function saveDailyEntry() {
   const selectedVideos = Array.from(qs('detailVideos')?.files || []).filter(isSupportedVideoFile);
   const videos = await v180UploadDailyVideosDirect(qs('detailVideos')?.files, 2);
   if (selectedVideos.length && !videos.length) {
-    alert('A videó nem lett feltöltve, ezért a bejegyzést nem mentettem videó nélkül. Futtasd a V44 SQL-t, majd próbáld újra.');
+    alert('A videó nem lett feltöltve, ezért a bejegyzést nem mentettem videó nélkül. Próbálj rövidebb MP4 videót, vagy ellenőrizd a project-videos Supabase bucket/RLS beállítást.');
     throw new Error('Videó feltöltés sikertelen.');
   }
   const images = [...beforeImages, ...afterImages, ...generalImages];
@@ -2438,8 +2438,13 @@ buildProReportHtml = function(entries, title, options = {}) {
     status.innerHTML = '<b>Kiegészítés mentése...</b><br>Képek és videók feldolgozása.';
     try {
       const images = await readFilesAsDataUrls(imgFiles, 8);
-      const videos = await uploadVideoFilesToStorage(vidFiles, 3);
-      if (vidFiles.length && !videos.length) throw new Error('A videó nem lett feltöltve. Futtasd a V44 SQL-t, majd próbáld újra.');
+      let videos = [];
+      if (vidFiles.length) {
+        videos = typeof window.v180UploadDailyVideosDirect === 'function'
+          ? await window.v180UploadDailyVideosDirect(vidFiles, 3)
+          : await uploadVideoFilesToStorage(vidFiles, 3);
+      }
+      if (vidFiles.length && !videos.length) throw new Error('A videó nem lett feltöltve. Próbálj rövidebb MP4 videót, vagy ellenőrizd a project-videos Supabase bucket/RLS beállítást.');
       const supplementText = text || `${images.length ? images.length + ' kép' : ''}${images.length && videos.length ? ', ' : ''}${videos.length ? videos.length + ' videó' : ''} hozzáadva.`;
       const analysis = analyzeEntry({ note: `${entry.note || ''}\n${supplementText}`, phase: entry.phase || '', status: entry.status || '', priority: entry.priority || '' });
       const saved = await window.EpitesNaploAPI.appendEntrySupplement(entryId, supplementText, analysis, { images, videos });

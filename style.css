@@ -2877,3 +2877,194 @@ section[id],main[id],.card[id],.projectPageShell[id],#systemFeatures,#naplo{
   .topbar nav#nav > #v174JumpBar button,
   .topbar nav#nav > .v174JumpBar button{font-size:11px!important;padding:8px 10px!important;min-height:34px!important;}
 }
+
+
+/* ===== V180 hamburger right text menu final fix ===== */
+@media (max-width:860px){
+  .topbar nav#nav.hasV174JumpBar{
+    padding-right:138px!important;
+    position:absolute!important;
+  }
+  .topbar nav#nav.hasV174JumpBar > a,
+  .topbar nav#nav.hasV174JumpBar > button:not(.menuBtn),
+  .topbar nav#nav.hasV174JumpBar > .adminPill{
+    width:calc(100% - 128px)!important;
+    max-width:calc(100% - 128px)!important;
+  }
+  .topbar nav#nav.hasV174JumpBar > #v174JumpBar.v174InMenu,
+  .topbar nav#nav.hasV174JumpBar > .v174JumpBar.v174InMenu{
+    position:absolute!important;
+    top:28px!important;
+    right:18px!important;
+    bottom:28px!important;
+    left:auto!important;
+    transform:none!important;
+    width:104px!important;
+    max-width:104px!important;
+    min-width:0!important;
+    height:auto!important;
+    display:flex!important;
+    flex-direction:column!important;
+    flex-wrap:nowrap!important;
+    align-items:flex-start!important;
+    justify-content:flex-start!important;
+    gap:22px!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  .topbar nav#nav.hasV174JumpBar > #v174JumpBar.v174InMenu .v174JumpItem,
+  .topbar nav#nav.hasV174JumpBar > .v174JumpBar.v174InMenu .v174JumpItem{
+    display:block!important;
+    width:auto!important;
+    max-width:100%!important;
+    min-height:0!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    color:#e5e7eb!important;
+    font-size:16px!important;
+    font-weight:900!important;
+    line-height:1.15!important;
+    text-align:left!important;
+    white-space:nowrap!important;
+    cursor:pointer!important;
+  }
+  .topbar nav#nav.hasV174JumpBar > #v174JumpBar.v174InMenu .v174JumpItem:hover,
+  .topbar nav#nav.hasV174JumpBar > .v174JumpBar.v174InMenu .v174JumpItem:hover,
+  .topbar nav#nav.hasV174JumpBar > #v174JumpBar.v174InMenu .v174JumpItem:focus-visible,
+  .topbar nav#nav.hasV174JumpBar > .v174JumpBar.v174InMenu .v174JumpItem:focus-visible{
+    color:#f59e0b!important;
+    outline:none!important;
+  }
+}
+@media (max-width:430px){
+  .topbar nav#nav.hasV174JumpBar{padding-right:126px!important;}
+  .topbar nav#nav.hasV174JumpBar > a,
+  .topbar nav#nav.hasV174JumpBar > button:not(.menuBtn),
+  .topbar nav#nav.hasV174JumpBar > .adminPill{width:calc(100% - 116px)!important;max-width:calc(100% - 116px)!important;}
+  .topbar nav#nav.hasV174JumpBar > #v174JumpBar.v174InMenu,
+  .topbar nav#nav.hasV174JumpBar > .v174JumpBar.v174InMenu{width:92px!important;max-width:92px!important;right:14px!important;gap:21px!important;}
+  .topbar nav#nav.hasV174JumpBar > #v174JumpBar.v174InMenu .v174JumpItem,
+  .topbar nav#nav.hasV174JumpBar > .v174JumpBar.v174InMenu .v174JumpItem{font-size:15px!important;}
+}
+
+
+/* ===== V180 hamburger two-column text menu final clean ===== */
+@media (max-width:860px){
+  .topbar nav#nav.hasV174JumpBar.open,
+  .topbar nav#nav.hasV174JumpBar.navOpen{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 112px!important;
+    column-gap:18px!important;
+    row-gap:0!important;
+    align-items:start!important;
+    justify-content:stretch!important;
+    padding:18px 18px!important;
+    padding-right:18px!important;
+  }
+  .topbar nav#nav.hasV174JumpBar.open > a,
+  .topbar nav#nav.hasV174JumpBar.navOpen > a,
+  .topbar nav#nav.hasV174JumpBar.open > button:not(.menuBtn),
+  .topbar nav#nav.hasV174JumpBar.navOpen > button:not(.menuBtn),
+  .topbar nav#nav.hasV174JumpBar.open > .adminPill,
+  .topbar nav#nav.hasV174JumpBar.navOpen > .adminPill{
+    grid-column:1!important;
+    position:static!important;
+    display:block!important;
+    width:auto!important;
+    max-width:none!important;
+    min-height:0!important;
+    margin:0 0 18px 0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    color:#cbd5e1!important;
+    font-size:18px!important;
+    line-height:1.15!important;
+    font-weight:500!important;
+    text-align:left!important;
+  }
+  .topbar nav#nav.hasV174JumpBar.open > button:not(.menuBtn),
+  .topbar nav#nav.hasV174JumpBar.navOpen > button:not(.menuBtn){
+    font-weight:900!important;
+    color:#f8fafc!important;
+  }
+  .topbar nav#nav.hasV174JumpBar.open > #v174JumpBar.v174InMenu,
+  .topbar nav#nav.hasV174JumpBar.navOpen > #v174JumpBar.v174InMenu,
+  .topbar nav#nav.hasV174JumpBar.open > .v174JumpBar.v174InMenu,
+  .topbar nav#nav.hasV174JumpBar.navOpen > .v174JumpBar.v174InMenu{
+    grid-column:2!important;
+    grid-row:1 / span 20!important;
+    position:static!important;
+    inset:auto!important;
+    transform:none!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:flex-start!important;
+    width:auto!important;
+    max-width:none!important;
+    height:auto!important;
+    margin:0!important;
+    padding:0!important;
+    gap:22px!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+    overflow:visible!important;
+  }
+  .topbar nav#nav.hasV174JumpBar.open > #v174JumpBar.v174InMenu .v174JumpItem,
+  .topbar nav#nav.hasV174JumpBar.navOpen > #v174JumpBar.v174InMenu .v174JumpItem,
+  .topbar nav#nav.hasV174JumpBar.open > .v174JumpBar.v174InMenu .v174JumpItem,
+  .topbar nav#nav.hasV174JumpBar.navOpen > .v174JumpBar.v174InMenu .v174JumpItem{
+    display:block!important;
+    width:auto!important;
+    max-width:none!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    color:#f8fafc!important;
+    font-size:16px!important;
+    font-weight:900!important;
+    line-height:1.15!important;
+    text-align:left!important;
+    white-space:nowrap!important;
+  }
+}
+@media (max-width:430px){
+  .topbar nav#nav.hasV174JumpBar.open,
+  .topbar nav#nav.hasV174JumpBar.navOpen{grid-template-columns:minmax(0,1fr) 98px!important;column-gap:12px!important;padding:16px 16px!important;}
+  .topbar nav#nav.hasV174JumpBar.open > a,
+  .topbar nav#nav.hasV174JumpBar.navOpen > a,
+  .topbar nav#nav.hasV174JumpBar.open > button:not(.menuBtn),
+  .topbar nav#nav.hasV174JumpBar.navOpen > button:not(.menuBtn),
+  .topbar nav#nav.hasV174JumpBar.open > .adminPill,
+  .topbar nav#nav.hasV174JumpBar.navOpen > .adminPill{font-size:17px!important;margin-bottom:17px!important;}
+  .topbar nav#nav.hasV174JumpBar.open > #v174JumpBar.v174InMenu,
+  .topbar nav#nav.hasV174JumpBar.navOpen > #v174JumpBar.v174InMenu,
+  .topbar nav#nav.hasV174JumpBar.open > .v174JumpBar.v174InMenu,
+  .topbar nav#nav.hasV174JumpBar.navOpen > .v174JumpBar.v174InMenu{gap:22px!important;}
+  .topbar nav#nav.hasV174JumpBar.open > #v174JumpBar.v174InMenu .v174JumpItem,
+  .topbar nav#nav.hasV174JumpBar.navOpen > #v174JumpBar.v174InMenu .v174JumpItem,
+  .topbar nav#nav.hasV174JumpBar.open > .v174JumpBar.v174InMenu .v174JumpItem,
+  .topbar nav#nav.hasV174JumpBar.navOpen > .v174JumpBar.v174InMenu .v174JumpItem{font-size:15px!important;}
+}

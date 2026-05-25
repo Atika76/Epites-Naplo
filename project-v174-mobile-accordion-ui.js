@@ -132,9 +132,13 @@
     if(!bar) return;
     const nav = $('#nav');
     if(isMobileJumpBar() && nav){
+      bar.classList.add('v174InMenu');
+      nav.classList.add('hasV174JumpBar');
       if(bar.parentElement !== nav) nav.appendChild(bar);
       return;
     }
+    bar.classList.remove('v174InMenu');
+    if(nav) nav.classList.remove('hasV174JumpBar');
     if(bar.parentElement !== document.body) document.body.appendChild(bar);
   }
 
@@ -146,15 +150,22 @@
       bar.className = 'v174JumpBar';
       bar.setAttribute('aria-label','Projekt gyorsmenü');
       bar.innerHTML = `
-        <button type="button" data-target="v33QuickPanel">Gyors</button>
-        <button type="button" data-target="dailyFormCard">Napló</button>
-        <button type="button" data-target="v174ProjectSummaryCard">Projekt</button>
-        <button type="button" data-target="v173ClientCollabPanel">Ügyfél</button>
-        <button type="button" data-target="v174TimelineCard">Idővonal</button>
+        <span class="v174JumpItem" role="button" tabindex="0" data-target="v33QuickPanel">Gyors</span>
+        <span class="v174JumpItem" role="button" tabindex="0" data-target="dailyFormCard">Napló</span>
+        <span class="v174JumpItem" role="button" tabindex="0" data-target="v174ProjectSummaryCard">Projekt</span>
+        <span class="v174JumpItem" role="button" tabindex="0" data-target="v173ClientCollabPanel">Ügyfél</span>
+        <span class="v174JumpItem" role="button" tabindex="0" data-target="v174TimelineCard">Idővonal</span>
       `;
       bar.addEventListener('click', (ev) => {
-        const btn = ev.target.closest('button[data-target]');
+        const btn = ev.target.closest('[data-target]');
         if(!btn) return;
+        openAndScroll(btn.dataset.target);
+      });
+      bar.addEventListener('keydown', (ev) => {
+        if(ev.key !== 'Enter' && ev.key !== ' ') return;
+        const btn = ev.target.closest('[data-target]');
+        if(!btn) return;
+        ev.preventDefault();
         openAndScroll(btn.dataset.target);
       });
     }
