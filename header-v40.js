@@ -190,6 +190,17 @@
 
     function showHeader(){
       topbar.classList.remove('v172HeaderHidden');
+      topbar.style.setProperty('position', 'fixed', 'important');
+      topbar.style.setProperty('top', '0', 'important');
+      topbar.style.setProperty('left', '0', 'important');
+      topbar.style.setProperty('right', '0', 'important');
+      topbar.style.setProperty('width', '100%', 'important');
+      topbar.style.setProperty('z-index', '2147483000', 'important');
+      topbar.style.setProperty('transform', 'none', 'important');
+      topbar.style.setProperty('opacity', '1', 'important');
+      topbar.style.setProperty('visibility', 'visible', 'important');
+      document.body.classList.add('hasFixedTopbar');
+      document.documentElement.style.setProperty('--fixed-topbar-space', Math.ceil(topbar.getBoundingClientRect().height || 76) + 'px');
     }
 
     function applyState(){
@@ -226,5 +237,6 @@
     document.addEventListener('click', function(){
       setTimeout(applyState, 0);
     }, true);
+    showHeader();
   });
 })();
