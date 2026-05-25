@@ -182,6 +182,7 @@
     if(!topbar) return;
 
     let lastY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+    let lastTouchY = null;
     let ticking = false;
 
     function navOpen(){
@@ -191,6 +192,10 @@
 
     function showHeader(){
       topbar.classList.remove('v172HeaderHidden');
+    }
+
+    function revealOnBackScroll(){
+      if(topbar.classList.contains('v172HeaderHidden')) showHeader();
     }
 
     function applyState(){
@@ -204,12 +209,30 @@
         showHeader();
       } else if(delta > 7){
         topbar.classList.add('v172HeaderHidden');
-      } else if(delta < -1){
+      } else if(delta < 0){
         showHeader();
       }
 
       lastY = y;
     }
+
+    window.addEventListener('wheel', function(e){
+      if(e.deltaY < 0) revealOnBackScroll();
+    }, { passive:true });
+
+    window.addEventListener('touchstart', function(e){
+      lastTouchY = e.touches && e.touches.length ? e.touches[0].clientY : null;
+    }, { passive:true });
+
+    window.addEventListener('touchmove', function(e){
+      const y = e.touches && e.touches.length ? e.touches[0].clientY : null;
+      if(y !== null && lastTouchY !== null && y > lastTouchY) revealOnBackScroll();
+      lastTouchY = y;
+    }, { passive:true });
+
+    window.addEventListener('keydown', function(e){
+      if(['ArrowUp','PageUp','Home'].includes(e.key)) revealOnBackScroll();
+    }, { passive:true });
 
     window.addEventListener('scroll', function(){
       if(!ticking){
