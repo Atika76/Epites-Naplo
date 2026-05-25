@@ -3068,3 +3068,126 @@ section[id],main[id],.card[id],.projectPageShell[id],#systemFeatures,#naplo{
   .topbar nav#nav.hasV174JumpBar.open > .v174JumpBar.v174InMenu .v174JumpItem,
   .topbar nav#nav.hasV174JumpBar.navOpen > .v174JumpBar.v174InMenu .v174JumpItem{font-size:15px!important;}
 }
+
+/* ===== V181 végleges: hamburger jobb oldali gyorsmenü mindig külön oszlopban ===== */
+@media (max-width:860px){
+  body .topbar nav#nav.hasV174JumpBar.open,
+  body .topbar nav#nav.hasV174JumpBar.navOpen{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 112px!important;
+    column-gap:16px!important;
+    row-gap:0!important;
+    align-items:start!important;
+    justify-content:stretch!important;
+    padding:17px 16px!important;
+    overflow:auto!important;
+    max-height:calc(100vh - 58px)!important;
+  }
+  body .topbar nav#nav.hasV174JumpBar.open > a,
+  body .topbar nav#nav.hasV174JumpBar.navOpen > a,
+  body .topbar nav#nav.hasV174JumpBar.open > button:not(.menuBtn):not(.v174JumpItem),
+  body .topbar nav#nav.hasV174JumpBar.navOpen > button:not(.menuBtn):not(.v174JumpItem),
+  body .topbar nav#nav.hasV174JumpBar.open > .adminPill,
+  body .topbar nav#nav.hasV174JumpBar.navOpen > .adminPill{
+    grid-column:1!important;
+    width:auto!important;
+    max-width:none!important;
+    min-height:0!important;
+    margin:0 0 17px 0!important;
+    padding:0!important;
+    display:block!important;
+    text-align:left!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    color:#cbd5e1!important;
+    font-size:18px!important;
+    line-height:1.15!important;
+    font-weight:600!important;
+  }
+  body .topbar nav#nav.hasV174JumpBar.open > #v174JumpBar.v174InMenu,
+  body .topbar nav#nav.hasV174JumpBar.navOpen > #v174JumpBar.v174InMenu,
+  body .topbar nav#nav.hasV174JumpBar.open > .v174JumpBar.v174InMenu,
+  body .topbar nav#nav.hasV174JumpBar.navOpen > .v174JumpBar.v174InMenu{
+    grid-column:2!important;
+    grid-row:1 / span 30!important;
+    position:static!important;
+    inset:auto!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    transform:none!important;
+    width:auto!important;
+    max-width:none!important;
+    min-width:0!important;
+    height:auto!important;
+    margin:0!important;
+    padding:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:flex-start!important;
+    gap:21px!important;
+    overflow:visible!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  body .topbar nav#nav.hasV174JumpBar.open #v174JumpBar.v174InMenu .v174JumpItem,
+  body .topbar nav#nav.hasV174JumpBar.navOpen #v174JumpBar.v174InMenu .v174JumpItem,
+  body .topbar nav#nav.hasV174JumpBar.open .v174JumpBar.v174InMenu .v174JumpItem,
+  body .topbar nav#nav.hasV174JumpBar.navOpen .v174JumpBar.v174InMenu .v174JumpItem{
+    display:block!important;
+    width:auto!important;
+    max-width:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    height:auto!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    color:#f8fafc!important;
+    font-size:16px!important;
+    font-weight:900!important;
+    line-height:1.15!important;
+    text-align:left!important;
+    white-space:nowrap!important;
+    cursor:pointer!important;
+  }
+  body .topbar nav#nav.hasV174JumpBar.open #v174JumpBar.v174InMenu .v174JumpItem:hover,
+  body .topbar nav#nav.hasV174JumpBar.navOpen #v174JumpBar.v174InMenu .v174JumpItem:hover,
+  body .topbar nav#nav.hasV174JumpBar.open #v174JumpBar.v174InMenu .v174JumpItem:focus-visible,
+  body .topbar nav#nav.hasV174JumpBar.navOpen #v174JumpBar.v174InMenu .v174JumpItem:focus-visible{
+    color:#f59e0b!important;
+    outline:none!important;
+  }
+}
+@media (max-width:430px){
+  body .topbar nav#nav.hasV174JumpBar.open,
+  body .topbar nav#nav.hasV174JumpBar.navOpen{
+    grid-template-columns:minmax(0,1fr) 94px!important;
+    column-gap:11px!important;
+    padding:16px 14px!important;
+  }
+  body .topbar nav#nav.hasV174JumpBar.open > a,
+  body .topbar nav#nav.hasV174JumpBar.navOpen > a,
+  body .topbar nav#nav.hasV174JumpBar.open > button:not(.menuBtn):not(.v174JumpItem),
+  body .topbar nav#nav.hasV174JumpBar.navOpen > button:not(.menuBtn):not(.v174JumpItem),
+  body .topbar nav#nav.hasV174JumpBar.open > .adminPill,
+  body .topbar nav#nav.hasV174JumpBar.navOpen > .adminPill{
+    font-size:17px!important;
+    margin-bottom:17px!important;
+  }
+  body .topbar nav#nav.hasV174JumpBar.open #v174JumpBar.v174InMenu .v174JumpItem,
+  body .topbar nav#nav.hasV174JumpBar.navOpen #v174JumpBar.v174InMenu .v174JumpItem{
+    font-size:15px!important;
+  }
+}

@@ -128,10 +128,39 @@
     return !!(window.matchMedia && window.matchMedia('(max-width: 860px)').matches);
   }
 
+  function getMainNav(){
+    return document.getElementById('nav') || document.querySelector('.topbar nav');
+  }
+
+  function createJumpBar(){
+    const bar = document.createElement('nav');
+    bar.id = 'v174JumpBar';
+    bar.className = 'v174JumpBar';
+    bar.setAttribute('aria-label','Projekt gyorsmenü');
+    bar.innerHTML = `
+      <button class="v174JumpItem" type="button" data-target="v33QuickPanel">Gyors</button>
+      <button class="v174JumpItem" type="button" data-target="dailyFormCard">Napló</button>
+      <button class="v174JumpItem" type="button" data-target="v174ProjectSummaryCard">Projekt</button>
+      <button class="v174JumpItem" type="button" data-target="v173ClientCollabPanel">Ügyfél</button>
+      <button class="v174JumpItem" type="button" data-target="v174TimelineCard">Idővonal</button>
+    `;
+    bar.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-target]');
+      if(!btn) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      openAndScroll(btn.dataset.target);
+      try{ window.closeMobileMenu?.(); }catch(_){}
+    });
+    return bar;
+  }
+
   function mountJumpBar(bar){
     if(!bar) return;
-    const nav = $('#nav');
+    const nav = getMainNav();
     if(isMobileJumpBar() && nav){
+      // V181: a gyors projekt menü mindig a hamburger menü jobb oldali oszlopában marad.
+      // A fejléc auth-frissítése néha újrarajzolja a nav tartalmát, ezért itt minden hívásnál visszatesszük.
       bar.classList.add('v174InMenu');
       nav.classList.add('hasV174JumpBar');
       if(bar.parentElement !== nav) nav.appendChild(bar);
@@ -143,31 +172,15 @@
   }
 
   function buildJumpBar(){
-    let bar = $('#v174JumpBar');
-    if(!bar){
-      bar = document.createElement('nav');
-      bar.id = 'v174JumpBar';
-      bar.className = 'v174JumpBar';
-      bar.setAttribute('aria-label','Projekt gyorsmenü');
-      bar.innerHTML = `
-        <span class="v174JumpItem" role="button" tabindex="0" data-target="v33QuickPanel">Gyors</span>
-        <span class="v174JumpItem" role="button" tabindex="0" data-target="dailyFormCard">Napló</span>
-        <span class="v174JumpItem" role="button" tabindex="0" data-target="v174ProjectSummaryCard">Projekt</span>
-        <span class="v174JumpItem" role="button" tabindex="0" data-target="v173ClientCollabPanel">Ügyfél</span>
-        <span class="v174JumpItem" role="button" tabindex="0" data-target="v174TimelineCard">Idővonal</span>
-      `;
-      bar.addEventListener('click', (ev) => {
-        const btn = ev.target.closest('[data-target]');
-        if(!btn) return;
-        openAndScroll(btn.dataset.target);
-      });
-      bar.addEventListener('keydown', (ev) => {
-        if(ev.key !== 'Enter' && ev.key !== ' ') return;
-        const btn = ev.target.closest('[data-target]');
-        if(!btn) return;
-        ev.preventDefault();
-        openAndScroll(btn.dataset.target);
-      });
+    let bar = document.getElementById('v174JumpBar');
+    if(!bar) bar = createJumpBar();
+
+    // Biztonsági ellenőrzés: ha régi ZIP/cache miatt sérült vagy hiányos a menü, újraépítjük.
+    const expected = ['Gyors','Napló','Projekt','Ügyfél','Idővonal'];
+    const actual = Array.from(bar.querySelectorAll('[data-target]')).map(x => (x.textContent || '').trim());
+    if(expected.some(label => !actual.includes(label))){
+      bar.replaceWith(createJumpBar());
+      bar = document.getElementById('v174JumpBar') || createJumpBar();
     }
     mountJumpBar(bar);
   }
@@ -190,14 +203,30 @@
     buildAccordions();
     buildJumpBar();
     patchExistingButtons();
-    window.addEventListener('resize', buildJumpBar, { passive:true });
+
+    let jumpBarTimer = null;
+    function scheduleJumpBar(){
+      clearTimeout(jumpBarTimer);
+      jumpBarTimer = setTimeout(() => { buildAccordions(); buildJumpBar(); }, 25);
+    }
+
+    window.addEventListener('resize', scheduleJumpBar, { passive:true });
+    window.addEventListener('orientationchange', scheduleJumpBar, { passive:true });
+    window.addEventListener('hashchange', scheduleJumpBar, { passive:true });
     document.addEventListener('click', (ev) => {
-      if(ev.target.closest('.menuBtn')) setTimeout(buildJumpBar, 30);
+      if(ev.target.closest('.menuBtn')) setTimeout(buildJumpBar, 0);
     }, true);
 
-    const mo = new MutationObserver(() => { buildAccordions(); buildJumpBar(); });
+    // V181: nem csak a projekt tartalmát figyeljük, hanem a fejlécet is,
+    // mert a bejelentkezési állapot frissítése felülírhatja a hamburger menü HTML-jét.
+    const mo = new MutationObserver(scheduleJumpBar);
     const shell = $('.projectPageShell') || document.body;
     mo.observe(shell, {childList:true, subtree:true});
+    const topbar = $('.topbar') || document.body;
+    mo.observe(topbar, {childList:true, subtree:true, attributes:true, attributeFilter:['class','aria-expanded']});
+
+    // Rövid indítási őrzés: lassabb telefonon / auth betöltés után is visszakerül a jobb oldali gyorsmenü.
+    [60, 180, 420, 900, 1600].forEach(ms => setTimeout(scheduleJumpBar, ms));
   }
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
