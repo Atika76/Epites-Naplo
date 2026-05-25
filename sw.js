@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-ai-pro-v182-smart-mobile-header';
+const CACHE_NAME = 'epitesnaplo-ai-pro-v173-client-collab-clean-delete';
 const APP_SHELL = [
   './',
   './index.html',
