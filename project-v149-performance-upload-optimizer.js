@@ -185,8 +185,18 @@
       if(optimized.size > VIDEO_MAX_UPLOAD_MB * MB){ alert(`Túl nagy videó kimarad: ${optimized.name}\nMaximum kb. ${VIDEO_MAX_UPLOAD_MB} MB / videó.`); continue; }
       const ext = (optimized.name.split('.').pop() || 'webm').toLowerCase().replace(/[^a-z0-9]/g, '') || 'webm';
       const safeName = optimized.name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').slice(-80) || `video.${ext}`;
-      const userId = (window.detailState?.user?.id) || 'user';
-      const projectId = (window.detailState?.project?.id) || 'project';
+      let userId = (window.detailState?.user?.id) || (typeof detailState !== 'undefined' ? detailState?.user?.id : '') || '';
+      if(!userId){
+        try{
+          const authResult = await client.auth.getUser();
+          userId = authResult?.data?.user?.id || '';
+        }catch(_){}
+      }
+      const projectId = (window.detailState?.project?.id) || (typeof detailState !== 'undefined' ? detailState?.project?.id : '') || new URLSearchParams(location.search).get('id') || 'project';
+      if(!userId){
+        alert('Videó feltöltés nem érhető el: nem találom a bejelentkezett felhasználó azonosítóját. Jelentkezz ki és be újra.');
+        continue;
+      }
       const storagePath = `${userId}/${projectId}/${Date.now()}-${i}-${safeName}`;
       const contentType = optimized.type || (ext === 'webm' ? 'video/webm' : 'video/mp4');
       const { error } = await client.storage.from('project-videos').upload(storagePath, optimized, {

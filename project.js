@@ -4,6 +4,9 @@ const detailState = {
   entries: [],
   tasks: []
 };
+// V180 video fix: a később betöltött optimalizáló fájlok csak a window.detailState-et látják.
+// Ez ugyanarra az objektumra mutat, ezért amikor betöltődik a user/projekt, a videó feltöltés is jó user_id-val dolgozik.
+try { window.detailState = detailState; } catch (_) {}
 
 function qs(id) { return document.getElementById(id); }
 function normalizeUserText(value) {
@@ -174,8 +177,18 @@ async function uploadVideoFilesToStorage(fileList, max = 2) {
     if (file.size > MAX_VIDEO_MB * 1024 * 1024) { alert(`Túl nagy videó kimarad: ${file.name}\nMaximum kb. ${MAX_VIDEO_MB} MB / videó. Javaslat: 10–60 mp-es telefonos videó.`); continue; }
     const ext = (file.name.split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp4';
     const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').slice(-80) || `video.${ext}`;
-    const userId = detailState.user?.id || 'user';
-    const projectId = detailState.project?.id || 'project';
+    let userId = detailState.user?.id || '';
+    if (!userId) {
+      try {
+        const authResult = await client.auth.getUser();
+        userId = authResult?.data?.user?.id || '';
+      } catch (_) {}
+    }
+    const projectId = detailState.project?.id || new URLSearchParams(location.search).get('id') || 'project';
+    if (!userId) {
+      alert('Videó feltöltés nem érhető el: nem találom a bejelentkezett felhasználó azonosítóját. Jelentkezz ki és be újra.');
+      continue;
+    }
     const storagePath = `${userId}/${projectId}/${Date.now()}-${i}-${safeName}`;
     const contentType = videoContentType(file);
     const { error } = await client.storage.from('project-videos').upload(storagePath, file, { cacheControl: '3600', upsert: false, contentType });
