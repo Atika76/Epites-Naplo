@@ -167,7 +167,7 @@
   });
 })();
 
-// ===== V181: a fejléc mindig elérhető marad görgetés közben =====
+// ===== V184: eltűnő, de visszagörgetésre azonnal visszatérő fejléc =====
 (function(){
   if(window.__v172ScrollHeaderFix) return;
   window.__v172ScrollHeaderFix = true;
@@ -181,6 +181,8 @@
     const topbar = document.querySelector('.topbar');
     if(!topbar) return;
 
+    let lastY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+    let lastTouchY = null;
     let ticking = false;
 
     function navOpen(){
@@ -190,39 +192,51 @@
 
     function showHeader(){
       topbar.classList.remove('v172HeaderHidden');
-      topbar.style.setProperty('position', 'fixed', 'important');
-      topbar.style.setProperty('top', '0', 'important');
-      topbar.style.setProperty('left', '0', 'important');
-      topbar.style.setProperty('right', '0', 'important');
-      topbar.style.setProperty('width', '100%', 'important');
-      topbar.style.setProperty('z-index', '2147483000', 'important');
-      topbar.style.setProperty('transform', 'none', 'important');
-      topbar.style.setProperty('opacity', '1', 'important');
-      topbar.style.setProperty('visibility', 'visible', 'important');
-      document.body.classList.add('hasFixedTopbar');
-      document.documentElement.style.setProperty('--fixed-topbar-space', Math.ceil(topbar.getBoundingClientRect().height || 76) + 'px');
+      topbar.style.removeProperty('position');
+      topbar.style.removeProperty('top');
+      topbar.style.removeProperty('left');
+      topbar.style.removeProperty('right');
+      topbar.style.removeProperty('width');
+      topbar.style.removeProperty('z-index');
+      topbar.style.removeProperty('transform');
+      topbar.style.removeProperty('opacity');
+      topbar.style.removeProperty('visibility');
+      document.body.classList.remove('hasFixedTopbar');
     }
 
     function applyState(){
       ticking = false;
+      const y = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+      const delta = y - lastY;
       topbar.classList.toggle('v172MenuOpen', navOpen());
-      showHeader();
+
+      if(y < 70 || navOpen()){
+        showHeader();
+      } else if(delta > 8){
+        topbar.classList.add('v172HeaderHidden');
+      } else if(delta < 0){
+        showHeader();
+      }
+
+      lastY = y;
     }
 
     window.addEventListener('wheel', function(e){
-      showHeader();
+      if(e.deltaY < 0) showHeader();
     }, { passive:true });
 
     window.addEventListener('touchstart', function(e){
-      showHeader();
+      lastTouchY = e.touches && e.touches.length ? e.touches[0].clientY : null;
     }, { passive:true });
 
     window.addEventListener('touchmove', function(e){
-      showHeader();
+      const y = e.touches && e.touches.length ? e.touches[0].clientY : null;
+      if(y !== null && lastTouchY !== null && y > lastTouchY) showHeader();
+      lastTouchY = y;
     }, { passive:true });
 
     window.addEventListener('keydown', function(e){
-      if(['ArrowUp','ArrowDown','PageUp','PageDown','Home','End','Space'].includes(e.key)) showHeader();
+      if(['ArrowUp','PageUp','Home'].includes(e.key)) showHeader();
     }, { passive:true });
 
     window.addEventListener('scroll', function(){

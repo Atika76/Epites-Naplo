@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-ai-pro-v183-fixed-header';
+const CACHE_NAME = 'epitesnaplo-ai-pro-v184-scroll-header';
 const APP_SHELL = [
   './',
   './index.html',
