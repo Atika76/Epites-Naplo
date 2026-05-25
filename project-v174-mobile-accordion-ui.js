@@ -125,7 +125,7 @@
   }
 
   function isMobileJumpBar(){
-    return !!(window.matchMedia && window.matchMedia('(max-width: 700px)').matches);
+    return !!(window.matchMedia && window.matchMedia('(max-width: 860px)').matches);
   }
 
   function mountJumpBar(bar){
@@ -180,8 +180,11 @@
     buildJumpBar();
     patchExistingButtons();
     window.addEventListener('resize', buildJumpBar, { passive:true });
+    document.addEventListener('click', (ev) => {
+      if(ev.target.closest('.menuBtn')) setTimeout(buildJumpBar, 30);
+    }, true);
 
-    const mo = new MutationObserver(() => buildAccordions());
+    const mo = new MutationObserver(() => { buildAccordions(); buildJumpBar(); });
     const shell = $('.projectPageShell') || document.body;
     mo.observe(shell, {childList:true, subtree:true});
   }

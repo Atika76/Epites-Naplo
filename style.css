@@ -2793,3 +2793,87 @@ section[id],main[id],.card[id],.projectPageShell[id],#systemFeatures,#naplo{
     white-space:nowrap!important;
   }
 }
+
+
+/* ===== V180 always-in-hamburger right rail jumpbar fix ===== */
+@media (max-width:860px){
+  .topbar nav#nav{
+    padding-right:146px!important;
+    position:absolute!important;
+    overflow:auto!important;
+  }
+  .topbar nav#nav > a,
+  .topbar nav#nav > button:not(.menuBtn),
+  .topbar nav#nav > .adminPill{
+    width:calc(100% - 136px)!important;
+    max-width:calc(100% - 136px)!important;
+  }
+  .topbar nav#nav > #v174JumpBar,
+  .topbar nav#nav > .v174JumpBar{
+    position:absolute!important;
+    top:14px!important;
+    right:12px!important;
+    bottom:14px!important;
+    left:auto!important;
+    transform:none!important;
+    width:120px!important;
+    max-width:120px!important;
+    height:auto!important;
+    display:flex!important;
+    flex-direction:column!important;
+    flex-wrap:nowrap!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+    margin:0!important;
+    padding:0!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    border:none!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+    scrollbar-width:none!important;
+  }
+  .topbar nav#nav > #v174JumpBar::-webkit-scrollbar,
+  .topbar nav#nav > .v174JumpBar::-webkit-scrollbar{display:none!important;}
+  .topbar nav#nav > #v174JumpBar button,
+  .topbar nav#nav > .v174JumpBar button{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    min-height:36px!important;
+    padding:9px 12px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    text-align:left!important;
+    font-size:12px!important;
+    line-height:1.1!important;
+    border:none!important;
+    border-radius:999px!important;
+    background:rgba(15,23,42,.72)!important;
+    color:#e2e8f0!important;
+    box-shadow:none!important;
+    white-space:nowrap!important;
+  }
+  .topbar nav#nav > #v174JumpBar button:hover,
+  .topbar nav#nav > .v174JumpBar button:hover,
+  .topbar nav#nav > #v174JumpBar button:focus-visible,
+  .topbar nav#nav > .v174JumpBar button:focus-visible{
+    background:#f59e0b!important;
+    color:#111827!important;
+  }
+}
+@media (max-width:430px){
+  .topbar nav#nav{padding-right:132px!important;}
+  .topbar nav#nav > a,
+  .topbar nav#nav > button:not(.menuBtn),
+  .topbar nav#nav > .adminPill{width:calc(100% - 122px)!important;max-width:calc(100% - 122px)!important;}
+  .topbar nav#nav > #v174JumpBar,
+  .topbar nav#nav > .v174JumpBar{width:108px!important;max-width:108px!important;right:10px!important;gap:7px!important;}
+  .topbar nav#nav > #v174JumpBar button,
+  .topbar nav#nav > .v174JumpBar button{font-size:11px!important;padding:8px 10px!important;min-height:34px!important;}
+}
