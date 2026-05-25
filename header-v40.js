@@ -167,10 +167,10 @@
   });
 })();
 
-// ===== V183: egyszeru, stabil fejlec gorgetes minden kepernyon =====
+// ===== V184: CSAK fejlec gorgetes javitas - lefele elbujik, felfele azonnal visszajon =====
 (function(){
-  if(window.__v183ScrollHeaderOnlyFix) return;
-  window.__v183ScrollHeaderOnlyFix = true;
+  if(window.__v184HeaderScrollDirectionFix) return;
+  window.__v184HeaderScrollDirectionFix = true;
 
   function ready(fn){
     if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
@@ -181,8 +181,14 @@
     const topbar = document.querySelector('.topbar');
     if(!topbar) return;
 
-    let lastY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+    let lastScrollY = Math.max(0, window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0);
+    let lastTouchY = null;
     let ticking = false;
+    let forceShowUntil = 0;
+
+    function getY(){
+      return Math.max(0, window.scrollY || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0);
+    }
 
     function navOpen(){
       const nav = document.getElementById('nav') || topbar.querySelector('nav');
@@ -191,50 +197,97 @@
 
     function showHeader(){
       topbar.classList.remove('v172HeaderHidden');
+      topbar.classList.remove('v184HeaderHidden');
+      topbar.style.removeProperty('transform');
     }
 
     function hideHeader(){
+      if(navOpen() || topbar.matches(':focus-within')) return;
       topbar.classList.add('v172HeaderHidden');
+      topbar.classList.add('v184HeaderHidden');
     }
 
-    function applyScrollHeaderState(){
+    function forceShow(){
+      forceShowUntil = Date.now() + 450;
+      showHeader();
+    }
+
+    function apply(){
       ticking = false;
-      const currentY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
-      const diff = currentY - lastY;
+      const y = getY();
+      const delta = y - lastScrollY;
 
       topbar.classList.toggle('v172MenuOpen', navOpen());
 
-      // Mindig latszodjon a lap tetejen, nyitott menunel es beviteli mezonel.
-      if(currentY <= 40 || navOpen() || topbar.matches(':focus-within')){
+      // Mindig latszodjon a lap tetejen, nyitott menunel, beviteli mezonel,
+      // illetve kozvetlenul felfele gorgetesi jel utan.
+      if(y <= 40 || navOpen() || topbar.matches(':focus-within') || Date.now() < forceShowUntil){
         showHeader();
-        lastY = currentY;
+        lastScrollY = y;
         return;
       }
 
-      // Lefelegorgetes: fejlec eltunik, hogy ne foglalja a helyet.
-      if(diff > 2){
+      // Lefelegorgetes: eltunik.
+      if(delta > 3){
         hideHeader();
       }
 
-      // Felfelegorgetes: fejlec azonnal visszajon, hogy elerheto legyen a menu.
-      if(diff < -1){
+      // Felfelegorgetes: azonnal visszajon, nem csak a lap tetejen.
+      if(delta < -1){
         showHeader();
       }
 
-      lastY = currentY;
+      lastScrollY = y;
     }
 
-    function requestUpdate(){
+    function requestApply(){
       if(!ticking){
         ticking = true;
-        window.requestAnimationFrame(applyScrollHeaderState);
+        requestAnimationFrame(apply);
       }
     }
 
-    window.addEventListener('scroll', requestUpdate, { passive:true });
-    window.addEventListener('resize', showHeader, { passive:true });
-    window.addEventListener('focusin', showHeader);
-    document.addEventListener('click', function(){ setTimeout(applyScrollHeaderState, 0); }, true);
+    // Normal scroll es touchpad/eger.
+    window.addEventListener('scroll', requestApply, {passive:true});
+    window.addEventListener('wheel', function(e){
+      if(e.deltaY < 0){
+        // Egergorgo/touchpad felfele: mutasd azonnal, meg a scroll event elott.
+        forceShow();
+      }else if(e.deltaY > 0 && getY() > 80){
+        hideHeader();
+      }
+    }, {passive:true});
+
+    // Mobil: ha az ujj lefele mozdul, a tartalom a lap teteje fele megy, tehat a fejlec jojjon elo.
+    window.addEventListener('touchstart', function(e){
+      lastTouchY = e.touches && e.touches[0] ? e.touches[0].clientY : null;
+    }, {passive:true});
+
+    window.addEventListener('touchmove', function(e){
+      if(lastTouchY == null || !e.touches || !e.touches[0]) return;
+      const currentTouchY = e.touches[0].clientY;
+      const touchDelta = currentTouchY - lastTouchY;
+      if(touchDelta > 3){
+        // Felfele haladsz a lapon: fejlec azonnal vissza.
+        forceShow();
+      }else if(touchDelta < -5 && getY() > 80){
+        // Lefelegorgetes: fejlec elbujik.
+        hideHeader();
+      }
+      lastTouchY = currentTouchY;
+    }, {passive:true});
+
+    window.addEventListener('touchend', function(){ lastTouchY = null; }, {passive:true});
+
+    // Billentyuzet es egyeb navigacios esetek.
+    window.addEventListener('keydown', function(e){
+      if(['ArrowUp','PageUp','Home'].includes(e.key)) forceShow();
+      if(['ArrowDown','PageDown','End',' '].includes(e.key) && getY() > 80) hideHeader();
+    }, {passive:true});
+
+    window.addEventListener('resize', forceShow, {passive:true});
+    window.addEventListener('focusin', forceShow);
+    document.addEventListener('click', function(){ setTimeout(requestApply, 0); }, true);
 
     showHeader();
   });
