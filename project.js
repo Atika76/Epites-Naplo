@@ -25,6 +25,102 @@ function formatDate(value) {
   if (!value) return 'Nincs dátum';
   try { return new Date(value).toLocaleString('hu-HU'); } catch (_) { return value; }
 }
+
+
+// ===== SzakiPiac import PRO megjelenítés =====
+// A SzakiPiacból áthozott ajánlat jelenleg naplóbejegyzésként és/vagy materials_json-ban érkezik.
+// Ez a segédlogika ebből külön projektösszegzést, anyaglistát és ajánlati összköltséget számol.
+function parseMoneyHu(value) {
+  const raw = String(value || '').replace(/\u00a0/g, ' ').replace(/[^0-9,.-]/g, '').replace(/\s+/g, '');
+  if (!raw) return 0;
+  const normalized = raw.includes(',') && !raw.includes('.') ? raw.replace(',', '.') : raw.replace(/\./g, '');
+  return Number(normalized) || 0;
+}
+
+function formatFt(value) {
+  const n = Number(value || 0);
+  return `${Math.round(n).toLocaleString('hu-HU')} Ft`;
+}
+
+function normalizeImportedItem(item = {}) {
+  const name = item.name || item.megnevezes || item.title || item.label || item.description || 'Tétel';
+  const type = String(item.type || item.tipus || '').toLowerCase();
+  const qty = Number(item.qty || item.quantity || item.mennyiseg || item.amount || 0) || 0;
+  const unit = item.unit || item.egyseg || '';
+  const matUnit = Number(item.mat_unit_price || item.material_unit_price || item.materialPrice || item.anyag_egysegar || 0) || 0;
+  const labUnit = Number(item.lab_unit_price || item.labor_unit_price || item.laborPrice || item.munka_egysegar || 0) || 0;
+  const explicitTotal = Number(item.total || item.subtotal || item.reszosszeg || item.line_total || item.gross || 0) || 0;
+  const total = explicitTotal || (qty * matUnit) + (qty * labUnit);
+  return { name: String(name), type, quantity: qty, unit: String(unit || ''), matUnit, labUnit, total };
+}
+
+function parseSzakipiacImportEntry(entry = {}) {
+  const note = String(entry.note || '');
+  const materials = Array.isArray(entry.materials_json) ? entry.materials_json : [];
+  const aiMaterials = Array.isArray(entry.ai_json?.materials) ? entry.ai_json.materials : [];
+  const rawItems = materials.length ? materials : aiMaterials;
+  const isImport = /SzakiPiac ajánlat importálva|SzakiPiac import/i.test(note) || rawItems.length;
+  if (!isImport) return null;
+
+  const getLine = (label) => {
+    const re = new RegExp(`${label}:\\s*([^\\n]+)`, 'i');
+    return (note.match(re)?.[1] || '').trim();
+  };
+
+  let items = rawItems.map(normalizeImportedItem).filter(x => x.name);
+  if (!items.length && note.includes('Átvett tételek:')) {
+    const part = note.split(/Átvett tételek:/i)[1] || '';
+    items = part.split('\n').map(line => line.trim()).filter(line => line.startsWith('-')).map(line => {
+      const clean = line.replace(/^-\s*/, '');
+      const qtyMatch = clean.match(/–\s*([0-9]+(?:[,.][0-9]+)?)\s*([^–]+)$/);
+      const typeMatch = clean.match(/\((anyag|munka|egyeb|egyéb)\)/i);
+      const name = clean.split('–')[0].replace(/\((anyag|munka|egyeb|egyéb)\)/ig, '').trim();
+      return normalizeImportedItem({ name, type: typeMatch?.[1] || '', qty: qtyMatch?.[1] || 0, unit: qtyMatch?.[2]?.trim() || '' });
+    });
+  }
+
+  const grossFromNote = parseMoneyHu(note.match(/Bruttó ajánlati összeg:\s*([^\n]+)/i)?.[1]);
+  const totalFromItems = items.reduce((s, item) => s + Number(item.total || 0), 0);
+  const gross = grossFromNote || Number(entry.ai_json?.quote_total_gross || 0) || totalFromItems;
+
+  return {
+    project: getLine('Projekt') || detailState.project?.name || 'SzakiPiac ajánlat',
+    clientName: getLine('Megrendelő'),
+    clientEmail: getLine('E-mail'),
+    clientPhone: getLine('Telefon'),
+    location: getLine('Helyszín'),
+    gross,
+    items,
+    entryId: entry.id,
+    createdAt: entry.created_at,
+    note
+  };
+}
+
+function getSzakipiacImportsFromEntries(entries = detailState.entries || []) {
+  return (entries || []).map(parseSzakipiacImportEntry).filter(Boolean);
+}
+
+function renderSzakipiacImportBox(imports = getSzakipiacImportsFromEntries()) {
+  if (!imports.length) return '';
+  const total = imports.reduce((s, imp) => s + Number(imp.gross || 0), 0);
+  const latest = imports[0];
+  const allItems = imports.flatMap(imp => imp.items || []);
+  const itemRows = allItems.slice(0, 12).map(item => `
+    <li><b>${escapeHtml(item.name)}</b>${item.type ? ` <span class="tag">${escapeHtml(item.type)}</span>` : ''}<br>
+    <small>${item.quantity ? `${escapeHtml(item.quantity)} ${escapeHtml(item.unit || '')}` : ''}${item.total ? ` • ${formatFt(item.total)}` : ''}</small></li>
+  `).join('');
+  return `
+    <div class="notice szakipiacImportSummary">
+      <b>✅ SzakiPiac ajánlat átvéve</b><br>
+      <div><b>Megrendelő:</b> ${escapeHtml(latest.clientName || 'nincs megadva')}</div>
+      <div><b>Kapcsolat:</b> ${escapeHtml([latest.clientEmail, latest.clientPhone].filter(Boolean).join(' • ') || 'nincs megadva')}</div>
+      <div><b>Helyszín:</b> ${escapeHtml(latest.location || 'nincs megadva')}</div>
+      <div class="invoiceTotal">Importált ajánlati összeg: <b>${formatFt(total)}</b></div>
+      ${itemRows ? `<details open><summary>Átvett tételek (${allItems.length})</summary><ul>${itemRows}</ul></details>` : ''}
+    </div>
+  `;
+}
 function showToast(message, type = 'ok') {
   const toast = qs('toast');
   if (!toast) return alert(message);
@@ -432,6 +528,10 @@ function renderProjectSummary() {
   const photos = entries.reduce((sum, e) => sum + getEntryImages(e).length, 0);
   const videos = entries.reduce((sum, e) => sum + getEntryVideos(e).length, 0);
   const risky = entries.filter(e => (e.analysis?.level || e.ai_level) !== 'Alacsony').length;
+  const imports = getSzakipiacImportsFromEntries(entries);
+  const importTotal = imports.reduce((sum, imp) => sum + Number(imp.gross || 0), 0);
+  const importItems = imports.flatMap(imp => imp.items || []);
+
   qs('projectEntryCount').textContent = entries.length;
   qs('projectPhotoCount').textContent = photos + videos;
   qs('projectRiskCount').textContent = risky;
@@ -441,7 +541,10 @@ function renderProjectSummary() {
     <div class="miniMetric"><b>${entries.length}</b><span>összes napi bejegyzés</span></div>
     <div class="miniMetric"><b>${photos}</b><span>fotó / videó</span></div>
     <div class="miniMetric"><b>${risky}</b><span>AI által jelzett kockázat</span></div>
+    ${imports.length ? `<div class="miniMetric"><b>${formatFt(importTotal)}</b><span>SzakiPiac ajánlat összesen</span></div>` : ''}
+    ${imports.length ? `<div class="miniMetric"><b>${importItems.length}</b><span>átvett ajánlati tétel</span></div>` : ''}
     <div class="notice"><b>Utolsó aktivitás:</b><br>${last ? formatDate(last.created_at) : 'Még nincs bejegyzés.'}</div>
+    ${renderSzakipiacImportBox(imports)}
   `;
   updateProjectHeaderStatus?.();
 }
@@ -662,14 +765,24 @@ function renderMaterialSummary(){
     const key = `${m.name || 'Anyag'}|${m.unit || 'db'}`;
     totals[key] = (totals[key] || 0) + Number(m.quantity || 0);
   });
+
+  const imports = getSzakipiacImportsFromEntries();
+  const importedItems = imports.flatMap(imp => imp.items || []);
+  importedItems.forEach(item => {
+    const key = `${item.name || 'Anyag'}|${item.unit || 'db'}`;
+    totals[key] = (totals[key] || 0) + Number(item.quantity || 0);
+  });
+
   const invoiceSum = (v19InvoicesCache || []).reduce((s, i) => s + Number(i.amount || 0), 0);
-  const rows = Object.entries(totals).slice(0, 8).map(([key, qty]) => {
+  const importedTotal = imports.reduce((s, imp) => s + Number(imp.gross || 0), 0);
+  const rows = Object.entries(totals).slice(0, 14).map(([key, qty]) => {
     const [name, unit] = key.split('|');
     return `<li><b>${escapeHtml(name)}</b>: ${Number(qty.toFixed(2))} ${escapeHtml(unit)}</li>`;
   }).join('');
   box.innerHTML = `
     <div class="notice"><b>Anyag- és költség összesítő</b><br>
       ${rows ? `<ul>${rows}</ul>` : '<span class="muted">Még nincs rögzített anyag.</span>'}
+      ${importedTotal ? `<div class="invoiceTotal">SzakiPiac importált ajánlat: <b>${formatFt(importedTotal)}</b></div>` : ''}
       <div class="invoiceTotal">Számlák összesen: <b>${invoiceSum.toLocaleString('hu-HU')} Ft</b></div>
     </div>`;
 }
