@@ -768,10 +768,15 @@ function renderMaterialSummary(){
 
   const imports = getSzakipiacImportsFromEntries();
   const importedItems = imports.flatMap(imp => imp.items || []);
-  importedItems.forEach(item => {
-    const key = `${item.name || 'Anyag'}|${item.unit || 'db'}`;
-    totals[key] = (totals[key] || 0) + Number(item.quantity || 0);
-  });
+  // Ha a SzakiPiac import már külön bekerült a project_materials táblába,
+  // nem számoljuk még egyszer az entries.materials_json alapján.
+  // Így nem duplázódik az anyaglista és az összesítő.
+  if (!(v19MaterialsCache || []).length) {
+    importedItems.forEach(item => {
+      const key = `${item.name || 'Anyag'}|${item.unit || 'db'}`;
+      totals[key] = (totals[key] || 0) + Number(item.quantity || 0);
+    });
+  }
 
   const invoiceSum = (v19InvoicesCache || []).reduce((s, i) => s + Number(i.amount || 0), 0);
   const importedTotal = imports.reduce((s, imp) => s + Number(imp.gross || 0), 0);

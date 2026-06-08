@@ -14,41 +14,76 @@ function json(data: unknown, status = 200) {
   });
 }
 
-function ft(value: unknown) {
+function num(value: unknown) {
   const n = Number(value || 0);
-  return n ? `${Math.round(n).toLocaleString("hu-HU")} Ft` : "0 Ft";
+  return Number.isFinite(n) ? n : 0;
 }
 
-function normalizeItem(item: any = {}) {
-  const qty = Number(item.qty || item.quantity || item.mennyiseg || item.amount || 0) || 0;
-  const matUnit = Number(item.mat_unit_price || item.material_unit_price || item.anyag_egysegar || 0) || 0;
-  const labUnit = Number(item.lab_unit_price || item.labor_unit_price || item.munka_egysegar || 0) || 0;
-  const explicitTotal = Number(item.total || item.subtotal || item.reszosszeg || item.line_total || 0) || 0;
+function ft(value: unknown) {
+  return `${Math.round(num(value)).toLocaleString("hu-HU")} Ft`;
+}
+
+function text(value: unknown, fallback = "") {
+  return String(value ?? fallback).trim();
+}
+
+function normalizeType(value: unknown) {
+  const t = text(value).toLowerCase();
+  if (t.includes("munka")) return "munka";
+  if (t.includes("anyag")) return "anyag";
+  if (t.includes("egy")) return "egyéb";
+  return t || "tétel";
+}
+
+function normalizeImportedItem(item: any, index: number) {
+  const qty = num(item?.qty ?? item?.quantity ?? item?.mennyiseg ?? item?.amount ?? 0);
+  const matUnit = num(item?.mat_unit_price ?? item?.material_unit_price ?? item?.anyag_egysegar ?? item?.anyagEgységár ?? 0);
+  const labUnit = num(item?.lab_unit_price ?? item?.labor_unit_price ?? item?.munka_egysegar ?? item?.munkaEgységár ?? 0);
+  const explicitTotal = num(item?.total ?? item?.subtotal ?? item?.reszosszeg ?? item?.line_total ?? item?.gross ?? 0);
+  const materialTotal = qty * matUnit;
+  const laborTotal = qty * labUnit;
+  const total = explicitTotal || materialTotal + laborTotal;
   return {
-    name: String(item.name || item.megnevezes || item.title || item.label || "Tétel"),
-    type: String(item.type || item.tipus || ""),
+    name: text(item?.name ?? item?.megnevezes ?? item?.title ?? item?.label, `Tétel ${index + 1}`),
+    type: normalizeType(item?.type ?? item?.tipus),
     quantity: qty,
-    qty,
-    unit: String(item.unit || item.egyseg || ""),
+    unit: text(item?.unit ?? item?.egyseg ?? "db"),
+    hours: num(item?.hours ?? item?.ora ?? 0),
     mat_unit_price: matUnit,
     lab_unit_price: labUnit,
-    total: explicitTotal || (qty * matUnit) + (qty * labUnit),
+    material_total: materialTotal,
+    labor_total: laborTotal,
+    total,
+    selected: Boolean(item?.selected || false),
   };
 }
 
-function getPayloadItems(payload: any) {
-  const raw = payload?.items || payload?.tetel_lista || payload?.tetelList || payload?.lines || [];
-  return Array.isArray(raw) ? raw.map(normalizeItem) : [];
+function buildItemsText(items: any[]) {
+  if (!items.length) return "Tétellista nem érkezett át.";
+  return items.map((item) => {
+    const qty = item.quantity ? ` – ${item.quantity} ${item.unit}` : "";
+    const prices = [];
+    if (item.material_total) prices.push(`anyag: ${ft(item.material_total)}`);
+    if (item.labor_total) prices.push(`munka: ${ft(item.labor_total)}`);
+    if (item.total && !prices.length) prices.push(`összesen: ${ft(item.total)}`);
+    return `- ${item.name} (${item.type})${qty}${prices.length ? ` – ${prices.join(" + ")}` : ""}`;
+  }).join("\n");
 }
 
-function buildItemsText(items: any[]) {
-  if (!Array.isArray(items) || !items.length) return "Tétellista nem érkezett át.";
-  return items.map((item) => {
-    const totalText = item.total ? ` – ${ft(item.total)}` : "";
-    const typeText = item.type ? ` (${item.type})` : "";
-    const qtyText = item.quantity ? ` – ${item.quantity} ${item.unit || ""}` : "";
-    return `- ${item.name}${typeText}${qtyText}${totalText}`;
-  }).join("\n");
+function buildInvoiceNote(reqRow: any, payload: any, items: any[]) {
+  const totals = payload?.totals || {};
+  return [
+    "SzakiPiac ajánlat automatikus importból.",
+    `Forrás ajánlat ID: ${reqRow.source_quote_id || "nincs"}`,
+    `Nettó összesen: ${ft(totals.netTotal || 0)}`,
+    `Anyag nettó: ${ft(totals.sumMat || 0)}`,
+    `Munkadíj nettó: ${ft(totals.sumLab || 0)}`,
+    `ÁFA: ${ft(totals.vatAmount || 0)}`,
+    `Bruttó összesen: ${ft(reqRow.quote_total_gross || totals.grossTotal || 0)}`,
+    "",
+    "Tételek:",
+    buildItemsText(items),
+  ].join("\n");
 }
 
 serve(async (req) => {
@@ -81,25 +116,45 @@ serve(async (req) => {
 
     if (reqError) return json({ ok: false, error: "Import lekérési hiba: " + reqError.message }, 500);
     if (!reqRow) return json({ ok: false, error: "Nem található ilyen import link." }, 404);
-    if (reqRow.claimed_project_id) return json({ ok: true, already_claimed: true, project_id: reqRow.claimed_project_id });
-    if (reqRow.expires_at && new Date(reqRow.expires_at).getTime() < Date.now()) return json({ ok: false, error: "Ez az import link lejárt." }, 410);
+
+    if (reqRow.claimed_project_id) {
+      return json({ ok: true, already_claimed: true, project_id: reqRow.claimed_project_id });
+    }
+
+    if (reqRow.expires_at && new Date(reqRow.expires_at).getTime() < Date.now()) {
+      return json({ ok: false, error: "Ez az import link lejárt." }, 410);
+    }
 
     const payload = reqRow.payload || {};
-    const items = getPayloadItems(payload);
-    const location = [reqRow.client_city, reqRow.client_address].filter(Boolean).join(", ");
-    const projectName = reqRow.project_name || payload.project_name || payload.projectName || "SzakiPiac ajánlat";
+    const items = Array.isArray(payload?.items) ? payload.items.map(normalizeImportedItem).filter((x: any) => x.name) : [];
+    const totals = payload?.totals || {};
+    const client = payload?.client || {};
+    const location = [reqRow.client_city || client.city, reqRow.client_address || client.address].filter(Boolean).join(", ");
+    const projectName = text(reqRow.project_name || payload?.project_name || "SzakiPiac ajánlat");
+    const grossTotal = num(reqRow.quote_total_gross || totals.grossTotal || 0);
+    const totalHours = num(totals.totalHours || items.reduce((s: number, item: any) => s + num(item.hours), 0));
 
     const projectInsert: Record<string, unknown> = {
       user_id: userId,
       name: projectName,
+      location: location || null,
+      status: "folyamatban",
+      progress: 10,
+      updated_at: new Date().toISOString(),
     };
-    if (location) projectInsert.location = location;
 
-    const { data: project, error: projectError } = await admin
+    let { data: project, error: projectError } = await admin
       .from("projects")
       .insert(projectInsert)
       .select("*")
       .single();
+
+    if (projectError && /progress|updated_at|status|location|column/i.test(String(projectError.message || ""))) {
+      const fallback = { user_id: userId, name: projectName, location: location || null };
+      const retry = await admin.from("projects").insert(fallback).select("*").single();
+      project = retry.data;
+      projectError = retry.error;
+    }
 
     if (projectError) return json({ ok: false, error: "Projekt létrehozási hiba: " + projectError.message }, 500);
 
@@ -107,63 +162,135 @@ serve(async (req) => {
       project_id: project.id,
       source_app: "szakipiac",
       source_quote_id: reqRow.source_quote_id,
-      client_name: reqRow.client_name,
-      client_email: reqRow.client_email,
-      client_phone: reqRow.client_phone,
-      client_city: reqRow.client_city,
-      client_address: reqRow.client_address,
-      quote_total_gross: reqRow.quote_total_gross,
+      client_name: reqRow.client_name || client.name || null,
+      client_email: reqRow.client_email || client.email || null,
+      client_phone: reqRow.client_phone || client.phone || null,
+      client_city: reqRow.client_city || client.city || null,
+      client_address: reqRow.client_address || client.address || null,
+      quote_total_gross: grossTotal || null,
       payload,
     });
     if (importError) return json({ ok: false, error: "Import adat mentési hiba: " + importError.message }, 500);
 
+    const materialsForEntry = items.map((item: any) => ({
+      name: item.name,
+      type: item.type,
+      quantity: item.quantity,
+      unit: item.unit,
+      mat_unit_price: item.mat_unit_price,
+      lab_unit_price: item.lab_unit_price,
+      material_total: item.material_total,
+      labor_total: item.labor_total,
+      total: item.total,
+      hours: item.hours,
+    }));
+
+    const mainWork = items.find((item: any) => item.type === "munka") || items.find((item: any) => item.lab_unit_price > 0) || items[0];
     const note = [
       "SzakiPiac ajánlat importálva.",
       "",
       `Projekt: ${projectName}`,
-      `Megrendelő: ${reqRow.client_name || "nincs megadva"}`,
-      `E-mail: ${reqRow.client_email || "nincs megadva"}`,
-      `Telefon: ${reqRow.client_phone || "nincs megadva"}`,
+      `Megrendelő: ${reqRow.client_name || client.name || "nincs megadva"}`,
+      `E-mail: ${reqRow.client_email || client.email || "nincs megadva"}`,
+      `Telefon: ${reqRow.client_phone || client.phone || "nincs megadva"}`,
       `Helyszín: ${location || "nincs megadva"}`,
-      `Bruttó ajánlati összeg: ${ft(reqRow.quote_total_gross)}`,
+      `Bruttó ajánlati összeg: ${ft(grossTotal)}`,
+      `Anyag nettó: ${ft(totals.sumMat || 0)}`,
+      `Munkadíj nettó: ${ft(totals.sumLab || 0)}`,
+      `ÁFA: ${ft(totals.vatAmount || 0)}`,
+      `Becsült munkaóra: ${totalHours || 0} óra`,
       "",
       "Átvett tételek:",
       buildItemsText(items),
     ].join("\n");
 
-    const { error: entryError } = await admin.from("entries").insert({
+    const { data: entry, error: entryError } = await admin.from("entries").insert({
       user_id: userId,
       project_id: project.id,
-      phase: "SzakiPiac import",
-      status: "importált ajánlat",
+      phase: mainWork?.name || "SzakiPiac import",
+      status: "folyamatban",
       priority: "normál",
-      responsible: reqRow.client_name || null,
+      responsible: reqRow.client_name || client.name || null,
       weather: null,
       note,
       ai_level: "Alacsony",
       ai_score: 0,
       ai_title: "SzakiPiac ajánlat importálva",
-      ai_advice: ["Az ajánlat adatai automatikusan a SzakiPiacból kerültek át."],
+      ai_advice: [],
       ai_json: {
-        level: "Alacsony",
-        score: 0,
-        title: "SzakiPiac ajánlat importálva",
-        quote_total_gross: reqRow.quote_total_gross,
-        source_app: "szakipiac",
+        source: "szakipiac",
+        quote_total_gross: grossTotal,
+        totals,
         client: {
-          name: reqRow.client_name,
-          email: reqRow.client_email,
-          phone: reqRow.client_phone,
-          city: reqRow.client_city,
-          address: reqRow.client_address,
+          name: reqRow.client_name || client.name || null,
+          email: reqRow.client_email || client.email || null,
+          phone: reqRow.client_phone || client.phone || null,
+          city: reqRow.client_city || client.city || null,
+          address: reqRow.client_address || client.address || null,
         },
-        materials: items,
-        payload,
+        items,
       },
-      materials_json: items,
+      materials_json: materialsForEntry,
       location_address: location || null,
-    });
+    }).select("id").single();
+
     if (entryError) return json({ ok: false, error: "Naplóbejegyzés mentési hiba: " + entryError.message }, 500);
+
+    const warnings: string[] = [];
+
+    const materialRows = items
+      .filter((item: any) => item.type === "anyag" || item.mat_unit_price > 0)
+      .map((item: any) => ({
+        user_id: userId,
+        project_id: project.id,
+        entry_id: entry?.id || null,
+        name: item.name,
+        quantity: item.quantity || 1,
+        unit: item.unit || "db",
+        note: [
+          "SzakiPiac import",
+          item.mat_unit_price ? `Anyag egységár: ${ft(item.mat_unit_price)}` : "",
+          item.material_total ? `Anyag összesen: ${ft(item.material_total)}` : "",
+          item.lab_unit_price ? `Kapcsolódó munkadíj egységár: ${ft(item.lab_unit_price)}` : "",
+        ].filter(Boolean).join(" • "),
+      }));
+
+    if (materialRows.length) {
+      const { error } = await admin.from("project_materials").insert(materialRows);
+      if (error) warnings.push("Anyaglista mentési hiba: " + error.message);
+    }
+
+    const taskRows = items
+      .filter((item: any) => item.type === "munka" || item.lab_unit_price > 0)
+      .map((item: any) => ({
+        user_id: userId,
+        project_id: project.id,
+        source_entry_id: entry?.id || null,
+        title: `${item.name}${item.quantity ? ` – ${item.quantity} ${item.unit}` : ""}${item.labor_total ? ` – ${ft(item.labor_total)}` : ""}`,
+        owner: reqRow.client_name || client.name || "",
+        deadline: null,
+        priority: "normál",
+        done: false,
+      }));
+
+    if (taskRows.length) {
+      const { error } = await admin.from("tasks").insert(taskRows);
+      if (error) warnings.push("Munkafázis / teendő mentési hiba: " + error.message);
+    }
+
+    if (grossTotal) {
+      const { error } = await admin.from("project_invoices").insert({
+        user_id: userId,
+        project_id: project.id,
+        title: "SzakiPiac importált ajánlat",
+        amount: grossTotal,
+        note: buildInvoiceNote(reqRow, payload, items),
+        file_name: "",
+        file_type: "",
+        file_data: null,
+      });
+      if (error) warnings.push("Költség / ajánlatösszeg mentési hiba: " + error.message);
+    }
 
     await admin.from("project_import_requests").update({
       claimed_by: userId,
@@ -171,7 +298,7 @@ serve(async (req) => {
       claimed_at: new Date().toISOString(),
     }).eq("id", reqRow.id);
 
-    return json({ ok: true, project_id: project.id, project });
+    return json({ ok: true, project_id: project.id, project, entry_id: entry?.id || null, warnings });
   } catch (err) {
     return json({ ok: false, error: String((err as Error)?.message || err) }, 500);
   }
