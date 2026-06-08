@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SzakiPiac import – Építési Napló</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+  <main class="max-w-2xl mx-auto p-5 pt-10">
+    <section class="bg-white rounded-3xl shadow-xl p-6 border">
+      <div class="text-sm font-bold text-emerald-700">SzakiPiac → Építési Napló</div>
+      <h1 class="text-2xl md:text-3xl font-black mt-2">Projekt importálása</h1>
+      <p class="text-slate-600 mt-3">Ez az oldal egy SzakiPiac ajánlatból hoz létre új Építési Napló projektet. A két rendszer külön marad, csak ez az egy munka kerül át.</p>
+
+      <div id="status" class="mt-5 p-4 rounded-2xl bg-slate-50 border text-slate-700">Betöltés...</div>
+
+      <div id="loginBox" class="hidden mt-5 space-y-3">
+        <input id="email" type="email" placeholder="E-mail cím" class="w-full rounded-xl border p-3" />
+        <input id="password" type="password" placeholder="Jelszó" class="w-full rounded-xl border p-3" />
+        <button id="loginBtn" class="w-full rounded-xl bg-slate-900 text-white font-black p-3">Belépés</button>
+        <p class="text-xs text-slate-500">Ha nincs még Építési Napló fiókod, előbb regisztrálj a főoldalon.</p>
+      </div>
+
+      <button id="importBtn" class="hidden mt-5 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black p-4">Projekt létrehozása az Építési Naplóban</button>
+      <a href="/" class="block text-center mt-4 text-sm font-bold text-slate-600 hover:text-slate-900">Vissza az Építési Napló főoldalra</a>
+    </section>
+  </main>
+
+<script>
+const EPITESNAPLO_CONFIG = {
+  supabaseUrl: "https://tcmihuwjlapfaonihdma.supabase.co",
+  supabaseAnonKey: "sb_publishable_TC5UHGi1CZGVFnz2py1HiQ_fn-wxy81"
+};
+const db = supabase.createClient(EPITESNAPLO_CONFIG.supabaseUrl, EPITESNAPLO_CONFIG.supabaseAnonKey);
+const token = new URLSearchParams(location.search).get('token') || '';
+const statusEl = document.getElementById('status');
+const loginBox = document.getElementById('loginBox');
+const importBtn = document.getElementById('importBtn');
+
+function setStatus(msg, type='info') {
+  const cls = type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : type === 'ok' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-700';
+  statusEl.className = 'mt-5 p-4 rounded-2xl border ' + cls;
+  statusEl.textContent = msg;
+}
+
+async function checkLogin(){
+  if (!token) {
+    setStatus('Hiányzó import token. Nyisd meg újra a linket a SzakiPiacból.', 'error');
+    return;
+  }
+  const { data } = await db.auth.getSession();
+  if (!data?.session) {
+    setStatus('Az importáláshoz jelentkezz be az Építési Napló fiókoddal.', 'info');
+    loginBox.classList.remove('hidden');
+    importBtn.classList.add('hidden');
+  } else {
+    setStatus('Be vagy jelentkezve. Kattints a projekt létrehozására.', 'ok');
+    loginBox.classList.add('hidden');
+    importBtn.classList.remove('hidden');
+  }
+}
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  if (!email || !password) return setStatus('Add meg az e-mail címet és a jelszót.', 'error');
+  setStatus('Beléptetés folyamatban...');
+  const { error } = await db.auth.signInWithPassword({ email, password });
+  if (error) return setStatus('Belépési hiba: ' + error.message, 'error');
+  await checkLogin();
+});
+
+importBtn.addEventListener('click', async () => {
+  importBtn.disabled = true;
+  importBtn.textContent = 'Projekt létrehozása...';
+  const { data: sessionData } = await db.auth.getSession();
+  const accessToken = sessionData?.session?.access_token;
+  if (!accessToken) {
+    importBtn.disabled = false;
+    importBtn.textContent = 'Projekt létrehozása az Építési Naplóban';
+    return checkLogin();
+  }
+  const res = await fetch(EPITESNAPLO_CONFIG.supabaseUrl + '/functions/v1/claim-szakipiac-import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + accessToken },
+    body: JSON.stringify({ token })
+  });
+  const out = await res.json().catch(()=>({}));
+  if (!res.ok || !out.ok) {
+    importBtn.disabled = false;
+    importBtn.textContent = 'Projekt létrehozása az Építési Naplóban';
+    return setStatus(out.error || 'Nem sikerült az importálás.', 'error');
+  }
+  setStatus('Projekt létrehozva. Átirányítás...', 'ok');
+  location.href = '/project.html?id=' + encodeURIComponent(out.project_id);
+});
+
+checkLogin();
+</script>
+</body>
+</html>
