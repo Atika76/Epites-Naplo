@@ -1,0 +1,22 @@
+Attila - Építési Napló SzakiPiac import javítás
+
+Ez a csomag a Codex-féle kisebb / tisztított `epites naplo.eu.zip` alapból készült.
+Nem raktam vissza a sok régi Vxx leíró fájlt és régi SQL maradványt.
+Csak az importhoz szükséges fájlokat pótoltam.
+
+Hozzáadva / módosítva:
+- import-szakipiac.html
+- supabase/functions/create-szakipiac-import/index.ts
+- supabase/functions/claim-szakipiac-import/index.ts
+- supabase/szakipiac_import_schema.sql
+- supabase/config.toml
+- .github/workflows/deploy-epites-import-functions.yml
+- DEPLOY-EPITES-IMPORT.ps1
+
+Fontos:
+1. A Supabase SQL Editorban futtasd le: supabase/szakipiac_import_schema.sql
+2. Az Edge Functions listában ennek a kettőnek kell megjelennie:
+   - create-szakipiac-import
+   - claim-szakipiac-import
+3. Ha PowerShellben nem megy a supabase/npx supabase, használd a GitHub Actions deployt.
+4. A titkos kulcsokat nem tettem fájlba. Maradjanak Supabase Secrets / GitHub Secrets alatt.
