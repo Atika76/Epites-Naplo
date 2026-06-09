@@ -3,199 +3,101 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SzakiPiac import - Építési Napló</title>
-  <link rel="icon" type="image/png" href="favicon.png">
+  <title>SzakiPiac import – Építési Napló</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Arial, Helvetica, sans-serif;
-      color: #e5e7eb;
-      background: radial-gradient(circle at top left, #334155, #0f172a 55%, #020617);
-      display: grid;
-      place-items: center;
-      padding: 24px;
-    }
-    .card {
-      width: min(720px, 100%);
-      background: rgba(15, 23, 42, .88);
-      border: 1px solid rgba(148, 163, 184, .28);
-      border-radius: 24px;
-      box-shadow: 0 24px 90px rgba(0,0,0,.38);
-      padding: 28px;
-    }
-    h1 { margin: 0 0 8px; font-size: clamp(26px, 4vw, 38px); }
-    p { color: #cbd5e1; line-height: 1.55; }
-    label { display: block; margin: 14px 0 6px; font-weight: 800; color: #f8fafc; }
-    input {
-      width: 100%;
-      border: 1px solid rgba(148, 163, 184, .35);
-      border-radius: 14px;
-      background: rgba(2, 6, 23, .7);
-      color: #fff;
-      padding: 13px 14px;
-      font-size: 16px;
-    }
-    button, .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      border: 0;
-      border-radius: 14px;
-      padding: 13px 16px;
-      margin-top: 16px;
-      background: #f59e0b;
-      color: #111827;
-      font-weight: 900;
-      cursor: pointer;
-      text-decoration: none;
-    }
-    button.secondary { background: #1f2937; color: #e5e7eb; border: 1px solid rgba(148, 163, 184, .28); }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; }
-    .hidden { display: none !important; }
-    .status {
-      margin-top: 18px;
-      padding: 14px 16px;
-      border-radius: 16px;
-      background: rgba(30, 41, 59, .8);
-      border: 1px solid rgba(148, 163, 184, .22);
-      white-space: pre-wrap;
-    }
-    .ok { border-color: rgba(34, 197, 94, .55); background: rgba(20, 83, 45, .35); }
-    .error { border-color: rgba(239, 68, 68, .6); background: rgba(127, 29, 29, .35); }
-    .muted { color: #94a3b8; font-size: 13px; }
-  </style>
 </head>
-<body>
-  <main class="card">
-    <h1>SzakiPiac ajánlat import</h1>
-    <p>Jelentkezz be az Építési Napló fiókoddal, és az átküldött SzakiPiac ajánlatból új projekt készül.</p>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+  <main class="max-w-2xl mx-auto p-5 pt-10">
+    <section class="bg-white rounded-3xl shadow-xl p-6 border">
+      <div class="text-sm font-bold text-emerald-700">SzakiPiac → Építési Napló</div>
+      <h1 class="text-2xl md:text-3xl font-black mt-2">Projekt importálása</h1>
+      <p class="text-slate-600 mt-3">Ez az oldal egy SzakiPiac ajánlatból hoz létre új Építési Napló projektet. A két rendszer külön marad, csak ez az egy munka kerül át.</p>
 
-    <section id="authBox" class="hidden">
-      <label for="email">E-mail</label>
-      <input id="email" type="email" autocomplete="email" placeholder="email@pelda.hu">
-      <label for="password">Jelszó</label>
-      <input id="password" type="password" autocomplete="current-password" placeholder="Jelszó">
-      <div class="row">
-        <button id="loginBtn">Belépés és import</button>
-        <button id="signupBtn" class="secondary">Regisztráció</button>
+      <div id="status" class="mt-5 p-4 rounded-2xl bg-slate-50 border text-slate-700">Betöltés...</div>
+
+      <div id="loginBox" class="hidden mt-5 space-y-3">
+        <input id="email" type="email" placeholder="E-mail cím" class="w-full rounded-xl border p-3" />
+        <input id="password" type="password" placeholder="Jelszó" class="w-full rounded-xl border p-3" />
+        <button id="loginBtn" class="w-full rounded-xl bg-slate-900 text-white font-black p-3">Belépés</button>
+        <p class="text-xs text-slate-500">Ha nincs még Építési Napló fiókod, előbb regisztrálj a főoldalon.</p>
       </div>
-      <p class="muted">Ha már be vagy jelentkezve ebben a böngészőben, az import automatikusan indul.</p>
-    </section>
 
-    <section id="claimBox" class="hidden">
-      <p id="userLine" class="muted"></p>
-      <label for="tokenInput">Import token</label>
-      <input id="tokenInput" placeholder="A linkből automatikusan kitöltjük">
-      <div class="row">
-        <button id="claimBtn">Projekt létrehozása</button>
-        <button id="logoutBtn" class="secondary">Kilépés</button>
-      </div>
+      <button id="importBtn" class="hidden mt-5 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black p-4">Projekt létrehozása az Építési Naplóban</button>
+      <a href="/" class="block text-center mt-4 text-sm font-bold text-slate-600 hover:text-slate-900">Vissza az Építési Napló főoldalra</a>
     </section>
-
-    <div id="status" class="status">Import előkészítése...</div>
   </main>
 
-  <script>
-    const EPITESNAPLO_CONFIG = {
-      supabaseUrl: "https://tcmihuwjlapfaonihdma.supabase.co",
-      supabaseAnonKey: "sb_publishable_TC5UHGi1CZGVFnz2py1HiQ_fn-wxy81"
-    };
+<script>
+const EPITESNAPLO_CONFIG = {
+  supabaseUrl: "https://tcmihuwjlapfaonihdma.supabase.co",
+  supabaseAnonKey: "sb_publishable_TC5UHGi1CZGVFnz2py1HiQ_fn-wxy81"
+};
+const db = supabase.createClient(EPITESNAPLO_CONFIG.supabaseUrl, EPITESNAPLO_CONFIG.supabaseAnonKey);
+const token = new URLSearchParams(location.search).get('token') || '';
+const statusEl = document.getElementById('status');
+const loginBox = document.getElementById('loginBox');
+const importBtn = document.getElementById('importBtn');
 
-    const supa = supabase.createClient(EPITESNAPLO_CONFIG.supabaseUrl, EPITESNAPLO_CONFIG.supabaseAnonKey);
-    const $ = (id) => document.getElementById(id);
+function setStatus(msg, type='info') {
+  const cls = type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : type === 'ok' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-700';
+  statusEl.className = 'mt-5 p-4 rounded-2xl border ' + cls;
+  statusEl.textContent = msg;
+}
 
-    function tokenFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      return String(params.get("token") || params.get("import") || params.get("szakipiac") || "").trim();
-    }
+async function checkLogin(){
+  if (!token) {
+    setStatus('Hiányzó import token. Nyisd meg újra a linket a SzakiPiacból.', 'error');
+    return;
+  }
+  const { data } = await db.auth.getSession();
+  if (!data?.session) {
+    setStatus('Az importáláshoz jelentkezz be az Építési Napló fiókoddal.', 'info');
+    loginBox.classList.remove('hidden');
+    importBtn.classList.add('hidden');
+  } else {
+    setStatus('Be vagy jelentkezve. Kattints a projekt létrehozására.', 'ok');
+    loginBox.classList.add('hidden');
+    importBtn.classList.remove('hidden');
+  }
+}
 
-    function setStatus(message, type = "") {
-      const box = $("status");
-      box.textContent = message;
-      box.className = `status ${type}`.trim();
-    }
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  if (!email || !password) return setStatus('Add meg az e-mail címet és a jelszót.', 'error');
+  setStatus('Beléptetés folyamatban...');
+  const { error } = await db.auth.signInWithPassword({ email, password });
+  if (error) return setStatus('Belépési hiba: ' + error.message, 'error');
+  await checkLogin();
+});
 
-    async function getSession() {
-      const { data } = await supa.auth.getSession();
-      return data?.session || null;
-    }
+importBtn.addEventListener('click', async () => {
+  importBtn.disabled = true;
+  importBtn.textContent = 'Projekt létrehozása...';
+  const { data: sessionData } = await db.auth.getSession();
+  const accessToken = sessionData?.session?.access_token;
+  if (!accessToken) {
+    importBtn.disabled = false;
+    importBtn.textContent = 'Projekt létrehozása az Építési Naplóban';
+    return checkLogin();
+  }
+  const res = await fetch(EPITESNAPLO_CONFIG.supabaseUrl + '/functions/v1/claim-szakipiac-import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + accessToken },
+    body: JSON.stringify({ token })
+  });
+  const out = await res.json().catch(()=>({}));
+  if (!res.ok || !out.ok) {
+    importBtn.disabled = false;
+    importBtn.textContent = 'Projekt létrehozása az Építési Naplóban';
+    return setStatus(out.error || 'Nem sikerült az importálás.', 'error');
+  }
+  setStatus('Projekt létrehozva. Átirányítás...', 'ok');
+  location.href = '/project.html?id=' + encodeURIComponent(out.project_id);
+});
 
-    function showAuth() {
-      $("authBox").classList.remove("hidden");
-      $("claimBox").classList.add("hidden");
-      setStatus("Belépés után folytatjuk az importot.");
-    }
-
-    async function showClaim(session) {
-      $("authBox").classList.add("hidden");
-      $("claimBox").classList.remove("hidden");
-      $("userLine").textContent = `Belépve: ${session.user.email}`;
-      $("tokenInput").value = tokenFromUrl() || $("tokenInput").value;
-      if ($("tokenInput").value) {
-        await claimImport();
-      } else {
-        setStatus("Hiányzik az import token. Nyisd meg a SzakiPiacból kapott linket.", "error");
-      }
-    }
-
-    async function claimImport() {
-      const token = $("tokenInput").value.trim();
-      if (!token) return setStatus("Hiányzó import token.", "error");
-
-      setStatus("Projekt létrehozása folyamatban...");
-      const { data, error } = await supa.functions.invoke("claim-szakipiac-import", {
-        body: { token }
-      });
-
-      if (error || data?.ok === false) {
-        return setStatus(data?.error || error?.message || "Nem sikerült az import.", "error");
-      }
-
-      const warnings = Array.isArray(data.warnings) && data.warnings.length
-        ? "\n\nFigyelmeztetések:\n- " + data.warnings.join("\n- ")
-        : "";
-      setStatus(`Kész. A projekt létrejött.${warnings}`, "ok");
-
-      const projectUrl = `project.html?id=${encodeURIComponent(data.project_id)}`;
-      setTimeout(() => { window.location.href = projectUrl; }, 1200);
-    }
-
-    $("loginBtn").addEventListener("click", async () => {
-      const email = $("email").value.trim();
-      const password = $("password").value;
-      if (!email || !password) return setStatus("Add meg az e-mailt és a jelszót.", "error");
-      setStatus("Belépés...");
-      const { data, error } = await supa.auth.signInWithPassword({ email, password });
-      if (error) return setStatus(error.message, "error");
-      await showClaim(data.session);
-    });
-
-    $("signupBtn").addEventListener("click", async () => {
-      const email = $("email").value.trim();
-      const password = $("password").value;
-      if (!email || !password) return setStatus("Add meg az e-mailt és a jelszót.", "error");
-      setStatus("Regisztráció...");
-      const { error } = await supa.auth.signUp({ email, password });
-      if (error) return setStatus(error.message, "error");
-      setStatus("Regisztráció kész. Ha a Supabase e-mail megerősítést kér, erősítsd meg, majd lépj be.");
-    });
-
-    $("claimBtn").addEventListener("click", claimImport);
-    $("logoutBtn").addEventListener("click", async () => {
-      await supa.auth.signOut();
-      showAuth();
-    });
-
-    (async function boot() {
-      $("tokenInput").value = tokenFromUrl();
-      const session = await getSession();
-      if (!session) return showAuth();
-      await showClaim(session);
-    })();
-  </script>
+checkLogin();
+</script>
 </body>
 </html>

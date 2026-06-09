@@ -1,5 +1,6 @@
 -- SzakiPiac -> Építési Napló import
 -- Futtasd az Építési Napló Supabase SQL Editorában.
+-- Biztonságos kiegészítés: meglévő táblát nem töröl, csak hozzáadja ami kell az importhoz.
 
 create table if not exists public.project_import_requests (
   id uuid primary key default gen_random_uuid(),
@@ -64,7 +65,7 @@ alter table public.entries add column if not exists ai_json jsonb;
 alter table public.entries add column if not exists materials_json jsonb;
 alter table public.entries add column if not exists location_address text;
 
--- Opcionális pénzügyi/anyag táblák. Ha már léteznek, ez nem írja felül őket.
+-- Opcionális pénzügyi/anyag táblák. Ha már léteznek, oszloponként is kiegészítjük.
 create table if not exists public.project_materials (
   id uuid primary key default gen_random_uuid(),
   created_at timestamptz not null default now(),
@@ -76,6 +77,14 @@ create table if not exists public.project_materials (
   unit text,
   note text
 );
+
+alter table public.project_materials add column if not exists user_id uuid;
+alter table public.project_materials add column if not exists project_id uuid;
+alter table public.project_materials add column if not exists entry_id uuid;
+alter table public.project_materials add column if not exists name text;
+alter table public.project_materials add column if not exists quantity numeric default 0;
+alter table public.project_materials add column if not exists unit text;
+alter table public.project_materials add column if not exists note text;
 
 create table if not exists public.project_invoices (
   id uuid primary key default gen_random_uuid(),
@@ -91,6 +100,16 @@ create table if not exists public.project_invoices (
   file_data text
 );
 
+alter table public.project_invoices add column if not exists user_id uuid;
+alter table public.project_invoices add column if not exists project_id uuid;
+alter table public.project_invoices add column if not exists entry_id uuid;
+alter table public.project_invoices add column if not exists title text;
+alter table public.project_invoices add column if not exists amount numeric default 0;
+alter table public.project_invoices add column if not exists note text;
+alter table public.project_invoices add column if not exists file_name text;
+alter table public.project_invoices add column if not exists file_type text;
+alter table public.project_invoices add column if not exists file_data text;
+
 create table if not exists public.diary_entries (
   id uuid primary key default gen_random_uuid(),
   created_at timestamptz not null default now(),
@@ -99,6 +118,11 @@ create table if not exists public.diary_entries (
   description text,
   work_type text
 );
+
+alter table public.diary_entries add column if not exists user_id uuid;
+alter table public.diary_entries add column if not exists project_id uuid;
+alter table public.diary_entries add column if not exists description text;
+alter table public.diary_entries add column if not exists work_type text;
 
 alter table public.project_materials enable row level security;
 alter table public.project_invoices enable row level security;

@@ -37,7 +37,7 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-    const siteUrl = (Deno.env.get("EPITESNAPLO_SITE_URL") || "https://epitesi-naplo.eu").replace(/\/+$/, "");
+    const siteUrl = (Deno.env.get("EPITESNAPLO_SITE_URL") || "https://epites-naplo.eu").replace(/\/+$/, "");
     if (!supabaseUrl || !serviceKey) return json({ ok: false, error: "Hiányzó Supabase secret." }, 500);
 
     const body = await req.json().catch(() => ({}));
