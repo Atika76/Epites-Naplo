@@ -109,6 +109,8 @@ function normalizeItem(item: any, index: number) {
     "materialUnit",
     "material_price",
     "anyagAr",
+    "material",
+    "anyag",
   ], 0));
   const labUnit = num(pick(item, [
     "lab_unit_price",
@@ -118,6 +120,8 @@ function normalizeItem(item: any, index: number) {
     "laborUnit",
     "labor_price",
     "munkaAr",
+    "labor",
+    "munka",
   ], 0));
   const materialTotal = num(pick(item, [
     "material_total",
@@ -246,16 +250,22 @@ serve(async (req) => {
       num(totals.gross_total) ||
       num(totals.brutto) ||
       num(totals.totalGross) ||
+      num(totals.gross) ||
+      num(totals.brutto) ||
       items.reduce((sum: number, item: any) => sum + num(item.total), 0);
 
     const sumMat =
       num(totals.sumMat) ||
       num(totals.materialTotal) ||
+      num(totals.material_total) ||
+      num(totals.sumMaterial) ||
       items.reduce((sum: number, item: any) => sum + num(item.material_total), 0);
 
     const sumLab =
       num(totals.sumLab) ||
       num(totals.laborTotal) ||
+      num(totals.labor_total) ||
+      num(totals.sumLabor) ||
       items.reduce((sum: number, item: any) => sum + num(item.labor_total), 0);
 
     const vatAmount = num(totals.vatAmount) || Math.max(0, grossTotal - sumMat - sumLab);
@@ -287,7 +297,7 @@ serve(async (req) => {
     }, warnings);
 
     const note = [
-      "SzakiPiac ajánlat importálva.",
+      payload?.source_type === "kivitelezes_pro" ? "SzakiPiac KivitelezésPRO projekt importálva." : "SzakiPiac ajánlat importálva.",
       "",
       `Projekt: ${projectName}`,
       `Megrendelő: ${clientName || "nincs megadva"}`,
@@ -311,7 +321,7 @@ serve(async (req) => {
       priority: "normál",
       responsible: clientName || null,
       note,
-      ai_title: "SzakiPiac ajánlat importálva",
+      ai_title: payload?.source_type === "kivitelezes_pro" ? "SzakiPiac KivitelezésPRO projekt importálva" : "SzakiPiac ajánlat importálva",
       ai_advice: { source: "szakipiac", totals, client, items },
     };
 
