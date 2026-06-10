@@ -1,0 +1,10 @@
+Építési Napló import javítás
+
+Módosítások:
+- import-szakipiac.html: ha a felhasználó már be van jelentkezve, az import automatikusan létrehozza a projektet és átirányít a project.html oldalra
+- claim-szakipiac-import function: már a KivitelezésPRO tételek anyag/labor mezőit is értelmezi
+- claim-szakipiac-import function: KivitelezésPRO importnál érthetőbb naplóbejegyzés címet ír
+
+Fontos:
+- Az Építési Naplóban deployolni kell: create-szakipiac-import és claim-szakipiac-import
+- A create-szakipiac-import functionnél kell az EPITESNAPLO_IMPORT_SECRET secret, amelynek egyeznie kell a SzakiPiacban megadottal.

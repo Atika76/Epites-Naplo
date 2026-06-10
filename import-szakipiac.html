@@ -45,6 +45,8 @@ function setStatus(msg, type='info') {
   statusEl.textContent = msg;
 }
 
+let claimInProgress = false;
+
 async function checkLogin(){
   if (!token) {
     setStatus('Hiányzó import token. Nyisd meg újra a linket a SzakiPiacból.', 'error');
@@ -56,9 +58,10 @@ async function checkLogin(){
     loginBox.classList.remove('hidden');
     importBtn.classList.add('hidden');
   } else {
-    setStatus('Be vagy jelentkezve. Kattints a projekt létrehozására.', 'ok');
     loginBox.classList.add('hidden');
     importBtn.classList.remove('hidden');
+    setStatus('Be vagy jelentkezve. A projekt létrehozása indul...', 'ok');
+    await claimImport();
   }
 }
 
@@ -69,15 +72,18 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   setStatus('Beléptetés folyamatban...');
   const { error } = await db.auth.signInWithPassword({ email, password });
   if (error) return setStatus('Belépési hiba: ' + error.message, 'error');
-  await checkLogin();
+  await claimImport();
 });
 
-importBtn.addEventListener('click', async () => {
+async function claimImport(){
+  if (claimInProgress) return;
+  claimInProgress = true;
   importBtn.disabled = true;
   importBtn.textContent = 'Projekt létrehozása...';
   const { data: sessionData } = await db.auth.getSession();
   const accessToken = sessionData?.session?.access_token;
   if (!accessToken) {
+    claimInProgress = false;
     importBtn.disabled = false;
     importBtn.textContent = 'Projekt létrehozása az Építési Naplóban';
     return checkLogin();
@@ -89,13 +95,16 @@ importBtn.addEventListener('click', async () => {
   });
   const out = await res.json().catch(()=>({}));
   if (!res.ok || !out.ok) {
+    claimInProgress = false;
     importBtn.disabled = false;
     importBtn.textContent = 'Projekt létrehozása az Építési Naplóban';
     return setStatus(out.error || 'Nem sikerült az importálás.', 'error');
   }
   setStatus('Projekt létrehozva. Átirányítás...', 'ok');
   location.href = '/project.html?id=' + encodeURIComponent(out.project_id);
-});
+}
+
+importBtn.addEventListener('click', claimImport);
 
 checkLogin();
 </script>

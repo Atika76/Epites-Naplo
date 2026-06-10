@@ -1,0 +1,30 @@
+MIT JAVÍTOTTAM – SzakiPiac ↔ Építési Napló import
+
+A feltöltött GitHub ZIP-ekben az import működéséhez szükséges fájlok nem voltak teljesen benne.
+
+SzakiPiacban pótolva:
+- supabase/functions/send-quote-to-epitesnaplo/index.ts
+- supabase/config.toml send-quote-to-epitesnaplo bejegyzéssel
+- supabase/ajanlatok_schema.sql
+- .github/workflows/deploy-szakipiac-import-function.yml
+
+Építési Naplóban pótolva:
+- import-szakipiac.html
+- supabase/functions/create-szakipiac-import/index.ts
+- supabase/functions/claim-szakipiac-import/index.ts
+- supabase/szakipiac_import_schema.sql
+- supabase/config.toml import function bejegyzésekkel
+- .github/workflows/deploy-epites-import-functions.yml
+
+Fontos:
+1. SzakiPiac Supabase-ben az ajanlatok tábla létezik; a feltöltött CSV oszloplista alapján a szükséges oszlopok megvannak.
+2. Építési Napló Supabase SQL Editorban a supabase/szakipiac_import_schema.sql fájlt le kell futtatni, ha még nem futott le.
+3. SzakiPiac Edge Function secrets:
+   - EPITESNAPLO_IMPORT_ENDPOINT=https://tcmihuwjlapfaonihdma.supabase.co/functions/v1/create-szakipiac-import
+   - EPITESNAPLO_IMPORT_SECRET=ugyanaz a titok, mint az Építési Napló projektben
+   - SZAKIPIAC_ADMIN_EMAIL=atika.76@windowslive.com
+4. Építési Napló Edge Function secrets:
+   - EPITESNAPLO_IMPORT_SECRET=ugyanaz a titok, mint a SzakiPiac projektben
+   - EPITESNAPLO_SITE_URL=https://epites-naplo.eu
+
+A GitHubon a mappák TARTALMÁT töltsd fel a repó főkönyvtárába, ne plusz almappába.
