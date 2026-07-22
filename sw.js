@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-v180-video-userid-fix';
+const CACHE_NAME = 'epitesnaplo-v188-important-permissions';
 const APP_SHELL = [
   './',
   './index.html',
@@ -19,6 +19,7 @@ const APP_SHELL = [
   './profile.js',
   './header-v40.js',
   './permissions-v187.js',
+  './important-notifications-v188.js',
   './v19-pro-features.js',
   './supabase-adapter.js',
   './favicon.svg',
