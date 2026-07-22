@@ -213,6 +213,13 @@ function showToast(message, type = 'ok') {
   showToast._timer = window.setTimeout(() => toast.classList.add('hidden'), 3200);
 }
 
+function showAuthStatus(message, type = 'error') {
+  const box = safeEl('authStatus');
+  if (!box) return;
+  box.textContent = message || '';
+  box.className = message ? ('authStatus ' + type) : 'authStatus hidden';
+}
+
 function firstNameFromProfile() {
   const raw = displayOwnerName();
   const clean = String(raw || '').split('@')[0].trim();
@@ -228,15 +235,18 @@ let magicLinkCooldownTimer = null;
 
 function openAuthModal() {
   document.getElementById('authModal').classList.remove('hidden');
+  showAuthStatus('');
   setAuthMode('login');
 }
 
 function closeAuthModal() {
   document.getElementById('authModal').classList.add('hidden');
+  showAuthStatus('');
 }
 
 function setAuthMode(mode) {
   authMode = mode;
+  showAuthStatus('');
   const loginTab = safeEl('authTabLogin');
   const registerTab = safeEl('authTabRegister');
   const magicTab = safeEl('authTabMagic');
@@ -271,7 +281,12 @@ function toggleAuthPassword() {
   if (!input) return;
   input.type = input.type === 'password' ? 'text' : 'password';
   const btn = document.querySelector('.passwordToggle');
-  if (btn) btn.textContent = input.type === 'password' ? '👁' : '🙈';
+  if (btn) {
+    const hidden = input.type === 'password';
+    btn.textContent = hidden ? 'Mutat' : 'Rejt';
+    btn.setAttribute('aria-label', hidden ? 'Jelszó megjelenítése' : 'Jelszó elrejtése');
+    btn.setAttribute('title', hidden ? 'Jelszó megjelenítése' : 'Jelszó elrejtése');
+  }
 }
 
 function resetRedirectUrl() {
@@ -283,13 +298,22 @@ function resetRedirectUrl() {
 async function requestPasswordReset() {
   const email = (safeEl('authEmail')?.value || '').trim();
   const btn = safeEl('forgotPasswordBtn');
-  if (!email) return showToast('Először írd be az email címed.', 'error');
+  if (!email) {
+    const msg = 'Először írd be az email címed.';
+    showAuthStatus(msg, 'error');
+    return showToast(msg, 'error');
+  }
   try {
+    showAuthStatus('');
     if (btn) { btn.disabled = true; btn.textContent = 'Email küldése...'; }
     await window.EpitesNaploAPI.resetPassword(email, resetRedirectUrl());
-    showToast('Jelszó visszaállító email elküldve. Nézd meg a bejövőket és a spam mappát is.', 'ok');
+    const msg = 'Jelszó visszaállító email elküldve. Nézd meg a bejövőket és a spam mappát is.';
+    showAuthStatus(msg, 'ok');
+    showToast(msg, 'ok');
   } catch (error) {
-    showToast(friendlyAuthError(error), 'error');
+    const msg = friendlyAuthError(error);
+    showAuthStatus(msg, 'error');
+    showToast(msg, 'error');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Elfelejtett jelszó?'; }
   }
@@ -310,15 +334,26 @@ async function handleAuthSubmit() {
   const password = (safeEl('authPassword')?.value || '').trim();
   const btn = safeEl('authSubmitBtn');
 
-  if (!email) return showToast('Adj meg email címet.', 'error');
-  if (!password || password.length < 6) return showToast('Adj meg legalább 6 karakteres jelszót.', 'error');
+  if (!email) {
+    const msg = 'Adj meg email címet.';
+    showAuthStatus(msg, 'error');
+    return showToast(msg, 'error');
+  }
+  if (!password || password.length < 6) {
+    const msg = 'Adj meg legalább 6 karakteres jelszót.';
+    showAuthStatus(msg, 'error');
+    return showToast(msg, 'error');
+  }
 
   try {
+    showAuthStatus('');
     if (btn) { btn.disabled = true; btn.textContent = authMode === 'register' ? 'Regisztráció...' : 'Belépés...'; }
     if (authMode === 'register') {
       const res = await window.EpitesNaploAPI.signUpWithPassword(email, password, name);
       if (res?.needsEmailConfirm) {
-        showToast('Regisztráció kész. Nézd meg az emailt a megerősítéshez.', 'ok');
+        const msg = 'Regisztráció kész. Nézd meg az emailt a megerősítéshez.';
+        showAuthStatus(msg, 'ok');
+        showToast(msg, 'ok');
       } else {
         showToast('Regisztráció és belépés sikeres.', 'ok');
         closeAuthModal();
@@ -330,7 +365,9 @@ async function handleAuthSubmit() {
     }
     await initApp();
   } catch (error) {
-    showToast(friendlyAuthError(error), 'error');
+    const msg = friendlyAuthError(error);
+    showAuthStatus(msg, 'error');
+    showToast(msg, 'error');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = authMode === 'register' ? 'Regisztráció létrehozása' : 'Belépés'; }
   }
@@ -341,11 +378,18 @@ async function requestMagicLink() {
   const email = (safeEl('authEmail')?.value || '').trim();
   const btn = safeEl('magicLinkBtn');
 
-  if (!email) return showToast('Adj meg email címet.', 'error');
+  if (!email) {
+    const msg = 'Adj meg email címet.';
+    showAuthStatus(msg, 'error');
+    return showToast(msg, 'error');
+  }
   try {
+    showAuthStatus('');
     if (btn) { btn.disabled = true; btn.textContent = 'Email link elküldve...'; }
     await window.EpitesNaploAPI.signInOrSignUp(email, name);
-    showToast('Belépési link elküldve. Ne kérd újra rögtön, nézd meg az emailt és a spam mappát is.', 'ok');
+    const msg = 'Belépési link elküldve. Ne kérd újra rögtön, nézd meg az emailt és a spam mappát is.';
+    showAuthStatus(msg, 'ok');
+    showToast(msg, 'ok');
     let left = 30;
     window.clearInterval(magicLinkCooldownTimer);
     magicLinkCooldownTimer = window.setInterval(() => {
@@ -360,13 +404,24 @@ async function requestMagicLink() {
     }, 1000);
   } catch (error) {
     if (btn) { btn.disabled = false; btn.textContent = 'Belépési link kérése emailben'; }
-    showToast(friendlyAuthError(error), 'error');
+    const msg = friendlyAuthError(error);
+    showAuthStatus(msg, 'error');
+    showToast(msg, 'error');
   }
 }
 
 async function loginUser() {
   return handleAuthSubmit();
 }
+
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
+window.setAuthMode = setAuthMode;
+window.toggleAuthPassword = toggleAuthPassword;
+window.requestPasswordReset = requestPasswordReset;
+window.handleAuthSubmit = handleAuthSubmit;
+window.requestMagicLink = requestMagicLink;
+window.loginUser = loginUser;
 
 async function logoutUser() {
   const btn = document.getElementById("logoutBtn");

@@ -596,7 +596,7 @@ footer strong { color: var(--text); }
 
 
 /* v9 UX finomítások */
-.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 100; max-width: min(92vw, 520px); padding: 14px 18px; border-radius: 16px; border: 1px solid rgba(34,197,94,.35); background: rgba(12,31,25,.96); color: #dcfce7; box-shadow: 0 18px 55px rgba(0,0,0,.35); font-weight: 800; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 5000; max-width: min(92vw, 520px); padding: 14px 18px; border-radius: 16px; border: 1px solid rgba(34,197,94,.35); background: rgba(12,31,25,.96); color: #dcfce7; box-shadow: 0 18px 55px rgba(0,0,0,.35); font-weight: 800; }
 .toast.info { border-color: rgba(56,189,248,.35); background: rgba(8,28,45,.96); color: #dff7ff; }
 .toast.error { border-color: rgba(239,68,68,.35); background: rgba(48,16,20,.96); color: #fee2e2; }
 .emptyState { padding: 18px; border-radius: 18px; border: 1px dashed rgba(245,158,11,.45); background: rgba(245,158,11,.08); text-align: left; }
@@ -612,6 +612,9 @@ button, .btn { min-height: 44px; }
 .authTab.active { background:var(--accent); color:#111827; border-color:var(--accent); }
 .authField { margin:10px 0; }
 .authField label { display:block; margin:0 0 6px; color:var(--muted); font-size:13px; font-weight:800; }
+.authStatus { margin:12px 0; padding:12px 14px; border-radius:14px; border:1px solid rgba(239,68,68,.35); background:rgba(127,29,29,.18); color:#fee2e2; font-weight:800; line-height:1.35; }
+.authStatus.ok { border-color:rgba(34,197,94,.34); background:rgba(20,83,45,.18); color:#bbf7d0; }
+.authStatus.info { border-color:rgba(56,189,248,.34); background:rgba(8,47,73,.18); color:#dff7ff; }
 .authHelp { margin:14px 0; padding:12px; border-radius:16px; background:rgba(14,165,233,.12); border:1px solid rgba(14,165,233,.25); color:var(--muted); font-size:13px; line-height:1.45; }
 #authSubmitBtn[disabled], #magicLinkBtn[disabled] { opacity:.65; cursor:not-allowed; }
 @media (max-width: 620px) { .authTabs { grid-template-columns:1fr; } }
@@ -912,8 +915,8 @@ button, .btn { min-height: 44px; }
 
 /* v13 login UX */
 .passwordWrap { position: relative; display: flex; align-items: center; }
-.passwordWrap input { padding-right: 52px; }
-.passwordToggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.08); color: var(--text); cursor: pointer; font-size: 17px; }
+.passwordWrap input { padding-right: 88px; }
+.passwordToggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 72px; height: 38px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.08); color: var(--text); cursor: pointer; font-size: 13px; font-weight: 800; }
 .passwordToggle:hover { border-color: var(--accent); }
 .linkBtn { margin-top: 8px; padding: 0; border: 0; background: transparent; color: #fbbf24; font-weight: 800; cursor: pointer; text-align: left; }
 .linkBtn:hover { text-decoration: underline; }

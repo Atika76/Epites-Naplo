@@ -40,7 +40,7 @@
   <meta name="twitter:image" content="https://epitesi-naplo.eu/og-epitesi-naplo-v106.png" />
 
   <meta name="description" content="Digitális építési napló AI elemzéssel, projektkezeléssel, PDF exporttal, ügyfélriporttal és PayPal fizetéssel építőipari szakembereknek." />
-  <link rel="stylesheet" href="style.css?v=185-mobile-app-hero" />
+  <link rel="stylesheet" href="style.css?v=186-login-icon-fix" />
 </head>
 
 <body class="auth-loading">
@@ -451,10 +451,12 @@
         <label>Jelszó</label>
         <div class="passwordWrap">
           <input id="authPassword" placeholder="Legalább 6 karakter" type="password" autocomplete="current-password" />
-          <button class="passwordToggle" type="button" onclick="toggleAuthPassword()" aria-label="Jelszó megjelenítése">👁</button>
+          <button class="passwordToggle" type="button" onclick="toggleAuthPassword()" aria-label="Jelszó megjelenítése" title="Jelszó megjelenítése">Mutat</button>
         </div>
         <button id="forgotPasswordBtn" class="linkBtn" type="button" onclick="requestPasswordReset()">Elfelejtett jelszó?</button>
       </div>
+
+      <div id="authStatus" class="authStatus hidden" role="alert" aria-live="polite"></div>
 
       <button id="authSubmitBtn" class="btn primary full" onclick="handleAuthSubmit()">Belépés</button>
       <button id="magicLinkBtn" class="btn ghost full hidden" onclick="requestMagicLink()">Belépési link kérése emailben</button>
@@ -490,7 +492,7 @@
   <script src="v180-delete-notification-admin-fix.js?v=180"></script>
   <script src="project-v149-performance-upload-optimizer.js?v=183-camera-gps-media"></script>
   <script src="unified-photo-viewer-v152.js?v=152"></script>
-  <script src="script.js?v=152"></script>
+  <script src="script.js?v=186-login-icon-fix"></script>
   <script src="media-gps-v183.js?v=183-camera-gps-media"></script>
   <script src="ui-v179-role-cleanup.js?v=179"></script>
   <script src="unified-photo-viewer-v152.js?v=152-final"></script>
