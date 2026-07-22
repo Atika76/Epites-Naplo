@@ -63,7 +63,27 @@
     }
   }
 
+  function nativeBridge(){
+    return window.EpitesNaploNative || null;
+  }
+
+  function nativeNotificationsEnabled(){
+    try{
+      const bridge = nativeBridge();
+      if(!bridge || typeof bridge.areNotificationsEnabled !== 'function') return null;
+      return !!bridge.areNotificationsEnabled();
+    }catch(_){
+      return null;
+    }
+  }
+
   async function refreshPermissionStatus(){
+    const nativeState = nativeNotificationsEnabled();
+    if(nativeState === true){
+      setCard('notifications', 'granted', 'Az APK natív Android értesítése engedélyezve van. Fontos riport eseményeknél tud értesítést küldeni.');
+    }else if(nativeState === false){
+      setCard('notifications', 'denied', 'Az Android app vagy a fontos értesítési csatorna tiltva van. Nyomd meg az engedélyezés gombot, és kapcsold be.');
+    }else
     if('Notification' in window){
       const permission = Notification.permission || 'default';
       if(permission === 'granted') setCard('notifications', 'granted', 'Az app küldhet helyi értesítéseket ezen az eszközön.');
@@ -92,6 +112,17 @@
   }
 
   async function requestNotificationPermission(){
+    const bridge = nativeBridge();
+    if(bridge && typeof bridge.requestNotificationPermission === 'function'){
+      try{
+        bridge.requestNotificationPermission();
+        setTimeout(refreshPermissionStatus, 900);
+        setCard('notifications', 'prompt', 'Android értesítési beállítás megnyitva vagy engedélykérés elküldve.');
+        return;
+      }catch(err){
+        setCard('notifications', 'unknown', 'Az APK natív engedélykérése nem sikerült: ' + friendlyError(err));
+      }
+    }
     if(!('Notification' in window)){
       setCard('notifications', 'unsupported', 'Ez a böngésző nem támogatja a webes értesítéseket.');
       return;
@@ -114,6 +145,21 @@
     }catch(err){
       setCard('notifications', 'unknown', 'Nem sikerült kérni: ' + friendlyError(err));
     }
+  }
+
+  async function sendTestNotification(){
+    const bridge = nativeBridge();
+    if(bridge && typeof bridge.sendTestNotification === 'function'){
+      bridge.sendTestNotification();
+      setCard('notifications', 'granted', 'Teszt értesítés elküldve. Ha nem látszik, az Android értesítési csatornát kell bekapcsolni.');
+      return;
+    }
+    if(typeof window.epnNotifyImportantV188 === 'function'){
+      const ok = await window.epnNotifyImportantV188('ÉpítésNapló teszt', 'A webes értesítés működik.');
+      setCard('notifications', ok ? 'granted' : 'denied', ok ? 'Teszt értesítés elküldve.' : 'A teszt értesítést nem engedte az eszköz.');
+      return;
+    }
+    setCard('notifications', 'unsupported', 'Nincs elérhető értesítési küldési mód ezen az eszközön.');
   }
 
   function friendlyError(err){
@@ -187,6 +233,7 @@
             <div class="permissionCardHead"><h3>Értesítések</h3><span id="permissionState-notifications" class="permissionState warn">Ellenőrzés...</span></div>
             <p id="permissionDetail-notifications">Állapot ellenőrzése folyamatban.</p>
             <button class="btn primary full" type="button" onclick="window.requestNotificationPermissionV187()">Értesítés engedélyezése</button>
+            <button class="btn ghost full" type="button" onclick="window.sendTestNotificationV189()">Teszt értesítés küldése</button>
           </section>
           <section id="permissionCard-camera" class="permissionCard warn">
             <div class="permissionCardHead"><h3>Kamera és mikrofon</h3><span id="permissionState-camera" class="permissionState warn">Ellenőrzés...</span></div>
@@ -228,6 +275,7 @@
   window.closePermissionSettingsV187 = closePermissionSettings;
   window.refreshPermissionStatusV187 = refreshPermissionStatus;
   window.requestNotificationPermissionV187 = requestNotificationPermission;
+  window.sendTestNotificationV189 = sendTestNotification;
   window.requestCameraMicPermissionV187 = requestCameraMicPermission;
   window.requestGpsPermissionV187 = requestGpsPermission;
 

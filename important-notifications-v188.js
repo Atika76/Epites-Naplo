@@ -5,6 +5,10 @@
   function nativeNotify(title, body){
     try{
       if(window.EpitesNaploNative && typeof window.EpitesNaploNative.notify === 'function'){
+        if(typeof window.EpitesNaploNative.areNotificationsEnabled === 'function' && !window.EpitesNaploNative.areNotificationsEnabled()){
+          if(typeof window.EpitesNaploNative.requestNotificationPermission === 'function') window.EpitesNaploNative.requestNotificationPermission();
+          return false;
+        }
         window.EpitesNaploNative.notify(String(title || 'ÉpítésNapló AI PRO'), String(body || 'Fontos esemény történt.'));
         return true;
       }
@@ -25,11 +29,12 @@
         await reg.showNotification(title || 'ÉpítésNapló AI PRO', {
           body: body || 'Fontos esemény történt.',
           icon: './favicon.png',
-          badge: './favicon.png'
+          badge: './favicon.png',
+          requireInteraction: true
         });
         return true;
       }
-      new Notification(title || 'ÉpítésNapló AI PRO', { body: body || 'Fontos esemény történt.', icon: './favicon.png' });
+      new Notification(title || 'ÉpítésNapló AI PRO', { body: body || 'Fontos esemény történt.', icon: './favicon.png', requireInteraction: true });
       return true;
     }catch(err){
       console.warn('Web notification failed:', err);

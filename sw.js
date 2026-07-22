@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-v188-important-permissions';
+const CACHE_NAME = 'epitesnaplo-v189-native-notification-test';
 const APP_SHELL = [
   './',
   './index.html',
