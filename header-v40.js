@@ -118,10 +118,12 @@
     const reportNav = current === 'project.html'
       ? `<a href="#reportCenterV69" onclick="event.preventDefault(); if(typeof window.openReportCenterV69 === 'function'){ window.openReportCenterV69(); }">Riport</a>`
       : '<a href="#riport" onclick="return window.v130OpenReportNav(event)">Riport</a>';
+    const permissionBtn = `<button class="btn small ghost permissionNavBtn" type="button" onclick="if(window.openPermissionSettingsV187){window.openPermissionSettingsV187()}else{alert('Az engedély beállítások még töltődnek. Próbáld újra pár másodperc múlva.')}">Engedélyek</button>`;
     if (!logged) {
       return `
         <a href="index.html#home">Főoldal</a>
         <a id="systemFeaturesNavLink" href="index.html#systemFeatures">Rendszerfunkciók</a>
+        ${permissionBtn}
         ${loginBtn}
       `;
     }
@@ -131,6 +133,7 @@
       ${reportNav}
       <a id="profileNavLink" href="profile.html">Fiókom</a>
       ${isAdmin ? '<a id="adminNavLink" href="admin-panel.html">Admin</a>' : ''}
+      ${permissionBtn}
       ${logoutBtn}
     `;
   }

@@ -18,6 +18,7 @@ const APP_SHELL = [
   './project-finance.js',
   './profile.js',
   './header-v40.js',
+  './permissions-v187.js',
   './v19-pro-features.js',
   './supabase-adapter.js',
   './favicon.svg',
