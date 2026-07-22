@@ -11,7 +11,7 @@
   const IMAGE_STRONG_QUALITY = 0.48;
   const VIDEO_DIRECT_MB = 18;     // ez alatt közvetlen feltöltés
   const VIDEO_MAX_UPLOAD_MB = 45;  // efölött csak sikeres böngészős tömörítés után mehet
-  const VIDEO_MAX_SECONDS = 60;
+  const VIDEO_MAX_SECONDS = 30;
   const VIDEO_TARGET_WIDTH = 960;
   const VIDEO_TARGET_HEIGHT = 540;
   const VIDEO_FPS = 24;
@@ -113,7 +113,7 @@
     if(!canRecordVideo()){
       // iPhone Safari alatt ez előfordulhat. Ilyenkor nem hazudunk tömörítést.
       if(file.size > VIDEO_MAX_UPLOAD_MB * MB){
-        alert(`Ez a videó túl nagy és ezen a böngészőn nem tömöríthető automatikusan: ${file.name}\nKérlek vágd 10–60 mp-re vagy küldd kisebb méretben.`);
+        alert(`Ez a videó túl nagy és ezen a böngészőn nem tömöríthető automatikusan: ${file.name}\nKérlek vágd 10–30 mp-re vagy küldd kisebb méretben.`);
         return null;
       }
       return file;

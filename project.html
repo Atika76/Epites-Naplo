@@ -20,7 +20,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Projekt napló – ÉpítésNapló AI PRO</title>
   <meta name="description" content="Külön projekt napló oldal napi bejegyzésekkel, időjárással, anyagfelhasználással és számla összesítéssel." />
-  <link rel="stylesheet" href="style.css?v=181-hamburger-right-menu-always" />
+  <link rel="stylesheet" href="style.css?v=183-camera-gps-media" />
 </head>
 <body class="auth-loading">
   <header class="topbar">
@@ -130,7 +130,7 @@
           <input id="detailVideos" type="file" accept="video/*" multiple />
         </label>
         <input id="detailFiles" type="file" accept="image/*" multiple />
-        <small class="muted">Általános képek + előtte/utána fotók + munkavideók is menthetők. Mobilon kamerából is választhatsz. Javasolt rövid, 10–60 mp-es videókat feltölteni.</small>
+        <small class="muted">Általános képek + előtte/utána fotók + munkavideók is menthetők. Mobilon kamerából is választhatsz. Javasolt rövid, 10–30 mp-es videókat feltölteni.</small>
 
         <div id="detailAiPreview" class="aiBox hidden"></div>
         <button class="btn primary full" type="button" onclick="saveDailyEntry()">Napi bejegyzés mentése ehhez a projekthez</button>
@@ -231,7 +231,7 @@
       <p class="badge">Privát munkavideó</p>
       <h2 id="videoHelpTitle">Videó az ügyfélriporthoz</h2>
       <div class="videoPlaceholder"><b>Nem YouTube-videó kell.</b><span>A telefonoddal készített rövid munkavideót a napi bejegyzésnél tudod feltölteni. Az ügyfél a megosztott riportban látja, másnak nem kell publikusan feltölteni.</span></div>
-      <p class="muted">Javaslat: 10–60 másodperces videókat használj. Nagy, több perces telefonos videóknál érdemes előtte kisebb méretre tömöríteni, hogy gyorsan betöltődjön.</p>
+      <p class="muted">Javaslat: 10–30 másodperces videókat használj. Nagy, több perces telefonos videóknál a rendszer feltöltés előtt megpróbálja 30 mp-re vágni és kisebb méretre tömöríteni.</p>
     </div>
   </div>
 
@@ -254,11 +254,12 @@
   <script src="project-v128-button-status-fix.js?v=128"></script>
   <script src="project-v129-current-upload-basket-fix.js?v=129"></script>
   <script src="project-v134-report-entry-photo-fix.js?v=134"></script>
-  <script src="project-v149-performance-upload-optimizer.js?v=180-daily-video-final-visible-fix"></script>
+  <script src="project-v149-performance-upload-optimizer.js?v=183-camera-gps-media"></script>
   <script src="project-v173-client-collab-cleanup.js?v=173"></script>
   <script src="project-v174-mobile-accordion-ui.js?v=181-hamburger-right-menu-always"></script>
   <script src="unified-photo-viewer-v152.js?v=152"></script>
   <script src="project-ai-pro-v181.js?v=181-ai-pro-local"></script>
+  <script src="media-gps-v183.js?v=183-camera-gps-media"></script>
   <div id="reportCenterV69" class="v69Modal hidden" role="dialog" aria-modal="true" aria-labelledby="reportCenterTitleV69">
     <div class="v69ModalBackdrop" onclick="closeReportCenterV69()"></div>
     <div class="v69ModalCard">
