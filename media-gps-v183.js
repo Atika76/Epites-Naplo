@@ -97,18 +97,18 @@
 
   async function captureProjectGpsV183(){
     const status = q('v183ProjectGpsStatus');
-    if (status) status.textContent = 'GPS hely lekerese...';
+    if (status) status.textContent = 'GPS hely lekérése...';
     const gps = await getBrowserLocation();
     if (!gps) {
-      if (status) status.textContent = 'Nem jott GPS engedely. Kezzel is megadhatod a cimet.';
-      toast('GPS engedely nem erkezett.', 'error');
+      if (status) status.textContent = 'Nem jött GPS engedély. Kézzel is megadhatod a címet.';
+      toast('GPS engedély nem érkezett.', 'error');
       return null;
     }
     const address = (q('v183ProjectAddress')?.value || '').trim();
     const payload = { gps, address, gpsText: gpsText(gps), capturedAt: new Date().toISOString() };
     try { localStorage.setItem('epitesnaplo_v183_last_project_gps', JSON.stringify(payload)); } catch (_) {}
-    if (status) status.textContent = 'GPS mentesre elokeszitve: ' + payload.gpsText;
-    toast('GPS hely elokeszitve az uj projekthez.', 'ok');
+    if (status) status.textContent = 'GPS mentésre előkészítve: ' + payload.gpsText;
+    toast('GPS hely előkészítve az új projekthez.', 'ok');
     return payload;
   }
 
@@ -121,9 +121,9 @@
     box.id = 'v183ProjectGpsBox';
     box.className = 'v183ProjectGpsBox';
     box.innerHTML = `
-      <input id="v183ProjectAddress" type="text" placeholder="Munkahely cime, ha tudod - GPS-szel is kitoltheto" />
-      <button class="btn ghost" type="button" onclick="v183CaptureProjectGps()">Munkahely GPS alapjan</button>
-      <small id="v183ProjectGpsStatus" class="muted">Ha a munkateruleten vagy, a GPS helyet az uj projekt elso naplojahoz is eltesszuk.</small>
+      <input id="v183ProjectAddress" type="text" placeholder="Munkahely címe, ha tudod - GPS-szel is kitölthető" />
+      <button class="btn ghost" type="button" onclick="v183CaptureProjectGps()">Munkahely GPS alapján</button>
+      <small id="v183ProjectGpsStatus" class="muted">Ha a munkaterületen vagy, a GPS helyet az új projekt első naplójához is eltesszük.</small>
     `;
     row.parentNode.insertBefore(box, row.nextSibling);
   }
@@ -163,14 +163,14 @@
     const addressValue = payload.address || (gpsValue ? 'GPS munkahely: ' + gpsValue : '');
     if (gpsValue && q('detailGps') && !q('detailGps').value.trim()) q('detailGps').value = gpsValue;
     if (addressValue && q('detailWorkAddress') && !q('detailWorkAddress').value.trim()) q('detailWorkAddress').value = addressValue;
-    if (q('weatherAutoText') && gpsValue && !q('weatherAutoText').value.trim()) q('weatherAutoText').value = 'Projekt inditasakor rogzitett GPS hely betoltve.';
+    if (q('weatherAutoText') && gpsValue && !q('weatherAutoText').value.trim()) q('weatherAutoText').value = 'Projekt indításakor rögzített GPS hely betöltve.';
   }
 
   async function startGpsDailyLogV183(){
     const form = q('dailyFormCard');
     form?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (q('detailDate')) q('detailDate').value = new Date().toISOString().slice(0, 10);
-    if (q('weatherAutoText')) q('weatherAutoText').value = 'GPS-es uj naplo elokeszitese...';
+    if (q('weatherAutoText')) q('weatherAutoText').value = 'GPS-es új napló előkészítése...';
     try {
       if (typeof window.fillWeatherAndGps === 'function') await window.fillWeatherAndGps();
       else if (typeof fillWeatherAndGps === 'function') await fillWeatherAndGps();
@@ -178,7 +178,7 @@
       if (typeof window.captureGpsOnly === 'function') await window.captureGpsOnly();
     }
     q('detailNote')?.focus();
-    toast('GPS-es uj naplo elokeszitve. Ird be, mi keszult ma.', 'ok');
+    toast('GPS-es új napló előkészítve. Írd be, mi készült ma.', 'ok');
   }
 
   function injectProjectCameraUi(){
@@ -189,9 +189,9 @@
     actions.id = 'v183CameraActions';
     actions.className = 'v183CameraActions';
     actions.innerHTML = `
-      <button class="btn ghost" type="button" onclick="v183OpenPhotoCamera()">Foto keszitese kameraval</button>
-      <button class="btn primary" type="button" onclick="v183OpenVideoCamera()">Video keszitese - max. 30 mp</button>
-      <small class="muted">A sima fajlfeltoltes megmarad. A kamera gombok mobilon kozvetlenul a telefon kamerajat hasznaljak.</small>
+      <button class="btn ghost" type="button" onclick="v183OpenPhotoCamera()">Fotó készítése kamerával</button>
+      <button class="btn primary" type="button" onclick="v183OpenVideoCamera()">Videó készítése - max. 30 mp</button>
+      <small class="muted">A sima fájlfeltöltés megmarad. A kamera gombok mobilon közvetlenül a telefon kameráját használják.</small>
       <input id="v183PhotoCaptureInput" class="hidden" type="file" accept="image/*" capture="environment" multiple />
     `;
     anchor.parentNode.insertBefore(actions, anchor.nextSibling);
@@ -201,13 +201,13 @@
       if (!files.length) return;
       appendFilesToInput('detailFiles', files);
       event.target.value = '';
-      toast(files.length + ' kameras foto hozzaadva.', 'ok');
+      toast(files.length + ' kamerás fotó hozzáadva.', 'ok');
     });
 
     const gpsButton = document.createElement('button');
     gpsButton.className = 'btn primary';
     gpsButton.type = 'button';
-    gpsButton.textContent = 'Uj naplo GPS-szel';
+    gpsButton.textContent = 'Új napló GPS-szel';
     gpsButton.onclick = startGpsDailyLogV183;
     const gpsAnchor = q('autoWeatherGpsCheck') || q('weatherAutoText');
     gpsAnchor?.parentNode?.insertBefore(gpsButton, gpsAnchor.nextSibling);
@@ -222,15 +222,15 @@
     modal.innerHTML = `
       <div class="modalContent v183RecorderCard">
         <button class="closeBtn" type="button" onclick="v183CloseVideoCamera()">x</button>
-        <p class="badge">Mobil munkavideo</p>
-        <h2>30 masodperces video</h2>
+        <p class="badge">Mobil munkavideó</p>
+        <h2>30 másodperces videó</h2>
         <video id="v183RecorderPreview" class="v183RecorderPreview" playsinline muted></video>
         <div class="v183RecorderControls">
           <div id="v183ProgressRing" class="v183ProgressRing" style="--p:0"><span id="v183ProgressText">30</span></div>
-          <button id="v183RecordStartBtn" class="btn primary" type="button" onclick="v183StartRecording()">Felvetel inditasa</button>
-          <button id="v183RecordSaveBtn" class="btn ghost hidden" type="button" onclick="v183UseRecordedVideo()">Video hozzaadasa</button>
+          <button id="v183RecordStartBtn" class="btn primary" type="button" onclick="v183StartRecording()">Felvétel indítása</button>
+          <button id="v183RecordSaveBtn" class="btn ghost hidden" type="button" onclick="v183UseRecordedVideo()">Videó hozzáadása</button>
         </div>
-        <small id="v183RecorderStatus" class="muted">A felvetel automatikusan megall 30 masodpercnel, es feltoltes elott kisebb webes meretre kerul.</small>
+        <small id="v183RecorderStatus" class="muted">A felvétel automatikusan megáll 30 másodpercnél, és feltöltés előtt kisebb webes méretre kerül.</small>
       </div>
     `;
     document.body.appendChild(modal);
@@ -246,7 +246,7 @@
 
   async function openVideoCameraV183(){
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-      alert('Ez a bongeszo nem engedi a kozvetlen kameras videofelvetelt. A sima video fajlfeltoltes tovabbra is hasznalhato.');
+      alert('Ez a böngésző nem engedi a közvetlen kamerás videófelvételt. A sima videó fájlfeltöltés továbbra is használható.');
       return;
     }
     const modal = ensureRecorderModal();
@@ -272,11 +272,11 @@
         preview.muted = true;
         await preview.play().catch(() => {});
       }
-      q('v183RecorderStatus').textContent = 'Kamera kesz. Indithatod a 30 mp-es felvetelt.';
+      q('v183RecorderStatus').textContent = 'Kamera kész. Indíthatod a 30 mp-es felvételt.';
     } catch (err) {
       console.warn('V183 kamera hiba:', err);
-      q('v183RecorderStatus').textContent = 'A kamera nem indult el. Ellenorizd a bongeszo engedelyt.';
-      toast('Kamera engedely nem erkezett.', 'error');
+      q('v183RecorderStatus').textContent = 'A kamera nem indult el. Ellenőrizd a böngésző engedélyt.';
+      toast('Kamera engedély nem érkezett.', 'error');
     }
   }
 
@@ -290,11 +290,11 @@
   }
 
   function startRecordingV183(){
-    if (!recorderState.stream) return alert('Elobb engedelyezd a kamerat.');
+    if (!recorderState.stream) return alert('Előbb engedélyezd a kamerát.');
     const type = preferredRecorderType();
     const startBtn = q('v183RecordStartBtn');
     if (startBtn) {
-      startBtn.textContent = 'Felvetel leallitasa';
+      startBtn.textContent = 'Felvétel leállítása';
       startBtn.onclick = stopRecordingV183;
     }
     recorderState.chunks = [];
@@ -312,17 +312,17 @@
       const blob = new Blob(recorderState.chunks, { type: mime });
       recorderState.file = new File([blob], 'munkavideo-30mp-' + Date.now() + '.webm', { type: mime, lastModified: Date.now() });
       if (startBtn) {
-        startBtn.textContent = 'Felvetel inditasa';
+        startBtn.textContent = 'Felvétel indítása';
         startBtn.onclick = startRecordingV183;
         startBtn.classList.add('hidden');
       }
       q('v183RecordSaveBtn')?.classList.remove('hidden');
-      q('v183RecorderStatus').textContent = 'Felvetel kesz. Hozzaadhatod a napi bejegyzes videoihoz.';
+      q('v183RecorderStatus').textContent = 'Felvétel kész. Hozzáadhatod a napi bejegyzés videóihoz.';
       stopTracks();
     };
     recorderState.startedAt = Date.now();
     recorderState.recorder.start(1000);
-    q('v183RecorderStatus').textContent = 'Felvetel folyamatban...';
+    q('v183RecorderStatus').textContent = 'Felvétel folyamatban...';
     recorderState.timer = window.setInterval(() => {
       const elapsed = Date.now() - recorderState.startedAt;
       updateRecorderProgress(elapsed);
@@ -339,10 +339,10 @@
   }
 
   function useRecordedVideoV183(){
-    if (!recorderState.file) return alert('Meg nincs hozzaadhato video.');
+    if (!recorderState.file) return alert('Még nincs hozzáadható videó.');
     appendFilesToInput('detailVideos', [recorderState.file]);
     closeVideoCameraV183();
-    toast('30 mp-es kameras video hozzaadva.', 'ok');
+    toast('30 mp-es kamerás videó hozzáadva.', 'ok');
   }
 
   function closeVideoCameraV183(){
@@ -423,7 +423,7 @@
       return new File([blob], file.name.replace(/\.[^.]+$/, '') + '-30mp-tomoritett.webm', { type, lastModified: Date.now() });
     } catch (err) {
       URL.revokeObjectURL(url);
-      console.warn('V183 video tomorites hiba:', err);
+      console.warn('V183 videó tömörítés hiba:', err);
       return null;
     }
   }
@@ -438,14 +438,14 @@
         prepared.push(file);
         continue;
       }
-      setUploadStatus('<b>Video elokeszitese...</b><br>30 mp-re vagas es webes meretre tomorites: ' + file.name, 'info');
+      setUploadStatus('<b>Videó előkészítése...</b><br>30 mp-re vágás és webes méretre tömörítés: ' + file.name, 'info');
       const optimized = await recompressVideoFirst30(file);
       if (optimized) {
         prepared.push(optimized);
         continue;
       }
       if (meta.duration > VIDEO_MAX_SECONDS + 0.5 || file.size > 45 * MB) {
-        alert('Ez a video tul nagy vagy hosszu, es ezen a bongeszon nem sikerult automatikusan 30 mp-re tomoriteni: ' + file.name);
+        alert('Ez a videó túl nagy vagy hosszú, és ezen a böngészőn nem sikerült automatikusan 30 mp-re tömöríteni: ' + file.name);
       } else {
         prepared.push(file);
       }
