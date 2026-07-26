@@ -212,6 +212,26 @@ window.EpitesNaploAPI = {
     const user = await this.getCurrentUser();
     if (!user) return null;
 
+    try {
+      const { data: bundle, error: bundleError } = await supabaseClient
+        .from("shared_bundle_entitlements")
+        .select("plan,expires_at,source_app")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const bundleActive = !bundleError
+        && bundle?.plan === "bundle"
+        && (!bundle.expires_at || new Date(bundle.expires_at).getTime() >= Date.now());
+      if (bundleActive) {
+        return {
+          user_id: user.id,
+          plan: "bundle",
+          status: "active",
+          current_period_end: bundle.expires_at || null,
+          source: bundle.source_app || "szakipiac"
+        };
+      }
+    } catch (_) {}
+
     const { data, error } = await supabaseClient
       .from("subscriptions")
       .select("*")

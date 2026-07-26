@@ -38,7 +38,7 @@
   function render(data) {
     quote = data;
     setText("publicProjectName", data.project_name);
-    setText("publicQuoteNumber", data.quote_number);
+    setText("publicQuoteNumber", `${data.quote_number}${data.quote_type === "supplement" ? " · PÓTMUNKA / KIEGÉSZÍTŐ AJÁNLAT" : ""}`);
     setText("publicStatusBadge", labels[data.status] || data.status);
     $("publicStatusBadge").className = `quoteStatus ${data.status || ""}`.trim();
     setText("publicIntro", data.introduction || "");

@@ -217,6 +217,7 @@ serve(async (req) => {
     if (userError || !userData?.user) return json({ ok: false, error: "Érvénytelen bejelentkezés." }, 401);
 
     const userId = userData.user.id;
+    const userEmail = lower(userData.user.email);
     const admin = createClient(supabaseUrl, serviceKey);
 
     const { data: reqRow, error: reqError } = await admin
@@ -227,6 +228,26 @@ serve(async (req) => {
 
     if (reqError) return json({ ok: false, error: "Import lekérési hiba: " + reqError.message }, 500);
     if (!reqRow) return json({ ok: false, error: "Nem található import link." }, 404);
+    const payload = reqRow.payload || {};
+    const bundle = payload.bundle_entitlement || {};
+    const bundleEmail = lower(bundle.user_email);
+    const bundleExpiresAt = text(bundle.expires_at);
+    const bundleActive = bundle.plan === "bundle"
+      && bundleEmail
+      && bundleEmail === userEmail
+      && (!bundleExpiresAt || new Date(bundleExpiresAt).getTime() >= Date.now());
+    if (bundleActive) {
+      const { error: bundleError } = await admin.from("shared_bundle_entitlements").upsert({
+        user_id: userId,
+        source_app: "szakipiac",
+        source_email: bundleEmail,
+        plan: "bundle",
+        expires_at: bundleExpiresAt || null,
+        verified_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id" });
+      if (bundleError) warnings.push("A közös Szaki Digitális Csomag jogosultságának átvétele nem sikerült: " + bundleError.message);
+    }
     if (reqRow.claimed_project_id) {
       return json({ ok: true, already_claimed: true, project_id: reqRow.claimed_project_id, warnings });
     }
@@ -253,7 +274,6 @@ serve(async (req) => {
       return json({ ok: false, error: "Az import link lejárt. Készíts új linket a SzakiPiacban." }, 410);
     }
 
-    const payload = reqRow.payload || {};
     const client = payload.client || {};
     const totals = payload.totals || {};
     const items = getItems(payload).map(normalizeItem).filter((item: any) => item.name);

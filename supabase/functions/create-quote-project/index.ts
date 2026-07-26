@@ -121,12 +121,43 @@ serve(async (req) => {
     }
 
     const location = text(quote.work_address) || [quote.client_city, quote.client_address].filter(Boolean).join(", ");
-    const { data: project, error: projectError } = await admin
-      .from("projects")
-      .insert({ user_id: userId, name: quote.project_name, location: location || null })
-      .select("*")
-      .single();
-    if (projectError) return json(req, { ok: false, error: `Projekt létrehozási hiba: ${projectError.message}` }, 500);
+    const isSupplement = quote.quote_type === "supplement" && quote.parent_quote_id;
+    let project: any = null;
+    let createdNewProject = false;
+
+    if (isSupplement) {
+      const { data: parentQuote, error: parentError } = await admin
+        .from("epitesi_quotes")
+        .select("id,project_id,status")
+        .eq("id", quote.parent_quote_id)
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (parentError || !parentQuote) {
+        return json(req, { ok: false, error: "Az eredeti ajánlat nem található." }, 404);
+      }
+      if (!parentQuote.project_id) {
+        return json(req, { ok: false, error: "Előbb hozd létre a projektet az eredeti elfogadott ajánlatból." }, 409);
+      }
+      const { data: existingProject, error: existingProjectError } = await admin
+        .from("projects")
+        .select("*")
+        .eq("id", parentQuote.project_id)
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (existingProjectError || !existingProject) {
+        return json(req, { ok: false, error: "Az eredeti ajánlathoz tartozó projekt nem található." }, 404);
+      }
+      project = existingProject;
+    } else {
+      const { data: newProject, error: projectError } = await admin
+        .from("projects")
+        .insert({ user_id: userId, name: quote.project_name, location: location || null })
+        .select("*")
+        .single();
+      if (projectError) return json(req, { ok: false, error: `Projekt létrehozási hiba: ${projectError.message}` }, 500);
+      project = newProject;
+      createdNewProject = true;
+    }
 
     const { data: updated, error: updateError } = await admin
       .from("epitesi_quotes")
@@ -142,7 +173,7 @@ serve(async (req) => {
       .select("project_id");
 
     if (updateError || !updated?.length) {
-      await admin.from("projects").delete().eq("id", project.id).eq("user_id", userId);
+      if (createdNewProject) await admin.from("projects").delete().eq("id", project.id).eq("user_id", userId);
       const { data: current } = await admin.from("epitesi_quotes").select("project_id").eq("id", quoteId).maybeSingle();
       if (current?.project_id) {
         return json(req, { ok: true, already_created: true, project_id: current.project_id, warnings });
@@ -152,7 +183,9 @@ serve(async (req) => {
 
     const items = Array.isArray(quote.items) ? quote.items : [];
     const note = [
-      "Építési Napló saját ajánlatából létrehozott projekt.",
+      isSupplement
+        ? "Elfogadott pótmunka / kiegészítő ajánlat a meglévő projekthez."
+        : "Építési Napló saját ajánlatából létrehozott projekt.",
       "",
       `Ajánlat: ${quote.quote_number}`,
       `Projekt: ${quote.project_name}`,
@@ -174,7 +207,7 @@ serve(async (req) => {
 
     await optionalInsert(admin, "project_imports", {
       project_id: project.id,
-      source_app: "epitesi_ajanlat",
+      source_app: isSupplement ? "epitesi_potmunka" : "epitesi_ajanlat",
       source_quote_id: quote.id,
       client_name: quote.client_name || null,
       client_email: quote.client_email || null,
@@ -189,10 +222,10 @@ serve(async (req) => {
       user_id: userId,
       project_id: project.id,
       description: note,
-      work_type: "Elfogadott árajánlat",
+      work_type: isSupplement ? "Elfogadott pótmunka" : "Elfogadott árajánlat",
     }, warnings);
 
-    return json(req, { ok: true, project_id: project.id, project, warnings });
+    return json(req, { ok: true, project_id: project.id, project, supplement: isSupplement, warnings });
   } catch (error) {
     return json(req, { ok: false, error: String((error as Error)?.message || error), warnings }, 500);
   }

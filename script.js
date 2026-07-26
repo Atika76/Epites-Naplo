@@ -470,7 +470,9 @@ function planKey() {
 
   const subPlanRaw = state.subscription?.plan || state.profile?.plan || 'trial';
   const subStatus = state.subscription?.status || 'active';
-  const subPlan = ['trial', 'starter', 'pro', 'business'].includes(subPlanRaw) ? subPlanRaw : 'trial';
+  const subPlan = subPlanRaw === 'bundle'
+    ? 'business'
+    : (['trial', 'starter', 'pro', 'business'].includes(subPlanRaw) ? subPlanRaw : 'trial');
 
   if (subStatus !== 'active') return 'expired';
   return subPlan;
@@ -1323,6 +1325,10 @@ function displayedPlanLabel() {
     return 'Business csomag';
   }
 
+  if (state.subscription?.plan === 'bundle') {
+    return 'Szaki Digitális Csomag';
+  }
+
   return limit.label;
 }
 
@@ -1360,6 +1366,7 @@ function render() {
 
   setHidden('loginBtn', !!state.user);
   setHidden('heroRegisterBtn', !!state.user);
+  setHidden('quotePromoAuthBtn', !!state.user);
   setHidden('logoutBtn', !state.user);
   setHidden('adminOnlyPlanNotice', !isAdmin());
   setHidden('publicPlanNotice', isAdmin());
@@ -2522,6 +2529,7 @@ const FEATURE_EXPLAIN = {
   csomag:{title:'Automatikus csomagaktiválás',what:'Fizetés után nem kézzel kell átállítani a hozzáférést, hanem a rendszer aktiválja a kiválasztott csomagot.',how:'A csomaghoz időtartam és jogosultság tartozik. Például Alap, Pro vagy Business csomag.',why:'Ez leveszi rólad az adminisztrációt, és profibbá teszi az egész fizetési folyamatot.'},
   adminFizetes:{title:'Admin fizetéskövetés',what:'Az admin látja, ki milyen csomagot használ, mikor aktiválódott, és meddig érvényes.',how:'Az admin áttekintésben megjelennek a fizetések és a felhasználói hozzáférések.',why:'Így könnyebb kezelni az ügyfeleket, reklamációkat, előfizetéseket és jogosultságokat.'},
   projekt:{title:'Projektkezelés',what:'Egy építkezés vagy felújítás külön projektként kezelhető.',how:'A projekten belül lehet naplózni a munkát, képeket feltölteni, anyagokat rögzíteni, riportot készíteni és ügyfélnek küldeni.',why:'Ettől minden munka rendezett lesz: nem Facebook üzenetekben, papíron vagy telefonban szétszórva van az információ.'},
+  ajanlat:{title:'Saját logós árajánlatkészítő',what:'Az Építési Napló fizetős csomagjába beépített, professzionális ajánlatkészítő. Saját logóval és automatikusan betöltött vállalkozói adatokkal készíthető benne ügyfélnek küldhető árajánlat.',how:'Kezeli a megrendelő és a munkavégzés adatait, a kiállítási és érvényességi dátumot, a várható kezdést és befejezést, valamint az anyag-, munkadíj- és egyéb tételeket. Tételenként megadható cikkszám, részletes leírás, mennyiség, egység, nettó egységár és kedvezmény. Kiszámolja a nettó összeget, az ÁFÁ-t és a bruttó végösszeget; rögzíthetők a fizetési, garanciális és kizárási feltételek. Biztonságos ügyféllinken elfogadható vagy elutasítható, megjegyzéssel együtt. Az elküldött és elfogadott tartalom zárolódik; a később feltárt feladat külön sorszámú, ismét elfogadandó pótmunkaként készül. Az elfogadás állapota és időpontja a nyomtatható/PDF ajánlaton is megjelenik. Az elfogadott ajánlatból projekt indítható, a jóváhagyott pótmunka ugyanabba a projektbe kerül, és a SzakiPiacról érkező ajánlat átvétele továbbra is működik.',why:'Az ajánlat, az ügyfél döntése, a projekt és a munkanapló egy folyamatban marad. Kevesebb az újbóli adatbevitel és a számolási hiba, az eredeti megállapodás és minden későbbi pótmunka külön visszakereshető.'},
   naplo:{title:'Naplóbejegyzések',what:'A napi munkák külön bejegyzésekben kerülnek mentésre.',how:'Megadható dátum, munkafázis, felelős, státusz, leírás, fotó, anyag, időjárás és GPS/helyadat.',why:'Vita esetén bizonyíték, átadásnál profi dokumentáció, később pedig referenciaanyag.'},
   ai:{title:'AI elemzés',what:'Az AI segít felismerni a kockázatokat, kockázati lehetőségeket és javaslatot adhat a beavatkozásokra.',how:'A rendszer a beírt szövegek, státuszok és fotók alapján készít ügyfélbarát vagy szakmai összefoglalót.',why:'Ez az egyik legnagyobb érték: gyorsabban készül profi szöveg, és az ügyfél is jobban érti, mi történik a munkán.'},
   riport:{title:'Riport előnézet',what:'A rendszer megmutatja, hogyan fog kinézni az ügyfélnek küldhető napló vagy jelentés.',how:'A bejegyzésekből összefoglalót készít: képek, állapot, kockázatok, anyagok, megjegyzések.',why:'Így elküldés előtt átnézhető, hogy minden érthető és vállalható legyen.'},

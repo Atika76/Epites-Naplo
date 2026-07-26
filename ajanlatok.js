@@ -3,7 +3,7 @@
 
   const db = window.supabaseDirect;
   const $ = (id) => document.getElementById(id);
-  const paidPlans = new Set(["starter", "pro", "business"]);
+  const paidPlans = new Set(["starter", "pro", "business", "bundle"]);
   const statusLabels = {
     draft: "Piszkozat", sent: "Elküldve", viewed: "Megnyitva", accepted: "Elfogadva",
     rejected: "Elutasítva", expired: "Lejárt", project_created: "Projekt elkészült",
@@ -14,6 +14,8 @@
   let canCreateQuote = false;
   let quotes = [];
   let toastTimer = null;
+  let editingQuoteType = "base";
+  let editingParentQuoteId = null;
 
   const asText = (value) => String(value ?? "").trim();
   const numberValue = (value) => {
@@ -234,7 +236,11 @@
     $("quoteItems").innerHTML = "";
     const items = Array.isArray(quote?.items) && quote.items.length ? quote.items : [{}];
     items.forEach(addItem);
-    $("editorTitle").textContent = quote ? "Árajánlat szerkesztése" : "Új árajánlat";
+    editingQuoteType = quote?.quote_type === "supplement" ? "supplement" : "base";
+    editingParentQuoteId = quote?.parent_quote_id || null;
+    $("editorTitle").textContent = editingQuoteType === "supplement"
+      ? (quote?.id ? "Pótmunka szerkesztése" : "Új pótmunka / kiegészítő ajánlat")
+      : (quote ? "Árajánlat szerkesztése" : "Új árajánlat");
   }
 
   function openEditor(quote = null) {
@@ -256,6 +262,42 @@
     $("editorPanel").classList.add("hidden");
   }
 
+  function openSupplement(sourceQuote) {
+    if (!canCreateQuote) return openEditor();
+    const rootId = sourceQuote.parent_quote_id || sourceQuote.id;
+    const rootQuote = quotes.find((item) => item.id === rootId) || sourceQuote;
+    const sequence = quotes.filter((item) => item.parent_quote_id === rootId).length + 1;
+    resetForm({
+      quote_type: "supplement",
+      parent_quote_id: rootId,
+      quote_number: `${rootQuote.quote_number}-P${sequence}`,
+      project_name: `${rootQuote.project_name} – Pótmunka ${sequence}`,
+      client_name: rootQuote.client_name,
+      client_email: rootQuote.client_email,
+      client_phone: rootQuote.client_phone,
+      client_city: rootQuote.client_city,
+      client_address: rootQuote.client_address,
+      contractor_name: rootQuote.contractor_name,
+      contractor_tax_number: rootQuote.contractor_tax_number,
+      contractor_address: rootQuote.contractor_address,
+      contractor_phone: rootQuote.contractor_phone,
+      contractor_email: rootQuote.contractor_email,
+      contractor_logo_data: rootQuote.contractor_logo_data,
+      work_address: rootQuote.work_address,
+      warranty_terms: rootQuote.warranty_terms,
+      exclusions: rootQuote.exclusions,
+      payment_terms: rootQuote.payment_terms,
+      vat_rate: rootQuote.vat_rate,
+      introduction: `Kiegészítő ajánlat a(z) ${rootQuote.quote_number} számú elfogadott ajánlathoz. Az eredeti ajánlat tartalma változatlan marad.`,
+      notes: "Pótmunka / az eredeti felméréskor nem látható, később feltárt feladat.",
+      items: [{}],
+    });
+    $("quoteId").value = "";
+    $("editorPanel").classList.remove("hidden");
+    $("editorPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+    toast("Külön pótmunka-ajánlat nyílt. Ezt az ügyfélnek ismét el kell fogadnia.", "ok");
+  }
+
   function renderList() {
     const list = $("quoteList");
     list.innerHTML = "";
@@ -272,7 +314,7 @@
       const created = quote.created_at ? new Date(quote.created_at).toLocaleDateString("hu-HU") : "";
       card.innerHTML = `
         <div class="quoteCardTop">
-          <div><span class="quoteEyebrow">${escapeHtml(quote.quote_number)}</span><h3>${escapeHtml(quote.project_name)}</h3></div>
+          <div><span class="quoteEyebrow">${escapeHtml(quote.quote_number)}${quote.quote_type === "supplement" ? " · PÓTMUNKA" : ""}</span><h3>${escapeHtml(quote.project_name)}</h3></div>
           <span class="quoteStatus ${escapeHtml(quote.status)}">${escapeHtml(statusLabels[quote.status] || quote.status)}</span>
         </div>
         <div class="quoteCardMeta">
@@ -293,8 +335,13 @@
       if (["draft", "rejected", "expired"].includes(quote.status)) addButton("Szerkesztés", () => openEditor(quote));
       if (!["accepted", "project_created"].includes(quote.status)) addButton("Küldési link", (button) => shareQuote(quote, button), "btn primary small");
       addButton("Nyomtatás / PDF", () => printQuote(quote));
-      if (quote.status === "accepted") addButton("Projekt létrehozása", (button) => createProject(quote, button), "btn primary small");
+      if (quote.status === "accepted") addButton(
+        quote.quote_type === "supplement" ? "Pótmunka hozzáadása a projekthez" : "Projekt létrehozása",
+        (button) => createProject(quote, button),
+        "btn primary small"
+      );
       if (quote.project_id) addButton("Projekt megnyitása", () => { window.location.href = `project.html?id=${encodeURIComponent(quote.project_id)}`; });
+      if (["accepted", "project_created"].includes(quote.status)) addButton("Pótmunka / kiegészítés", () => openSupplement(quote), "btn primary small");
       if (["draft", "rejected", "expired"].includes(quote.status)) addButton("Törlés", (button) => deleteQuote(quote, button));
       list.appendChild(card);
     });
@@ -324,6 +371,8 @@
     const total = totals();
     $("validDays").value = validityDays();
     const payload = {
+      quote_type: editingQuoteType,
+      parent_quote_id: editingParentQuoteId,
       quote_number: asText($("quoteNumber").value),
       project_name: asText($("projectName").value),
       client_name: asText($("clientName").value) || null,
@@ -427,7 +476,9 @@
       if (Array.isArray(result.warnings) && result.warnings.length) {
         toast(`A projekt elkészült. Megjegyzés: ${result.warnings.join(" ")}`, "ok");
       } else {
-        toast("A projekt sikeresen elkészült az elfogadott ajánlatból.", "ok");
+        toast(result.supplement
+          ? "Az elfogadott pótmunka bekerült a meglévő projektbe."
+          : "A projekt sikeresen elkészült az elfogadott ajánlatból.", "ok");
       }
       setTimeout(() => { window.location.href = `project.html?id=${encodeURIComponent(result.project_id)}`; }, 650);
     } catch (error) {
@@ -459,7 +510,7 @@
     const category = (value) => ({ anyag: "Anyag", munkadij: "Munkadíj", egyeb: "Egyéb" }[value] || "Egyéb");
     popup.document.write(`<!DOCTYPE html><html lang="hu"><head><meta charset="utf-8"><title>${escapeHtml(quote.quote_number)}</title>
       <style>body{font:14px Arial,sans-serif;color:#152033;max-width:1050px;margin:30px auto;padding:0 24px;line-height:1.45}header{display:flex;justify-content:space-between;gap:24px;border-bottom:3px solid #0ea5e9;padding-bottom:18px}.logo{max-width:170px;max-height:85px;object-fit:contain}.headleft{display:flex;gap:18px;align-items:center}h1{margin:.2em 0}.meta,.parties,.work{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}.box{border:1px solid #d7dee8;border-radius:8px;padding:10px}.status{display:inline-block;border:1px solid #0f766e;background:#ecfdf5;color:#115e59;border-radius:999px;padding:5px 9px;font-weight:bold}table{width:100%;border-collapse:collapse;margin:22px 0;font-size:12px}th,td{padding:9px 7px;border-bottom:1px solid #ccd5df;text-align:left}th:nth-child(n+4),td:nth-child(n+4){text-align:right}.totals{margin-left:auto;width:390px}.totals p{display:flex;justify-content:space-between}.gross{font-size:1.25em;border-top:2px solid #152033;padding-top:10px}.copy{white-space:pre-wrap}.terms{display:grid;grid-template-columns:1fr 1fr;gap:14px}.actions{margin:25px 0}@media(max-width:720px){.meta,.parties,.work,.terms{grid-template-columns:1fr}}@media print{.actions{display:none}body{margin:0}}</style></head><body>
-      <header><div class="headleft">${quote.contractor_logo_data ? `<img class="logo" src="${escapeHtml(quote.contractor_logo_data)}" alt="Vállalkozói logó">` : ""}<div><small>ÁRAJÁNLAT</small><h1>${escapeHtml(quote.project_name)}</h1><b>${escapeHtml(quote.quote_number)}</b></div></div><div><b>${escapeHtml(quote.contractor_name || "")}</b><br>${escapeHtml(quote.contractor_tax_number ? `Adószám: ${quote.contractor_tax_number}` : "")}<br>${escapeHtml(quote.contractor_address || "")}<br>${escapeHtml(quote.contractor_phone || "")}<br>${escapeHtml(quote.contractor_email || "")}</div></header>
+      <header><div class="headleft">${quote.contractor_logo_data ? `<img class="logo" src="${escapeHtml(quote.contractor_logo_data)}" alt="Vállalkozói logó">` : ""}<div><small>${quote.quote_type === "supplement" ? "PÓTMUNKA / KIEGÉSZÍTŐ AJÁNLAT" : "ÁRAJÁNLAT"}</small><h1>${escapeHtml(quote.project_name)}</h1><b>${escapeHtml(quote.quote_number)}</b></div></div><div><b>${escapeHtml(quote.contractor_name || "")}</b><br>${escapeHtml(quote.contractor_tax_number ? `Adószám: ${quote.contractor_tax_number}` : "")}<br>${escapeHtml(quote.contractor_address || "")}<br>${escapeHtml(quote.contractor_phone || "")}<br>${escapeHtml(quote.contractor_email || "")}</div></header>
       <div class="meta"><div class="box"><b>Kiállítás</b><br>${huDate(quote.issue_date)}</div><div class="box"><b>Érvényes</b><br>${huDate(quote.valid_until)}</div><div class="box"><b>Állapot</b><br><span class="status">${escapeHtml(status)}</span>${decisionDate ? `<br>${new Date(decisionDate).toLocaleString("hu-HU")}` : ""}</div></div>
       <div class="parties"><div class="box"><b>Megrendelő</b><br>${escapeHtml(quote.client_name || "nincs megadva")}<br>${escapeHtml(quote.client_email || "")}<br>${escapeHtml(quote.client_phone || "")}</div><div class="box"><b>Megrendelő címe</b><br>${escapeHtml([quote.client_city, quote.client_address].filter(Boolean).join(", ") || "nincs megadva")}</div><div class="box"><b>Munkavégzés címe</b><br>${escapeHtml(quote.work_address || "nincs megadva")}</div></div>
       <div class="work"><div class="box"><b>Várható kezdés</b><br>${huDate(quote.work_start_date)}</div><div class="box"><b>Várható befejezés</b><br>${huDate(quote.work_end_date)}</div><div class="box"><b>Elfogadó</b><br>${escapeHtml(quote.decision_name || "—")}<br>${escapeHtml(quote.decision_email || "")}</div></div>

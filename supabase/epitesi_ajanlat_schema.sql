@@ -3,6 +3,24 @@
 
 create extension if not exists pgcrypto with schema extensions;
 
+create table if not exists public.shared_bundle_entitlements (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  source_app text not null default 'szakipiac',
+  source_email text not null,
+  plan text not null default 'bundle' check (plan = 'bundle'),
+  expires_at timestamptz,
+  verified_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.shared_bundle_entitlements enable row level security;
+revoke all on table public.shared_bundle_entitlements from anon;
+grant select on table public.shared_bundle_entitlements to authenticated;
+drop policy if exists "shared_bundle_entitlements_read_own" on public.shared_bundle_entitlements;
+create policy "shared_bundle_entitlements_read_own"
+on public.shared_bundle_entitlements for select to authenticated
+using (user_id = auth.uid());
+
 create or replace function public.epitesi_has_paid_access(p_user_id uuid)
 returns boolean
 language sql
@@ -35,6 +53,13 @@ as $$
           nullif(to_jsonb(p) ->> 'plan_expires_at', '') is null
           or (to_jsonb(p) ->> 'plan_expires_at')::timestamptz >= now()
         )
+    )
+    or exists (
+      select 1
+      from public.shared_bundle_entitlements b
+      where b.user_id = p_user_id
+        and b.plan = 'bundle'
+        and (b.expires_at is null or b.expires_at >= now())
     );
 $$;
 
@@ -44,6 +69,9 @@ grant execute on function public.epitesi_has_paid_access(uuid) to authenticated;
 create table if not exists public.epitesi_quotes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
+  quote_type text not null default 'base'
+    check (quote_type in ('base','supplement')),
+  parent_quote_id uuid references public.epitesi_quotes(id) on delete restrict,
   quote_number text not null,
   status text not null default 'draft'
     check (status in ('draft','sent','viewed','accepted','rejected','expired','project_created')),
@@ -95,6 +123,15 @@ create table if not exists public.epitesi_quotes (
 
 alter table public.epitesi_quotes
   add column if not exists valid_days integer not null default 30;
+alter table public.epitesi_quotes add column if not exists quote_type text not null default 'base';
+alter table public.epitesi_quotes add column if not exists parent_quote_id uuid references public.epitesi_quotes(id) on delete restrict;
+alter table public.epitesi_quotes drop constraint if exists epitesi_quotes_quote_type_check;
+alter table public.epitesi_quotes
+  add constraint epitesi_quotes_quote_type_check
+  check (
+    (quote_type = 'base' and parent_quote_id is null)
+    or (quote_type = 'supplement' and parent_quote_id is not null)
+  );
 alter table public.epitesi_quotes add column if not exists contractor_phone text;
 alter table public.epitesi_quotes add column if not exists contractor_email text;
 alter table public.epitesi_quotes add column if not exists contractor_logo_data text;
@@ -154,6 +191,8 @@ create index if not exists epitesi_quotes_owner_idx
   on public.epitesi_quotes(user_id, created_at desc);
 create index if not exists epitesi_quotes_status_idx
   on public.epitesi_quotes(user_id, status, created_at desc);
+create index if not exists epitesi_quotes_parent_idx
+  on public.epitesi_quotes(parent_quote_id, created_at);
 create index if not exists epitesi_quote_shares_quote_idx
   on public.epitesi_quote_shares(quote_id, created_at desc);
 
@@ -186,6 +225,8 @@ using (user_id = auth.uid() and public.epitesi_has_paid_access(auth.uid()));
 revoke update on table public.epitesi_quotes from authenticated;
 grant select, insert, delete on table public.epitesi_quotes to authenticated;
 grant update (
+  quote_type,
+  parent_quote_id,
   quote_number,
   project_name,
   client_name,
@@ -220,6 +261,81 @@ grant update (
   valid_until,
   updated_at
 ) on table public.epitesi_quotes to authenticated;
+
+create or replace function public.epitesi_validate_quote_parent_v1()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+declare
+  v_parent public.epitesi_quotes%rowtype;
+begin
+  if new.quote_type = 'base' then
+    new.parent_quote_id := null;
+    return new;
+  end if;
+
+  select * into v_parent
+  from public.epitesi_quotes
+  where id = new.parent_quote_id;
+
+  if not found
+     or v_parent.user_id <> new.user_id
+     or v_parent.quote_type <> 'base'
+     or v_parent.status not in ('accepted','project_created') then
+    raise exception 'Pótmunka csak a saját, elfogadott eredeti ajánlathoz készíthető.';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists epitesi_validate_quote_parent_trigger on public.epitesi_quotes;
+create trigger epitesi_validate_quote_parent_trigger
+before insert or update of quote_type, parent_quote_id on public.epitesi_quotes
+for each row execute function public.epitesi_validate_quote_parent_v1();
+
+-- Az ügyfélnek elküldött tartalom nem írható át utólag. A védett RPC-k és az
+-- Edge Function kizárólag az állapotot, a döntési adatokat és a projektkapcsolatot
+-- módosíthatják. Elfogadott vagy elküldött ajánlat nem törölhető.
+create or replace function public.epitesi_lock_issued_quote_v1()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if tg_op = 'DELETE' then
+    if old.status in ('sent','viewed','accepted','project_created') then
+      raise exception 'Az elküldött vagy elfogadott ajánlat nem törölhető.';
+    end if;
+    return old;
+  end if;
+
+  if old.status in ('sent','viewed','accepted','project_created')
+     and (
+       to_jsonb(new) - array[
+         'status','valid_until','sent_at','viewed_at','accepted_at','rejected_at',
+         'decision_name','decision_email','decision_comment','terms_version',
+         'project_id','project_created_at','updated_at'
+       ]::text[]
+       <>
+       to_jsonb(old) - array[
+         'status','valid_until','sent_at','viewed_at','accepted_at','rejected_at',
+         'decision_name','decision_email','decision_comment','terms_version',
+         'project_id','project_created_at','updated_at'
+       ]::text[]
+     ) then
+    raise exception 'Az ügyfélnek elküldött ajánlat tartalma már nem módosítható. Készíts külön pótmunkát vagy kiegészítő ajánlatot.';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists epitesi_lock_issued_quote_trigger on public.epitesi_quotes;
+create trigger epitesi_lock_issued_quote_trigger
+before update or delete on public.epitesi_quotes
+for each row execute function public.epitesi_lock_issued_quote_v1();
 
 drop policy if exists "epitesi_quote_shares_owner_select" on public.epitesi_quote_shares;
 create policy "epitesi_quote_shares_owner_select"
@@ -345,6 +461,8 @@ begin
   return jsonb_build_object(
     'ok', true,
     'status', v_status,
+    'quote_type', v_quote.quote_type,
+    'parent_quote_id', v_quote.parent_quote_id,
     'quote_number', v_quote.quote_number,
     'project_name', v_quote.project_name,
     'client_name', v_quote.client_name,

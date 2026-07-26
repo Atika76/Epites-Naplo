@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-v191-professional-quotes';
+const CACHE_NAME = 'epitesnaplo-v193-locked-supplements';
 const APP_SHELL = [
   './',
   './index.html',
