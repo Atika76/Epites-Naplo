@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-v196-new-brand';
+const CACHE_NAME = 'epitesnaplo-v197-logo-hard-refresh';
 const APP_SHELL = [
   './',
   './index.html',
@@ -27,10 +27,10 @@ const APP_SHELL = [
   './important-notifications-v188.js',
   './v19-pro-features.js',
   './supabase-adapter.js',
-  './favicon.png',
-  './favicon.ico',
-  './icon-192.png',
-  './icon-512.png',
+  './epitesi-naplo-favicon-2026.ico',
+  './epitesi-naplo-icon-192-2026.png',
+  './epitesi-naplo-icon-512-2026.png',
+  './og-epitesi-naplo-logo-2026.png',
   './manifest.webmanifest'
 ];
 
@@ -62,7 +62,7 @@ self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : { title: 'ÉpítésNapló AI PRO', body: 'Új értesítés érkezett.' };
   event.waitUntil(self.registration.showNotification(data.title || 'ÉpítésNapló AI PRO', {
     body: data.body || data.message || 'Új értesítés érkezett.',
-    icon: './icon-192.png',
-    badge: './icon-192.png'
+    icon: './epitesi-naplo-icon-192-2026.png',
+    badge: './epitesi-naplo-icon-192-2026.png'
   }));
 });

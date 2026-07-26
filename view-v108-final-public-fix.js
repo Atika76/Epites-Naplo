@@ -6,7 +6,7 @@
 */
 (function(){
   'use strict';
-  const BRAND_ICON = 'https://epitesi-naplo.eu/favicon.png';
+  const BRAND_ICON = 'https://epitesi-naplo.eu/epitesi-naplo-icon-512-2026.png';
   const OG_IMG = 'https://epitesi-naplo.eu/og-epitesi-naplo-v108.png';
 
   function setMeta(sel, attr, value){
@@ -23,7 +23,7 @@
     document.querySelectorAll('link[rel="icon"],link[rel="shortcut icon"],link[rel="apple-touch-icon"]').forEach(l => l.remove());
     const links = [
       ['icon','image/png',BRAND_ICON],
-      ['shortcut icon','image/png','https://epitesi-naplo.eu/favicon.ico'],
+      ['shortcut icon','image/png','https://epitesi-naplo.eu/epitesi-naplo-favicon-2026.ico'],
       ['apple-touch-icon','image/png',BRAND_ICON]
     ];
     links.forEach(([rel,type,href])=>{ const l=document.createElement('link'); l.rel=rel; l.type=type; l.href=href; document.head.appendChild(l); });

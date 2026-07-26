@@ -28,13 +28,13 @@
         const reg = await navigator.serviceWorker.ready;
         await reg.showNotification(title || 'ÉpítésNapló AI PRO', {
           body: body || 'Fontos esemény történt.',
-          icon: './favicon.png',
-          badge: './favicon.png',
+          icon: './epitesi-naplo-icon-512-2026.png',
+          badge: './epitesi-naplo-icon-512-2026.png',
           requireInteraction: true
         });
         return true;
       }
-      new Notification(title || 'ÉpítésNapló AI PRO', { body: body || 'Fontos esemény történt.', icon: './favicon.png', requireInteraction: true });
+      new Notification(title || 'ÉpítésNapló AI PRO', { body: body || 'Fontos esemény történt.', icon: './epitesi-naplo-icon-512-2026.png', requireInteraction: true });
       return true;
     }catch(err){
       console.warn('Web notification failed:', err);
