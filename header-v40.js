@@ -130,6 +130,7 @@
     return `
       <a href="index.html#home">Főoldal</a>
       <a href="index.html#naplo">Napló</a>
+      <a href="ajanlatok.html">Ajánlatok</a>
       ${reportNav}
       <a id="profileNavLink" href="profile.html">Fiókom</a>
       ${isAdmin ? '<a id="adminNavLink" href="admin-panel.html">Admin</a>' : ''}

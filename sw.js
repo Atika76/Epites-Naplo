@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-v189-native-notification-test';
+const CACHE_NAME = 'epitesnaplo-v190-native-quotes';
 const APP_SHELL = [
   './',
   './index.html',
@@ -9,6 +9,8 @@ const APP_SHELL = [
   './logout.html',
   './admin-messages.html',
   './admin-panel.html',
+  './ajanlatok.html',
+  './ajanlat.html',
   './style.css',
   './script.js',
   './project.js',
@@ -18,6 +20,9 @@ const APP_SHELL = [
   './project-finance.js',
   './profile.js',
   './header-v40.js',
+  './ajanlatok.css',
+  './ajanlatok.js',
+  './ajanlat-public.js',
   './permissions-v187.js',
   './important-notifications-v188.js',
   './v19-pro-features.js',

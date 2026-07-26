@@ -11,3 +11,8 @@ entrypoint = "./functions/create-szakipiac-import/index.ts"
 [functions.claim-szakipiac-import]
 verify_jwt = false
 entrypoint = "./functions/claim-szakipiac-import/index.ts"
+
+# Saját Építési Napló ajánlat -> projekt. A function a kapott sessiont maga ellenőrzi.
+[functions.create-quote-project]
+verify_jwt = false
+entrypoint = "./functions/create-quote-project/index.ts"

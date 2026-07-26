@@ -1,4 +1,4 @@
-name: Deploy Építési Napló import functions
+name: Deploy Építési Napló backend
 
 on:
   workflow_dispatch:
@@ -8,6 +8,9 @@ on:
     paths:
       - 'supabase/functions/create-szakipiac-import/**'
       - 'supabase/functions/claim-szakipiac-import/**'
+      - 'supabase/functions/create-quote-project/**'
+      - 'supabase/epitesi_ajanlat_schema.sql'
+      - 'supabase/config.toml'
       - '.github/workflows/deploy-epites-import-functions.yml'
 
 jobs:
@@ -22,6 +25,13 @@ jobs:
           rm -rf supabase/.temp
           mkdir -p supabase/.temp
 
+      - name: Apply Építési Napló quote schema
+        run: |
+          npx --yes supabase@latest link --project-ref tcmihuwjlapfaonihdma
+          npx --yes supabase@latest db query --linked --file supabase/epitesi_ajanlat_schema.sql
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
       - name: Deploy create-szakipiac-import
         run: npx --yes supabase@latest functions deploy create-szakipiac-import --project-ref tcmihuwjlapfaonihdma --no-verify-jwt --debug
         env:
@@ -29,5 +39,10 @@ jobs:
 
       - name: Deploy claim-szakipiac-import
         run: npx --yes supabase@latest functions deploy claim-szakipiac-import --project-ref tcmihuwjlapfaonihdma --no-verify-jwt --debug
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy create-quote-project
+        run: npx --yes supabase@latest functions deploy create-quote-project --project-ref tcmihuwjlapfaonihdma --no-verify-jwt --debug
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

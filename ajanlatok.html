@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0f172a">
+  <title>Árajánlatok – ÉpítésNapló AI PRO</title>
+  <meta name="description" content="Saját logózható árajánlat készítése, ügyfélelfogadás és projektindítás az Építési Naplóban.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="style.css?v=180-hamburger-text-right-video-fix">
+  <link rel="stylesheet" href="ajanlatok.css?v=1">
+</head>
+<body class="auth-loading quoteApp">
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <img src="favicon.svg" alt="ÉpítésNapló ikon" class="brandIcon">
+      <div><strong>ÉpítésNapló AI PRO</strong><span>árajánlat • elfogadás • projekt</span></div>
+    </a>
+    <nav id="nav"><a href="index.html">Vissza a naplóhoz</a></nav>
+  </header>
+
+  <main class="quoteMain">
+    <section class="quoteHero">
+      <div>
+        <span class="quoteEyebrow">Önálló Építési Napló funkció</span>
+        <h1>Árajánlatok</h1>
+        <p>Készíts ajánlatot, küldd el egy biztonságos linken, majd az ügyfél elfogadása után indítsd el belőle a projektet.</p>
+      </div>
+      <button id="newQuoteBtn" class="btn primary" type="button">+ Új árajánlat</button>
+    </section>
+
+    <div id="pageMessage" class="quoteMessage" role="status" aria-live="polite">A fiók ellenőrzése…</div>
+
+    <section id="lockedPanel" class="quotePanel hidden">
+      <h2 id="lockedTitle">Bejelentkezés szükséges</h2>
+      <p id="lockedText">Az ajánlatkészítő regisztrációhoz és aktív fizetős csomaghoz kötött.</p>
+      <div class="quoteActions">
+        <a id="lockedAction" class="btn primary" href="index.html#login">Belépés / Regisztráció</a>
+        <a class="btn ghost" href="index.html#arak">Csomagok megtekintése</a>
+      </div>
+    </section>
+
+    <section id="editorPanel" class="quotePanel hidden">
+      <div class="quoteSectionHead">
+        <div><span class="quoteEyebrow">Szerkesztő</span><h2 id="editorTitle">Új árajánlat</h2></div>
+        <button id="closeEditorBtn" class="btn ghost small" type="button">Bezárás</button>
+      </div>
+      <form id="quoteForm">
+        <input id="quoteId" type="hidden">
+        <div class="quoteGrid three">
+          <label>Ajánlatszám<input id="quoteNumber" type="text" required maxlength="80"></label>
+          <label>Projekt / munka neve<input id="projectName" type="text" required maxlength="180" placeholder="Pl. Fürdőszoba felújítása"></label>
+          <label>Érvényesség (nap)<input id="validDays" type="number" min="1" max="90" value="30" required></label>
+        </div>
+
+        <h3>Megrendelő adatai</h3>
+        <div class="quoteGrid three">
+          <label>Név<input id="clientName" type="text" maxlength="180"></label>
+          <label>E-mail<input id="clientEmail" type="email" maxlength="240"></label>
+          <label>Telefon<input id="clientPhone" type="text" maxlength="80"></label>
+          <label>Település<input id="clientCity" type="text" maxlength="120"></label>
+          <label class="span2">Cím<input id="clientAddress" type="text" maxlength="240"></label>
+        </div>
+
+        <h3>Vállalkozó adatai</h3>
+        <div class="quoteGrid three">
+          <label>Név / cégnév<input id="contractorName" type="text" maxlength="180"></label>
+          <label>Adószám<input id="contractorTaxNumber" type="text" maxlength="80"></label>
+          <label>Cím<input id="contractorAddress" type="text" maxlength="240"></label>
+        </div>
+
+        <div class="quoteGrid two">
+          <label>Bevezető szöveg<textarea id="introduction" rows="3" maxlength="3000" placeholder="Rövid köszöntés és az ajánlat tárgya"></textarea></label>
+          <label>Fizetési feltételek<textarea id="paymentTerms" rows="3" maxlength="3000" placeholder="Pl. 30% előleg, fennmaradó összeg átadáskor"></textarea></label>
+        </div>
+
+        <div class="quoteSectionHead itemHeading">
+          <div><h3>Ajánlati tételek</h3><p class="muted">A megadott egységár nettó összeg.</p></div>
+          <button id="addItemBtn" class="btn ghost small" type="button">+ Tétel hozzáadása</button>
+        </div>
+        <div class="quoteItemsScroll">
+          <div class="quoteItemsHead">
+            <span>Megnevezés</span><span>Mennyiség</span><span>Egység</span><span>Nettó egységár</span><span>Nettó összesen</span><span></span>
+          </div>
+          <div id="quoteItems"></div>
+        </div>
+
+        <div class="quoteBottomGrid">
+          <label>Megjegyzés<textarea id="notes" rows="4" maxlength="4000" placeholder="Határidő, kizárások, egyéb feltételek"></textarea></label>
+          <div class="quoteTotals">
+            <label>ÁFA kulcs<select id="vatRate"><option value="0">0%</option><option value="5">5%</option><option value="18">18%</option><option value="27" selected>27%</option></select></label>
+            <div><span>Nettó összesen</span><strong id="subtotalNet">0 Ft</strong></div>
+            <div><span>ÁFA</span><strong id="vatAmount">0 Ft</strong></div>
+            <div class="grand"><span>Bruttó végösszeg</span><strong id="totalGross">0 Ft</strong></div>
+          </div>
+        </div>
+        <div class="quoteActions stickyActions">
+          <button id="saveQuoteBtn" class="btn primary" type="submit">Árajánlat mentése</button>
+          <button id="cancelQuoteBtn" class="btn ghost" type="button">Mégse</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="listPanel" class="quotePanel hidden">
+      <div class="quoteSectionHead">
+        <div><span class="quoteEyebrow">Saját ajánlatok</span><h2>Korábbi árajánlatok</h2></div>
+        <button id="refreshBtn" class="btn ghost small" type="button">Frissítés</button>
+      </div>
+      <div id="quoteList" class="quoteList"><p class="muted">Betöltés…</p></div>
+    </section>
+  </main>
+
+  <div id="quoteToast" class="quoteToast hidden" role="status" aria-live="polite"></div>
+  <footer><strong>ÉpítésNapló AI PRO</strong><p>Ajánlatból elfogadott, dokumentált projekt.</p></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-adapter.js?v=152"></script>
+  <script src="header-v40.js?v=190-quotes"></script>
+  <script src="ajanlatok.js?v=1"></script>
+</body>
+</html>

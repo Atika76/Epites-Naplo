@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Árajánlat – ÉpítésNapló</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="ajanlatok.css?v=1">
+</head>
+<body class="publicQuotePage">
+  <main class="publicQuoteWrap">
+    <header class="publicQuoteBrand">
+      <img src="favicon.svg" alt="">
+      <div><strong>ÉpítésNapló</strong><span>biztonságos árajánlati oldal</span></div>
+    </header>
+    <div id="publicStatus" class="quoteMessage" role="status" aria-live="polite">Az árajánlat betöltése…</div>
+    <article id="publicQuote" class="publicQuoteCard hidden">
+      <div class="publicQuoteTitle">
+        <div><span class="quoteEyebrow">Árajánlat</span><h1 id="publicProjectName">Árajánlat betöltése…</h1><p id="publicQuoteNumber"></p></div>
+        <span id="publicStatusBadge" class="quoteStatus"></span>
+      </div>
+      <div id="publicIntro" class="publicCopy"></div>
+      <div class="publicParties">
+        <section><h2>Ajánlatadó</h2><p id="publicContractor"></p></section>
+        <section><h2>Megrendelő</h2><p id="publicClient"></p></section>
+      </div>
+      <div class="publicTableScroll">
+        <table><thead><tr><th>Megnevezés</th><th>Mennyiség</th><th>Nettó egységár</th><th>Nettó összesen</th></tr></thead><tbody id="publicItems"></tbody></table>
+      </div>
+      <div class="publicTotals">
+        <p><span>Nettó összesen</span><strong id="publicNet"></strong></p>
+        <p><span>ÁFA</span><strong id="publicVat"></strong></p>
+        <p class="grand"><span>Bruttó végösszeg</span><strong id="publicGross"></strong></p>
+      </div>
+      <section class="publicTerms"><h2>Feltételek</h2><p id="publicPaymentTerms"></p><p id="publicNotes"></p><p><b>Érvényes:</b> <span id="publicValidUntil"></span></p></section>
+      <section id="decisionPanel" class="decisionPanel">
+        <h2>Válasz az ajánlatra</h2>
+        <p>Az elfogadás után a vállalkozó ebből az ajánlatból el tudja indítani az Építési Napló projektet.</p>
+        <div class="quoteGrid two">
+          <label>Név<input id="decisionName" type="text" maxlength="180" autocomplete="name"></label>
+          <label>E-mail<input id="decisionEmail" type="email" maxlength="240" autocomplete="email"></label>
+        </div>
+        <label>Megjegyzés<textarea id="decisionComment" rows="3" maxlength="2000"></textarea></label>
+        <label class="checkLine"><input id="privacyAccepted" type="checkbox"> Tudomásul veszem, hogy a megadott adataimat az ajánlatra adott válasz rögzítéséhez kezelik.</label>
+        <label class="checkLine"><input id="termsAccepted" type="checkbox"> Elfogadás esetén elfogadom az ajánlat tartalmát és a feltüntetett feltételeket.</label>
+        <p class="legalHint">Az online elfogadás az ajánlati döntést dokumentálja; a felek szükség esetén külön vállalkozási szerződést is köthetnek.</p>
+        <div class="quoteActions">
+          <button id="acceptBtn" class="publicBtn accept" type="button">Elfogadom az ajánlatot</button>
+          <button id="rejectBtn" class="publicBtn reject" type="button">Elutasítom</button>
+        </div>
+      </section>
+      <section id="decisionResult" class="decisionResult hidden"></section>
+    </article>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-adapter.js?v=152"></script>
+  <script src="ajanlat-public.js?v=1"></script>
+</body>
+</html>
