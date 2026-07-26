@@ -2,6 +2,13 @@ name: Deploy Építési Napló import functions
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'supabase/functions/create-szakipiac-import/**'
+      - 'supabase/functions/claim-szakipiac-import/**'
+      - '.github/workflows/deploy-epites-import-functions.yml'
 
 jobs:
   deploy:

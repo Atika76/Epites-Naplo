@@ -230,6 +230,28 @@ serve(async (req) => {
     if (reqRow.claimed_project_id) {
       return json({ ok: true, already_claimed: true, project_id: reqRow.claimed_project_id, warnings });
     }
+    if (reqRow.source_quote_id) {
+      const { data: previousClaim } = await admin
+        .from("project_import_requests")
+        .select("claimed_project_id")
+        .eq("source_app", "szakipiac")
+        .eq("source_quote_id", reqRow.source_quote_id)
+        .not("claimed_project_id", "is", null)
+        .order("claimed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (previousClaim?.claimed_project_id) {
+        await admin.from("project_import_requests").update({
+          claimed_by: userId,
+          claimed_project_id: previousClaim.claimed_project_id,
+          claimed_at: new Date().toISOString(),
+        }).eq("id", reqRow.id).is("claimed_project_id", null);
+        return json({ ok: true, already_claimed: true, project_id: previousClaim.claimed_project_id, warnings });
+      }
+    }
+    if (Date.now() - new Date(reqRow.created_at).getTime() > 7 * 24 * 60 * 60 * 1000) {
+      return json({ ok: false, error: "Az import link lejárt. Készíts új linket a SzakiPiacban." }, 410);
+    }
 
     const payload = reqRow.payload || {};
     const client = payload.client || {};
@@ -282,6 +304,29 @@ serve(async (req) => {
       .single();
 
     if (projectError) return json({ ok: false, error: "Projekt létrehozási hiba: " + projectError.message }, 500);
+
+    const { data: claimedRows, error: claimError } = await admin
+      .from("project_import_requests")
+      .update({
+        claimed_by: userId,
+        claimed_project_id: project.id,
+        claimed_at: new Date().toISOString(),
+      })
+      .eq("id", reqRow.id)
+      .is("claimed_project_id", null)
+      .select("id");
+    if (claimError || !claimedRows?.length) {
+      await admin.from("projects").delete().eq("id", project.id).eq("user_id", userId);
+      const { data: currentRequest } = await admin
+        .from("project_import_requests")
+        .select("claimed_project_id")
+        .eq("id", reqRow.id)
+        .maybeSingle();
+      if (currentRequest?.claimed_project_id) {
+        return json({ ok: true, already_claimed: true, project_id: currentRequest.claimed_project_id, warnings });
+      }
+      return json({ ok: false, error: "Az import foglalását nem sikerült rögzíteni. Próbáld újra." }, 500);
+    }
 
     await optionalInsert(admin, "project_imports", {
       project_id: project.id,
@@ -340,52 +385,35 @@ serve(async (req) => {
       entryResult = await admin.from("entries").insert(baseEntry).select("id").single();
     }
 
-    if (entryResult.error) {
-      return json({ ok: false, error: "Naplóbejegyzés mentési hiba: " + entryResult.error.message }, 500);
-    }
-
-    const entry = entryResult.data;
+    if (entryResult.error) warnings.push("A projekt létrejött, de a kezdő naplóbejegyzést nem sikerült menteni: " + entryResult.error.message);
+    const entry = entryResult.error ? null : entryResult.data;
 
     const materialRows = items
       .filter((item: any) => item.type === "anyag")
       .map((item: any) => ({
         user_id: userId,
         project_id: project.id,
-        entry_id: entry.id,
+        entry_id: entry?.id,
         name: item.name,
         quantity: item.quantity,
         unit: item.unit,
         note: `SzakiPiac import - egységár: ${ft(item.mat_unit_price)} - összesen: ${ft(item.material_total || item.total)}`,
       }));
-    if (materialRows.length) await optionalInsert(admin, "project_materials", materialRows, warnings);
+    if (entry && materialRows.length) await optionalInsert(admin, "project_materials", materialRows, warnings);
 
     const taskRows = items
       .filter((item: any) => item.type === "munka" || item.type === "egyeb")
       .map((item: any) => ({
         user_id: userId,
         project_id: project.id,
-        source_entry_id: entry.id,
+        source_entry_id: entry?.id,
         title: `${item.name} - ${item.quantity} ${item.unit} - ${ft(item.labor_total || item.total)}`,
         owner: clientName || "",
         deadline: null,
         priority: "normál",
         done: false,
       }));
-    if (taskRows.length) await optionalInsert(admin, "tasks", taskRows, warnings);
-
-    if (grossTotal > 0) {
-      await optionalInsert(admin, "project_invoices", {
-        user_id: userId,
-        project_id: project.id,
-        entry_id: entry.id,
-        title: "SzakiPiac importált ajánlat",
-        amount: grossTotal,
-        note,
-        file_name: "",
-        file_type: "",
-        file_data: null,
-      }, warnings);
-    }
+    if (entry && taskRows.length) await optionalInsert(admin, "tasks", taskRows, warnings);
 
     await optionalInsert(admin, "diary_entries", {
       user_id: userId,
@@ -394,22 +422,14 @@ serve(async (req) => {
       work_type: mainWork?.name || "SzakiPiac import",
     }, warnings);
 
-    const { error: updateError } = await admin.from("project_import_requests").update({
-      claimed_by: userId,
-      claimed_project_id: project.id,
-      claimed_at: new Date().toISOString(),
-    }).eq("id", reqRow.id);
-    if (updateError) warnings.push("project_import_requests frissítési hiba: " + updateError.message);
-
     return json({
       ok: true,
       project_id: project.id,
       project,
-      entry_id: entry.id,
+      entry_id: entry?.id || null,
       inserted: {
-        materials: materialRows.length,
-        tasks: taskRows.length,
-        invoice: grossTotal > 0 ? 1 : 0,
+        materials: entry ? materialRows.length : 0,
+        tasks: entry ? taskRows.length : 0,
       },
       warnings,
     });
