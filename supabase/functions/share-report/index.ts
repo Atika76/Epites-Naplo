@@ -3,6 +3,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SITE_URL = "https://epitesi-naplo.eu";
 const FALLBACK_IMAGE = `${SITE_URL}/og-ugyfelriport-card.png?v=146`;
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+};
 
 function esc(value: unknown) {
   return String(value ?? "")
@@ -100,6 +105,11 @@ async function loadReport(token: string) {
 }
 
 serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "GET") {
+    return new Response("Method not allowed", { status: 405, headers: { ...corsHeaders, "Content-Type": "text/plain; charset=utf-8" } });
+  }
+
   const url = new URL(req.url);
   const token = (url.searchParams.get("riport") || url.searchParams.get("report") || url.searchParams.get("token") || "").trim();
 
@@ -184,7 +194,7 @@ serve(async (req) => {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "public, max-age=300",
-      "Access-Control-Allow-Origin": "*",
+      ...corsHeaders,
       "X-Content-Type-Options": "nosniff",
     },
   });

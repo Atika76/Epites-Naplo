@@ -62,8 +62,8 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const cleanToken = String(body.token || "").trim();
-    const requested = Array.isArray(body.paths)
-      ? [...new Set(body.paths.map((p: unknown) => cleanPath(p)).filter(Boolean))]
+    const requested: string[] = Array.isArray(body.paths)
+      ? [...new Set<string>(body.paths.map((p: unknown) => cleanPath(p)).filter((p: string) => p.length > 0))]
       : [];
     const all = body.all === true;
 

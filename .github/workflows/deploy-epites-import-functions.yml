@@ -6,9 +6,7 @@ on:
     branches:
       - main
     paths:
-      - 'supabase/functions/create-szakipiac-import/**'
-      - 'supabase/functions/claim-szakipiac-import/**'
-      - 'supabase/functions/create-quote-project/**'
+      - 'supabase/functions/**'
       - 'supabase/epitesi_ajanlat_schema.sql'
       - 'supabase/config.toml'
       - '.github/workflows/deploy-epites-import-functions.yml'
@@ -44,5 +42,50 @@ jobs:
 
       - name: Deploy create-quote-project
         run: npx --yes supabase@latest functions deploy create-quote-project --project-ref tcmihuwjlapfaonihdma --no-verify-jwt --use-api --debug
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy AI report generator
+        run: npx --yes supabase@latest functions deploy ai-report-generate --project-ref tcmihuwjlapfaonihdma --use-api --debug
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy AI vision analyzer
+        run: npx --yes supabase@latest functions deploy ai-vision-analyze --project-ref tcmihuwjlapfaonihdma --use-api --debug
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy account deletion
+        run: npx --yes supabase@latest functions deploy delete-account --project-ref tcmihuwjlapfaonihdma --use-api --debug
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy admin notification
+        run: npx --yes supabase@latest functions deploy notify-admin --project-ref tcmihuwjlapfaonihdma --use-api --debug
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy client notification
+        run: npx --yes supabase@latest functions deploy notify-client --project-ref tcmihuwjlapfaonihdma --use-api --debug
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy PayPal activation
+        run: npx --yes supabase@latest functions deploy paypal-activate --project-ref tcmihuwjlapfaonihdma --use-api --debug
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy PayPal AI credits
+        run: npx --yes supabase@latest functions deploy paypal-ai-credits --project-ref tcmihuwjlapfaonihdma --use-api --debug
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy public report media
+        run: npx --yes supabase@latest functions deploy public-report-media --project-ref tcmihuwjlapfaonihdma --no-verify-jwt --use-api --debug
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy share report
+        run: npx --yes supabase@latest functions deploy share-report --project-ref tcmihuwjlapfaonihdma --no-verify-jwt --use-api --debug
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

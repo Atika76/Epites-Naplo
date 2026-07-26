@@ -58,7 +58,7 @@ serve(async (req) => {
 
     return json(result);
   } catch (error) {
-    return json({ ok: false, error: String(error?.message || error) }, 400);
+    return json({ ok: false, error: error instanceof Error ? error.message : String(error) }, 400);
   }
 });
 

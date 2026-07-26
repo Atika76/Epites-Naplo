@@ -1,6 +1,9 @@
 [functions.share-report]
 verify_jwt = false
 
+[functions.public-report-media]
+verify_jwt = false
+
 # SzakiPiac -> Építési Napló import functions
 # create-szakipiac-import: a SzakiPiac Edge Function hívja titkos import kulccsal, ezért nincs gateway JWT.
 # claim-szakipiac-import: a felhasználót a function saját maga ellenőrzi a bejelentkezett session alapján.

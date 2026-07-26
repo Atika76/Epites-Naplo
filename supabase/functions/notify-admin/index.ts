@@ -75,7 +75,7 @@ serve(async (req) => {
 
     return json({ ok: true, data });
   } catch (err) {
-    return json({ ok: false, error: String(err?.message || err) }, 500);
+    return json({ ok: false, error: err instanceof Error ? err.message : String(err) }, 500);
   }
 });
 
