@@ -8,6 +8,11 @@
     draft: "Piszkozat", sent: "Elküldve", viewed: "Megnyitva", accepted: "Elfogadva",
     rejected: "Elutasítva", expired: "Lejárt", project_created: "Projekt elkészült",
   };
+  const outcomeLabels = {
+    active: "Aktív munka",
+    completed: "Munka befejezve",
+    cancelled: "Munka meghiúsult",
+  };
   let currentUser = null;
   let currentProfile = null;
   let contractorLogoData = "";
@@ -308,17 +313,34 @@
   function renderList() {
     const list = $("quoteList");
     list.innerHTML = "";
-    if (!quotes.length) {
+    const filter = $("quoteListFilter")?.value || "active";
+    const visibleQuotes = quotes.filter((quote) => {
+      if (filter === "archived") return Boolean(quote.archived_at);
+      if (filter === "active") return !quote.archived_at;
+      return true;
+    });
+    if (!visibleQuotes.length) {
       const empty = document.createElement("p");
       empty.className = "muted";
-      empty.textContent = "Még nincs árajánlatod. Készítsd el az elsőt az „Új árajánlat” gombbal.";
+      empty.textContent = filter === "archived"
+        ? "Még nincs archivált árajánlatod."
+        : "Még nincs megjeleníthető árajánlatod. Készítsd el az elsőt az „Új árajánlat” gombbal.";
       list.appendChild(empty);
       return;
     }
-    quotes.forEach((quote) => {
+    visibleQuotes.forEach((quote) => {
       const card = document.createElement("article");
-      card.className = "quoteCard";
+      card.className = `quoteCard${quote.archived_at ? " archived" : ""}`;
       const created = quote.created_at ? new Date(quote.created_at).toLocaleDateString("hu-HU") : "";
+      const outcome = quote.outcome || "active";
+      const lifecycle = ["accepted", "project_created"].includes(quote.status)
+        ? `<div class="quoteLifecycle ${escapeHtml(outcome)}">
+            <b>${escapeHtml(outcomeLabels[outcome] || outcomeLabels.active)}</b>
+            ${quote.outcome_at ? ` · ${escapeHtml(new Date(quote.outcome_at).toLocaleString("hu-HU"))}` : ""}
+            ${quote.outcome_reason ? `<br>${escapeHtml(quote.outcome_reason)}` : ""}
+            ${quote.archived_at ? `<br>Archiválva: ${escapeHtml(new Date(quote.archived_at).toLocaleString("hu-HU"))}` : ""}
+          </div>`
+        : "";
       card.innerHTML = `
         <div class="quoteCardTop">
           <div><span class="quoteEyebrow">${escapeHtml(quote.quote_number)}${quote.quote_type === "supplement" ? " · PÓTMUNKA" : ""}</span><h3>${escapeHtml(quote.project_name)}</h3></div>
@@ -329,6 +351,7 @@
           <span>Végösszeg: <b>${money(quote.total_gross)}</b></span>
           <span>Létrehozva: ${escapeHtml(created)}</span>
         </div>
+        ${lifecycle}
         <div class="quoteActions"></div>`;
       const actions = card.querySelector(".quoteActions");
       const addButton = (label, handler, className = "btn ghost small") => {
@@ -342,6 +365,10 @@
       if (["draft", "rejected", "expired"].includes(quote.status)) addButton("Szerkesztés", () => openEditor(quote));
       if (!["accepted", "project_created"].includes(quote.status)) addButton("Küldési link", (button) => shareQuote(quote, button), "btn primary small");
       addButton("Nyomtatás / PDF", () => printQuote(quote));
+      if (["accepted", "project_created"].includes(quote.status)) {
+        addButton("Elfogadott PDF letöltése", (button) => downloadAcceptedPdf(quote, button), "btn primary small");
+        addButton("PDF megosztása", (button) => shareAcceptedPdf(quote, button));
+      }
       if (quote.status === "accepted") addButton(
         quote.quote_type === "supplement" ? "Pótmunka hozzáadása a projekthez" : "Projekt létrehozása",
         (button) => createProject(quote, button),
@@ -349,6 +376,14 @@
       );
       if (quote.project_id) addButton("Projekt megnyitása", () => { window.location.href = `project.html?id=${encodeURIComponent(quote.project_id)}`; });
       if (["accepted", "project_created"].includes(quote.status)) addButton("Pótmunka / kiegészítés", () => openSupplement(quote), "btn primary small");
+      if (["accepted", "project_created"].includes(quote.status) && !quote.archived_at) {
+        addButton("Munka befejezése", (button) => setQuoteLifecycle(quote, "completed", button));
+        addButton("Munka meghiúsult", (button) => setQuoteLifecycle(quote, "cancelled", button), "btn danger small");
+        addButton("Archiválás", (button) => setQuoteLifecycle(quote, outcome, button, true));
+      }
+      if (["accepted", "project_created"].includes(quote.status) && quote.archived_at) {
+        addButton("Vissza az aktívak közé", (button) => setQuoteLifecycle(quote, outcome, button, false));
+      }
       if (["draft", "rejected", "expired"].includes(quote.status)) addButton("Törlés", (button) => deleteQuote(quote, button));
       list.appendChild(card);
     });
@@ -463,6 +498,86 @@
       await loadQuotes();
     } catch (error) {
       toast(`A link létrehozása nem sikerült: ${error.message || error}`, "error");
+    } finally {
+      setBusy(button, false);
+    }
+  }
+
+  async function downloadAcceptedPdf(quote, button) {
+    setBusy(button, true, "PDF készül…");
+    try {
+      if (!window.EpitesiQuoteDocuments) throw new Error("A PDF-készítő nem töltődött be.");
+      await window.EpitesiQuoteDocuments.downloadPdf(quote);
+      toast("Az elfogadott, zárolt ajánlat PDF-je elkészült.", "ok");
+    } catch (error) {
+      toast(`A PDF mentése nem sikerült: ${error.message || error}`, "error");
+    } finally {
+      setBusy(button, false);
+    }
+  }
+
+  async function shareAcceptedPdf(quote, button) {
+    setBusy(button, true, "PDF készül…");
+    try {
+      if (!window.EpitesiQuoteDocuments) throw new Error("A PDF-készítő nem töltődött be.");
+      const result = await window.EpitesiQuoteDocuments.sharePdf(quote);
+      toast(result?.shared ? "Az elfogadott PDF megosztásra átadva." : "A készülék nem támogatja a fájlmegosztást, ezért a PDF letöltődött.", "ok");
+    } catch (error) {
+      toast(`A PDF megosztása nem sikerült: ${error.message || error}`, "error");
+    } finally {
+      setBusy(button, false);
+    }
+  }
+
+  async function setQuoteLifecycle(quote, outcome, button, archivedOverride) {
+    let reason = quote.outcome_reason || "";
+    let archived = archivedOverride;
+    if (outcome === "completed" && archivedOverride === undefined) {
+      if (!window.confirm("Befejezettnek jelölöd a munkát? Az elfogadott ajánlat megmarad és az Archiváltak közé kerül.")) return;
+      reason = window.prompt("Lezárási megjegyzés (nem kötelező):", reason) ?? "";
+      archived = true;
+    } else if (outcome === "cancelled" && archivedOverride === undefined) {
+      reason = window.prompt("Írd le röviden, miért hiúsult meg a munka:", reason);
+      if (reason === null) return;
+      if (asText(reason).length < 3) return toast("A meghiúsulás rövid indoklása szükséges.", "error");
+      archived = true;
+    } else if (archivedOverride === true && !window.confirm("Az ajánlat az Archiváltak közé kerül. Folytatod?")) {
+      return;
+    }
+
+    setBusy(button, true, archived === false ? "Visszaállítás…" : "Mentés…");
+    try {
+      const { data, error } = await db.rpc("epitesi_set_quote_lifecycle_v1", {
+        p_quote_id: quote.id,
+        p_outcome: outcome,
+        p_reason: reason,
+        p_archived: archived !== false,
+      });
+      if (error) throw error;
+      if (!data?.ok) throw new Error("Az állapot mentése nem sikerült.");
+
+      if (quote.project_id && archivedOverride === undefined && ["completed", "cancelled"].includes(outcome)) {
+        try {
+          await window.EpitesNaploAPI.updateProjectStatus(quote.project_id, {
+            status: outcome === "completed" ? "lezarva" : "meghiusult",
+            progress: outcome === "completed" ? 100 : undefined,
+          });
+        } catch (projectError) {
+          console.warn("Az ajánlat állapota mentve, de a projekt állapota nem frissült:", projectError);
+          toast("Az ajánlat archiválva lett, de a projekt állapotát külön ellenőrizd.", "error");
+        }
+      }
+
+      await loadQuotes();
+      toast(archived === false
+        ? "Az ajánlat visszakerült az aktívak közé."
+        : outcome === "completed"
+          ? "A munka befejezettként lezárva és archiválva."
+          : outcome === "cancelled"
+            ? "A munka meghiúsultként lezárva és archiválva."
+            : "Az ajánlat archiválva lett.", "ok");
+    } catch (error) {
+      toast(`Az állapot mentése nem sikerült: ${error.message || error}`, "error");
     } finally {
       setBusy(button, false);
     }
@@ -604,6 +719,7 @@
     $("contractorLogoFile").click();
   });
   $("quoteForm").addEventListener("submit", saveQuote);
+  $("quoteListFilter")?.addEventListener("change", renderList);
   $("refreshBtn").addEventListener("click", async (event) => {
     setBusy(event.currentTarget, true, "Frissítés…");
     try { await loadQuotes(true); } catch (error) { toast(error.message || String(error), "error"); }

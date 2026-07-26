@@ -560,7 +560,7 @@ let v19MaterialsCache = [];
 let v19InvoicesCache = [];
 
 function statusLabel(value){
-  return ({ folyamatban:'Folyamatban', ellenorzesre_var:'Ellenőrzésre vár', elkeszult:'Elkészült', lezarva:'Lezárva' }[value || 'folyamatban'] || 'Folyamatban');
+  return ({ folyamatban:'Folyamatban', ellenorzesre_var:'Ellenőrzésre vár', elkeszult:'Elkészült', lezarva:'Lezárva', meghiusult:'Meghiúsult' }[value || 'folyamatban'] || 'Folyamatban');
 }
 function statusClass(value){ return `status-${value || 'folyamatban'}`; }
 function projectActivitySignal(entries = [], status = 'folyamatban', manualProgress = 0) {
@@ -568,7 +568,7 @@ function projectActivitySignal(entries = [], status = 'folyamatban', manualProgr
   const videos = entries.reduce((sum, e) => sum + getEntryVideos(e).length, 0);
   const risky = entries.filter(e => (e.analysis?.level || e.ai_level || 'Alacsony') !== 'Alacsony').length;
   const last = entries[0] || null;
-  const finished = status === 'lezarva' || status === 'elkeszult';
+  const finished = status === 'lezarva' || status === 'elkeszult' || status === 'meghiusult';
   const estimated = finished ? 100 : Math.min(95, Math.max(entries.length ? 12 : 0, entries.length * 14 + Math.min(24, (photos + videos) * 2)));
   const progress = manualProgress > 0 || finished ? manualProgress || estimated : estimated;
   const signalClass = risky ? 'warn' : entries.length ? 'ok' : 'empty';
@@ -1594,8 +1594,9 @@ function v33RenderStorageBox() {
     <div class="notice"><b>Tárhely és projekt állapot</b>
       <div class="v33StorageGrid"><div><b>${photos}</b><span>fotó</span></div><div><b>${videos}</b><span>videó</span></div><div><b>${v33BytesToMb(bytes.totalBytes)}</b><span>becsült média</span></div></div>
       <button class="btn ghost full" type="button" onclick="v33ArchiveProject()">Projekt lezárása (nem törli)</button>
-      <button class="btn primary full" type="button" onclick="v68DownloadProjectZip()">Projekt mentése ZIP-be (minden adattal + képpel)</button>
-      <small class="muted">A lezárás csak a projekt állapotát állítja lezártra. A fotók, videók és naplóbejegyzések megmaradnak, nem kerülnek külön rejtett helyre.</small>
+      <button class="btn primary full" type="button" onclick="v68CloseAndDownloadProject()">Lezárás és teljes ZIP-mentés</button>
+      <button class="btn ghost full" type="button" onclick="v68DownloadProjectZip()">Csak ZIP mentése (adatok + ajánlatok + média)</button>
+      <small class="muted">A lezárás nem töröl semmit. A teljes ZIP tartalmazza a riportot, a naplóadatokat, a kapcsolt elfogadott ajánlatokat és a letölthető fotókat, videókat.</small>
     </div>
   `;
 }
@@ -3440,27 +3441,64 @@ ${localAi.nextStep}`;
   async function fetchBlob(url){ const res=await fetch(url,{mode:'cors',credentials:'omit'}); if(!res.ok) throw new Error('Letöltési hiba '+res.status); return await res.blob(); }
   function downloadBlob(filename, blob){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},1200); }
   window.v68DownloadProjectZip = async function(){
-    if(!detailState?.project) return alert('Nincs megnyitott projekt.');
+    if(!detailState?.project){ alert('Nincs megnyitott projekt.'); return false; }
     const buttons=[...document.querySelectorAll('button')].filter(b=>(b.textContent||'').includes('ZIP-be'));
     buttons.forEach(b=>{b.disabled=true;b.dataset.oldText=b.textContent;b.textContent='ZIP készítése...';});
     try{
       const JSZip=await loadJSZip(); const zip=new JSZip();
       let closeData=null; try{ closeData=await window.EpitesNaploAPI?.getProjectCloseData?.(detailState.project.id); }catch(_){}
       const entries=closeData?.entries || detailState.entries || [];
+      let linkedQuotes=[];
+      try{
+        const query=await window.supabaseDirect.from('epitesi_quotes').select('*').eq('project_id',detailState.project.id).in('status',['accepted','project_created']).order('created_at',{ascending:true});
+        if(query.error) throw query.error;
+        linkedQuotes=query.data||[];
+      }catch(error){ console.warn('A kapcsolt ajánlatok lekérése nem sikerült:',error); }
       const title=`${detailState.project.name || 'Projekt'} – lezárt projekt saját példány`;
       const reportHtml=(typeof window.buildProReportHtml==='function') ? window.buildProReportHtml(entries,title,closeData||{}) : `<html><body><h1>${title}</h1></body></html>`;
       zip.file('riport.html',reportHtml);
-      zip.file('adatok.json',JSON.stringify({exportedAt:new Date().toISOString(),project:detailState.project,entries,materials:closeData?.materials||[],invoices:closeData?.invoices||[],approvals:closeData?.approvals||[]},null,2));
+      zip.file('adatok.json',JSON.stringify({exportedAt:new Date().toISOString(),project:detailState.project,entries,materials:closeData?.materials||[],invoices:closeData?.invoices||[],approvals:closeData?.approvals||[],acceptedQuotes:linkedQuotes.map(q=>window.EpitesiQuoteDocuments?.lockedQuote?.(q)||q)},null,2));
       const failed=[];
+      for(const quote of linkedQuotes){
+        const quoteName=safeName(`${quote.quote_number||'ajanlat'}-${quote.project_name||''}`);
+        try{
+          if(!window.EpitesiQuoteDocuments) throw new Error('Az ajánlati dokumentumkészítő nem töltődött be.');
+          const locked=window.EpitesiQuoteDocuments.lockedQuote(quote);
+          zip.file(`ajanlatok/${quoteName}.html`,window.EpitesiQuoteDocuments.buildHtml(locked));
+          zip.file(`ajanlatok/${quoteName}.json`,JSON.stringify(locked,null,2));
+          const pdf=await window.EpitesiQuoteDocuments.createPdfBlob(locked);
+          zip.file(`ajanlatok/${quoteName}.pdf`,pdf);
+        }catch(error){
+          failed.push(`AJÁNLAT: ${quote.quote_number||quote.id} – ${error.message||error}`);
+        }
+      }
       for(const item of collectImages(entries)){ try{ zip.file(`kepek/${safeName(item.name)}.${extFromUrl(item.src,'jpg')}`, await fetchBlob(item.src)); }catch(e){ failed.push('KÉP: '+item.src); } }
       for(const item of collectVideos(entries)){ try{ zip.file(`videok/${safeName(item.name)}.${extFromUrl(item.src,'mp4')}`, await fetchBlob(item.src)); }catch(e){ failed.push('VIDEÓ: '+item.src); } }
       if(failed.length) zip.file('media-linkek.txt',failed.join('\n'));
-      zip.file('README.txt','ÉpítésNapló AI PRO saját projektmentés. A riport.html böngészőben megnyitható. Az adatok.json tartalmazza a napló adatokat.');
+      zip.file('README.txt','ÉpítésNapló AI PRO saját projektmentés.\n\n- riport.html: a projekt riportja\n- adatok.json: a projekt és napló teljes adatkivonata\n- ajanlatok/: a kapcsolt elfogadott alap- és pótmunka-ajánlatok PDF, HTML és JSON formátumban\n- kepek/ és videok/: a letölthető médiafájlok\n\nAz elfogadott ajánlati példányok az elfogadáskor zárolt adatokból készülnek.');
       const blob=await zip.generateAsync({type:'blob'});
       downloadBlob(`${safeName(detailState.project.name || 'epitesi-naplo')}-projekt-mentes.zip`,blob);
       showToast('✔ Projekt ZIP mentés elkészült. Ez a saját példányod.', 'ok');
-    }catch(err){ console.error(err); alert('Projekt ZIP mentési hiba: '+(err.message||err)); }
+      return true;
+    }catch(err){ console.error(err); alert('Projekt ZIP mentési hiba: '+(err.message||err)); return false; }
     finally{ buttons.forEach(b=>{b.disabled=false;b.textContent=b.dataset.oldText||'Projekt mentése ZIP-be';}); }
+  };
+  window.v68CloseAndDownloadProject = async function(){
+    if(!detailState?.project) return alert('Nincs megnyitott projekt.');
+    if(!confirm('Elkészíted a teljes ZIP-mentést, majd lezárod a projektet? A napló és az elfogadott ajánlatok nem törlődnek.')) return;
+    const saved=await window.v68DownloadProjectZip();
+    if(!saved) return;
+    try{
+      await window.EpitesNaploAPI.updateProjectStatus(detailState.project.id,{status:'lezarva',progress:100});
+      detailState.project.status='lezarva';
+      detailState.project.progress=100;
+      updateProjectHeaderStatus?.();
+      v33RenderStorageBox?.();
+      showToast('✔ A teljes mentés elkészült, a projekt lezárva.', 'ok');
+    }catch(error){
+      console.error(error);
+      alert('A ZIP elkészült, de a projekt lezárása nem sikerült: '+(error.message||error));
+    }
   };
 })();
 

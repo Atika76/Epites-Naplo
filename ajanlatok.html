@@ -7,8 +7,8 @@
   <title>Árajánlatok – ÉpítésNapló AI PRO</title>
   <meta name="description" content="Saját logózható árajánlat készítése, ügyfélelfogadás és projektindítás az Építési Naplóban.">
   <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="stylesheet" href="style.css?v=191-professional-quotes">
-  <link rel="stylesheet" href="ajanlatok.css?v=3-logo-upload">
+  <link rel="stylesheet" href="style.css?v=193-archive-export">
+  <link rel="stylesheet" href="ajanlatok.css?v=5-archive-export">
 </head>
 <body class="auth-loading quoteApp">
   <header class="topbar">
@@ -145,7 +145,16 @@
     <section id="listPanel" class="quotePanel hidden">
       <div class="quoteSectionHead">
         <div><span class="quoteEyebrow">Saját ajánlatok</span><h2>Korábbi árajánlatok</h2></div>
-        <button id="refreshBtn" class="btn ghost small" type="button">Frissítés</button>
+        <div class="quoteListTools">
+          <label>Megjelenítés
+            <select id="quoteListFilter">
+              <option value="active">Aktív ajánlatok</option>
+              <option value="archived">Archiváltak</option>
+              <option value="all">Mind</option>
+            </select>
+          </label>
+          <button id="refreshBtn" class="btn ghost small" type="button">Frissítés</button>
+        </div>
       </div>
       <div id="quoteList" class="quoteList"><p class="muted">Betöltés…</p></div>
     </section>
@@ -155,8 +164,10 @@
   <footer><strong>ÉpítésNapló AI PRO</strong><p>Ajánlatból elfogadott, dokumentált projekt.</p></footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="supabase-adapter.js?v=193-shared-bundle"></script>
   <script src="header-v40.js?v=191-professional-quotes"></script>
-  <script src="ajanlatok.js?v=4-logo-upload"></script>
+  <script src="quote-document.js?v=1-locked-archive"></script>
+  <script src="ajanlatok.js?v=5-locked-archive"></script>
 </body>
 </html>

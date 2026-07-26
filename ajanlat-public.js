@@ -30,9 +30,60 @@
     const result = $("decisionResult");
     result.className = `decisionResult ${decision === "rejected" ? "rejected" : ""}`.trim();
     const date = decidedAt ? new Date(decidedAt).toLocaleString("hu-HU") : new Date().toLocaleString("hu-HU");
-    result.textContent = decision === "accepted"
+    result.innerHTML = "";
+    const message = document.createElement("p");
+    message.textContent = decision === "accepted"
       ? `Köszönjük, ${name || ""}! Az ajánlat elfogadását rögzítettük (${date}). A vállalkozó most már elindíthatja belőle az Építési Napló projektet.`
       : `Az ajánlat elutasítását rögzítettük (${date}). A megjegyzést a vállalkozó látni fogja.`;
+    result.appendChild(message);
+    if (decision === "accepted") {
+      const actions = document.createElement("div");
+      actions.className = "decisionResultActions";
+      const acceptedQuote = () => ({
+        ...quote,
+        status: "accepted",
+        decision_name: name || quote?.decision_name,
+        decided_at: decidedAt || quote?.decided_at,
+        accepted_at: decidedAt || quote?.accepted_at,
+      });
+      const download = document.createElement("button");
+      download.type = "button";
+      download.className = "btn primary";
+      download.textContent = "Elfogadott PDF letöltése";
+      download.addEventListener("click", async () => {
+        const original = download.textContent;
+        download.disabled = true;
+        download.textContent = "PDF készül…";
+        try {
+          await window.EpitesiQuoteDocuments.downloadPdf(acceptedQuote());
+        } catch (error) {
+          statusMessage(`A PDF mentése nem sikerült: ${error.message || error}`, "error");
+        } finally {
+          download.disabled = false;
+          download.textContent = original;
+        }
+      });
+      const share = document.createElement("button");
+      share.type = "button";
+      share.className = "btn ghost";
+      share.textContent = "PDF megosztása";
+      share.addEventListener("click", async () => {
+        const original = share.textContent;
+        share.disabled = true;
+        share.textContent = "PDF készül…";
+        try {
+          const result = await window.EpitesiQuoteDocuments.sharePdf(acceptedQuote());
+          if (!result?.shared) statusMessage("A készülék nem támogatja a fájlmegosztást, ezért a PDF letöltődött.", "ok");
+        } catch (error) {
+          statusMessage(`A PDF megosztása nem sikerült: ${error.message || error}`, "error");
+        } finally {
+          share.disabled = false;
+          share.textContent = original;
+        }
+      });
+      actions.append(download, share);
+      result.appendChild(actions);
+    }
   }
 
   function render(data) {
@@ -127,6 +178,15 @@
         throw new Error("A döntést nem sikerült rögzíteni.");
       }
       const finalDecision = data.decision || decision;
+      quote = {
+        ...quote,
+        status: finalDecision,
+        decision_name: name,
+        decision_email: email,
+        decision_comment: text($("decisionComment").value),
+        decided_at: data.decided_at,
+        accepted_at: finalDecision === "accepted" ? data.decided_at : quote?.accepted_at,
+      };
       statusMessage(finalDecision === "accepted" ? "Az ajánlat elfogadását sikeresen rögzítettük." : "Az elutasítást sikeresen rögzítettük.", "ok");
       showDecisionResult(finalDecision, name, data.decided_at);
       setText("publicStatusBadge", labels[finalDecision]);

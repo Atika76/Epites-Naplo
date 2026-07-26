@@ -116,6 +116,13 @@ create table if not exists public.epitesi_quotes (
   terms_version text,
   project_id uuid references public.projects(id) on delete set null,
   project_created_at timestamptz,
+  accepted_snapshot jsonb,
+  accepted_snapshot_created_at timestamptz,
+  outcome text not null default 'active'
+    check (outcome in ('active','completed','cancelled')),
+  outcome_reason text,
+  outcome_at timestamptz,
+  archived_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (user_id, quote_number)
@@ -141,6 +148,16 @@ alter table public.epitesi_quotes add column if not exists work_start_date date;
 alter table public.epitesi_quotes add column if not exists work_end_date date;
 alter table public.epitesi_quotes add column if not exists warranty_terms text;
 alter table public.epitesi_quotes add column if not exists exclusions text;
+alter table public.epitesi_quotes add column if not exists accepted_snapshot jsonb;
+alter table public.epitesi_quotes add column if not exists accepted_snapshot_created_at timestamptz;
+alter table public.epitesi_quotes add column if not exists outcome text not null default 'active';
+alter table public.epitesi_quotes add column if not exists outcome_reason text;
+alter table public.epitesi_quotes add column if not exists outcome_at timestamptz;
+alter table public.epitesi_quotes add column if not exists archived_at timestamptz;
+alter table public.epitesi_quotes drop constraint if exists epitesi_quotes_outcome_check;
+alter table public.epitesi_quotes
+  add constraint epitesi_quotes_outcome_check
+  check (outcome in ('active','completed','cancelled'));
 alter table public.epitesi_quotes add column if not exists subtotal_before_discount numeric not null default 0;
 alter table public.epitesi_quotes add column if not exists discount_amount numeric not null default 0;
 
@@ -311,18 +328,25 @@ begin
     return old;
   end if;
 
+  if old.accepted_snapshot is not null
+     and new.accepted_snapshot is distinct from old.accepted_snapshot then
+    raise exception 'A zárolt elfogadási példány nem módosítható.';
+  end if;
+
   if old.status in ('sent','viewed','accepted','project_created')
      and (
        to_jsonb(new) - array[
          'status','valid_until','sent_at','viewed_at','accepted_at','rejected_at',
          'decision_name','decision_email','decision_comment','terms_version',
-         'project_id','project_created_at','updated_at'
+         'project_id','project_created_at','accepted_snapshot','accepted_snapshot_created_at',
+         'outcome','outcome_reason','outcome_at','archived_at','updated_at'
        ]::text[]
        <>
        to_jsonb(old) - array[
          'status','valid_until','sent_at','viewed_at','accepted_at','rejected_at',
          'decision_name','decision_email','decision_comment','terms_version',
-         'project_id','project_created_at','updated_at'
+         'project_id','project_created_at','accepted_snapshot','accepted_snapshot_created_at',
+         'outcome','outcome_reason','outcome_at','archived_at','updated_at'
        ]::text[]
      ) then
     raise exception 'Az ügyfélnek elküldött ajánlat tartalma már nem módosítható. Készíts külön pótmunkát vagy kiegészítő ajánlatot.';
@@ -467,6 +491,9 @@ begin
     'project_name', v_quote.project_name,
     'client_name', v_quote.client_name,
     'client_email', v_quote.client_email,
+    'client_phone', v_quote.client_phone,
+    'client_city', v_quote.client_city,
+    'client_address', v_quote.client_address,
     'contractor_name', v_quote.contractor_name,
     'contractor_tax_number', v_quote.contractor_tax_number,
     'contractor_address', v_quote.contractor_address,
@@ -491,7 +518,11 @@ begin
     'notes', v_quote.notes,
     'payment_terms', v_quote.payment_terms,
     'valid_until', v_share.expires_at,
+    'accepted_at', v_quote.accepted_at,
+    'accepted_snapshot', v_quote.accepted_snapshot,
+    'accepted_snapshot_created_at', v_quote.accepted_snapshot_created_at,
     'decision_name', v_share.decision_name,
+    'decision_email', v_share.decision_email,
     'decision_comment', v_share.decision_comment,
     'decided_at', v_share.decided_at
   );
@@ -561,6 +592,30 @@ begin
       decision_email = v_email,
       decision_comment = nullif(v_comment, ''),
       terms_version = v_share.terms_version,
+      accepted_snapshot = case when v_decision = 'accepted' then
+        (
+          select
+            (to_jsonb(q) - array[
+              'accepted_snapshot','accepted_snapshot_created_at',
+              'outcome','outcome_reason','outcome_at','archived_at'
+            ]::text[])
+            || jsonb_build_object(
+              'status', 'accepted',
+              'accepted_at', now(),
+              'decision_name', v_name,
+              'decision_email', v_email,
+              'decision_comment', nullif(v_comment, ''),
+              'terms_version', v_share.terms_version,
+              'terms_accepted', coalesce(p_terms_accepted, false),
+              'privacy_accepted', true,
+              'share_id', v_share.id
+            )
+          from public.epitesi_quotes q
+          where q.id = v_share.quote_id
+        )
+        else accepted_snapshot
+      end,
+      accepted_snapshot_created_at = case when v_decision = 'accepted' then now() else accepted_snapshot_created_at end,
       updated_at = now()
   where id = v_share.quote_id;
 
@@ -568,10 +623,89 @@ begin
 end;
 $$;
 
+create or replace function public.epitesi_set_quote_lifecycle_v1(
+  p_quote_id uuid,
+  p_outcome text default 'active',
+  p_reason text default '',
+  p_archived boolean default true
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_quote public.epitesi_quotes%rowtype;
+  v_outcome text := lower(trim(coalesce(p_outcome, 'active')));
+  v_reason text := left(trim(coalesce(p_reason, '')), 2000);
+begin
+  if auth.uid() is null then raise exception 'Bejelentkezés szükséges.'; end if;
+  if v_outcome not in ('active','completed','cancelled') then raise exception 'Érvénytelen munkaállapot.'; end if;
+
+  select * into v_quote
+  from public.epitesi_quotes
+  where id = p_quote_id and user_id = auth.uid()
+  for update;
+
+  if not found then raise exception 'Az ajánlat nem található.'; end if;
+  if v_quote.status not in ('accepted','project_created') then
+    raise exception 'Csak elfogadott ajánlat zárható le vagy archiválható.';
+  end if;
+  if v_outcome = 'cancelled' and length(v_reason) < 3 then
+    raise exception 'A meghiúsulás rövid indoklása szükséges.';
+  end if;
+
+  update public.epitesi_quotes
+  set outcome = v_outcome,
+      outcome_reason = case when v_outcome = 'active' then null else nullif(v_reason, '') end,
+      outcome_at = case
+        when v_outcome = 'active' then null
+        when v_quote.outcome = v_outcome and v_quote.outcome_at is not null then v_quote.outcome_at
+        else now()
+      end,
+      archived_at = case
+        when not coalesce(p_archived, true) then null
+        when v_quote.archived_at is not null then v_quote.archived_at
+        else now()
+      end,
+      updated_at = now()
+  where id = p_quote_id;
+
+  return jsonb_build_object(
+    'ok', true,
+    'quote_id', p_quote_id,
+    'outcome', v_outcome,
+    'outcome_reason', case when v_outcome = 'active' then null else nullif(v_reason, '') end,
+    'outcome_at', case
+      when v_outcome = 'active' then null
+      when v_quote.outcome = v_outcome and v_quote.outcome_at is not null then v_quote.outcome_at
+      else now()
+    end,
+    'archived_at', case
+      when not coalesce(p_archived, true) then null
+      when v_quote.archived_at is not null then v_quote.archived_at
+      else now()
+    end
+  );
+end;
+$$;
+
+update public.epitesi_quotes q
+set accepted_snapshot =
+      (to_jsonb(q) - array[
+        'accepted_snapshot','accepted_snapshot_created_at',
+        'outcome','outcome_reason','outcome_at','archived_at'
+      ]::text[]),
+    accepted_snapshot_created_at = coalesce(q.accepted_at, q.project_created_at, q.updated_at, now())
+where q.status in ('accepted','project_created')
+  and q.accepted_snapshot is null;
+
 revoke all on function public.epitesi_create_quote_share_v1(uuid, integer) from public;
 revoke all on function public.epitesi_get_public_quote_v1(text) from public;
 revoke all on function public.epitesi_decide_public_quote_v1(text, text, text, text, text, boolean, boolean) from public;
+revoke all on function public.epitesi_set_quote_lifecycle_v1(uuid, text, text, boolean) from public;
 
 grant execute on function public.epitesi_create_quote_share_v1(uuid, integer) to authenticated;
 grant execute on function public.epitesi_get_public_quote_v1(text) to anon, authenticated;
 grant execute on function public.epitesi_decide_public_quote_v1(text, text, text, text, text, boolean, boolean) to anon, authenticated;
+grant execute on function public.epitesi_set_quote_lifecycle_v1(uuid, text, text, boolean) to authenticated;

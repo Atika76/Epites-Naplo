@@ -40,7 +40,7 @@
   <meta name="twitter:image" content="https://epitesi-naplo.eu/og-epitesi-naplo-v106.png" />
 
   <meta name="description" content="Digitális építési napló AI elemzéssel, projektkezeléssel, PDF exporttal, ügyfélriporttal és PayPal fizetéssel építőipari szakembereknek." />
-  <link rel="stylesheet" href="style.css?v=192-quote-promo-fix" />
+  <link rel="stylesheet" href="style.css?v=193-archive-export" />
 </head>
 
 <body class="auth-loading">
@@ -304,6 +304,15 @@
         </div>
       </div>
 
+      <div class="projectListTools">
+        <label>Projektek megjelenítése
+          <select id="projectListFilter" onchange="renderProjects()">
+            <option value="active">Aktív projektek</option>
+            <option value="archived">Lezárt / meghiúsult</option>
+            <option value="all">Összes projekt</option>
+          </select>
+        </label>
+      </div>
       <div id="projectList" class="list"></div>
       <div id="entryList" class="photos v38HiddenMainEntry"></div>
     </section>
@@ -524,7 +533,7 @@
   <script src="v180-delete-notification-admin-fix.js?v=180"></script>
   <script src="project-v149-performance-upload-optimizer.js?v=183-camera-gps-media"></script>
   <script src="unified-photo-viewer-v152.js?v=152"></script>
-  <script src="script.js?v=192-quote-promo-fix"></script>
+  <script src="script.js?v=193-archive-export"></script>
   <script src="media-gps-v183.js?v=183-camera-gps-media"></script>
   <script src="ui-v179-role-cleanup.js?v=179"></script>
   <script src="unified-photo-viewer-v152.js?v=152-final"></script>

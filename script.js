@@ -1433,17 +1433,27 @@ function render() {
 }
 
 function renderProjects() {
-  document.getElementById('projectList').innerHTML = state.projects.map(p => `
+  const filter = document.getElementById('projectListFilter')?.value || 'active';
+  const closedStatuses = new Set(['lezarva', 'meghiusult']);
+  const visibleProjects = state.projects.filter(p => {
+    const closed = closedStatuses.has(String(p.status || '').toLowerCase());
+    if (filter === 'archived') return closed;
+    if (filter === 'active') return !closed;
+    return true;
+  });
+  document.getElementById('projectList').innerHTML = visibleProjects.map(p => `
     <div class="item">
       <div>
         <b>${escapeHtml(p.name)}</b>
-        <small>Létrehozva: ${formatDate(p.created_at)}</small>
+        <small>Létrehozva: ${formatDate(p.created_at)}${closedStatuses.has(String(p.status || '').toLowerCase()) ? ` · ${p.status === 'meghiusult' ? 'Meghiúsult' : 'Lezárt'}` : ''}</small>
       </div>
       <div class="itemActions">
         ${state.adminViewingUser ? '<span class="tag">admin megtekintés</span>' : `<button class="btn small primary" onclick="continueProject('${p.id}')">Projekt napló megnyitása</button><button class="btn small ghost" onclick="renameProject('${p.id}')">Név módosítása</button><button class="btn small dangerBtn" onclick="deleteProject('${p.id}')">Törlés</button>`}
       </div>
     </div>
-  `).join('') || `<div class="emptyState"><b>Indítsd el az első projekted 👇</b><p class="muted">Adj meg egy projektnevet feljebb, majd kattints a Projekt hozzáadása gombra.</p><a class="btn primary" href="#naplo">Projekt létrehozása</a></div>`;
+  `).join('') || (filter === 'archived'
+    ? `<div class="emptyState"><b>Még nincs lezárt vagy meghiúsult projekt.</b><p class="muted">A lezárt munkák itt jelennek meg, és később is megnyithatók.</p></div>`
+    : `<div class="emptyState"><b>Indítsd el az első projekted 👇</b><p class="muted">Adj meg egy projektnevet feljebb, majd kattints a Projekt hozzáadása gombra.</p><a class="btn primary" href="#naplo">Projekt létrehozása</a></div>`);
 }
 
 function continueProject(projectId) {
