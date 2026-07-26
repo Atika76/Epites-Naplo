@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-v193-locked-supplements';
+const CACHE_NAME = 'epitesnaplo-v194-logo-upload';
 const APP_SHELL = [
   './',
   './index.html',

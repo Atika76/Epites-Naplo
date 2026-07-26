@@ -149,20 +149,27 @@
     const preview = $("contractorLogoPreview");
     preview.innerHTML = "";
     if (!contractorLogoData) {
-      const text = document.createElement("span");
-      text.textContent = "Nincs feltöltött logó";
-      preview.appendChild(text);
+      const title = document.createElement("strong");
+      title.textContent = "+ Logó feltöltése";
+      const help = document.createElement("small");
+      help.textContent = "Kattints ide · PNG, JPG vagy WebP · legfeljebb 8 MB";
+      preview.append(title, help);
       return;
     }
     const image = document.createElement("img");
     image.src = contractorLogoData;
     image.alt = "Vállalkozói logó előnézete";
     preview.appendChild(image);
+    const changeHint = document.createElement("span");
+    changeHint.className = "logoChangeHint";
+    changeHint.textContent = "Kattints a logó cseréjéhez";
+    preview.appendChild(changeHint);
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "removeLogoBtn";
     remove.textContent = "Logó törlése";
-    remove.addEventListener("click", () => {
+    remove.addEventListener("click", (event) => {
+      event.stopPropagation();
       contractorLogoData = "";
       $("contractorLogoFile").value = "";
       renderLogoPreview();
@@ -586,6 +593,15 @@
       event.currentTarget.value = "";
       toast(error.message || String(error), "error");
     }
+  });
+  $("contractorLogoPreview").addEventListener("click", (event) => {
+    if (event.target.closest(".removeLogoBtn")) return;
+    $("contractorLogoFile").click();
+  });
+  $("contractorLogoPreview").addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    $("contractorLogoFile").click();
   });
   $("quoteForm").addEventListener("submit", saveQuote);
   $("refreshBtn").addEventListener("click", async (event) => {
