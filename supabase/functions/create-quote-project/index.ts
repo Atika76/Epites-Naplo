@@ -4,6 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const allowedOrigins = new Set([
   "https://epitesi-naplo.eu",
   "https://www.epitesi-naplo.eu",
+  "https://localhost",
+  "https://atika76.github.io",
   "http://localhost:8000",
   "http://127.0.0.1:8000",
   "http://localhost:5500",
