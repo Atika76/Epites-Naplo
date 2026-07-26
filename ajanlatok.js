@@ -9,6 +9,9 @@
     rejected: "Elutasítva", expired: "Lejárt", project_created: "Projekt elkészült",
   };
   let currentUser = null;
+  let currentProfile = null;
+  let contractorLogoData = "";
+  let canCreateQuote = false;
   let quotes = [];
   let toastTimer = null;
 
@@ -18,6 +21,14 @@
     return Number.isFinite(parsed) ? parsed : 0;
   };
   const money = (value) => `${Math.round(numberValue(value)).toLocaleString("hu-HU")} Ft`;
+  const today = () => new Date().toISOString().slice(0, 10);
+  const addDays = (dateText, days) => {
+    const date = new Date(`${dateText || today()}T12:00:00`);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().slice(0, 10);
+  };
+  const dateOnly = (value) => value ? String(value).slice(0, 10) : "";
+  const huDate = (value) => value ? new Date(`${dateOnly(value)}T12:00:00`).toLocaleDateString("hu-HU") : "nincs megadva";
   const escapeHtml = (value) => asText(value).replace(/[&<>"']/g, (char) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
   }[char]));
@@ -57,17 +68,24 @@
     const row = document.createElement("div");
     row.className = "quoteItemRow";
     row.innerHTML = `
-      <input class="itemName" maxlength="240" placeholder="Pl. Falburkolás" aria-label="Tétel megnevezése">
+      <select class="itemCategory" aria-label="Kategória"><option value="anyag">Anyag</option><option value="munkadij">Munkadíj</option><option value="egyeb">Egyéb</option></select>
+      <input class="itemSku" maxlength="80" placeholder="Opcionális" aria-label="Cikkszám">
+      <div class="itemDescriptionCell"><input class="itemName" maxlength="240" placeholder="Pl. Falburkolás" aria-label="Tétel megnevezése"><textarea class="itemDescription" rows="2" maxlength="600" placeholder="Részletes leírás (opcionális)" aria-label="Tétel részletes leírása"></textarea></div>
       <input class="itemQuantity" type="number" min="0.01" step="0.01" value="1" aria-label="Mennyiség">
       <input class="itemUnit" maxlength="30" value="db" aria-label="Egység">
       <input class="itemPrice" type="number" min="0" step="1" value="0" aria-label="Nettó egységár">
+      <input class="itemDiscount" type="number" min="0" max="100" step="0.1" value="0" aria-label="Kedvezmény százalék">
       <strong class="lineTotal">0 Ft</strong>
       <button class="removeItem" type="button" title="Tétel törlése" aria-label="Tétel törlése">×</button>`;
+    row.querySelector(".itemCategory").value = asText(item.category) || "munkadij";
+    row.querySelector(".itemSku").value = asText(item.sku);
     row.querySelector(".itemName").value = asText(item.name);
+    row.querySelector(".itemDescription").value = asText(item.description);
     row.querySelector(".itemQuantity").value = numberValue(item.quantity) || 1;
     row.querySelector(".itemUnit").value = asText(item.unit) || "db";
     row.querySelector(".itemPrice").value = numberValue(item.net_unit_price);
-    row.querySelectorAll("input").forEach((input) => input.addEventListener("input", recalculate));
+    row.querySelector(".itemDiscount").value = numberValue(item.discount_percent);
+    row.querySelectorAll("input,select,textarea").forEach((input) => input.addEventListener("input", recalculate));
     row.querySelector(".removeItem").addEventListener("click", () => {
       if ($("quoteItems").children.length === 1) return toast("Legalább egy tétel szükséges.", "error");
       row.remove();
@@ -81,33 +99,105 @@
     return [...document.querySelectorAll(".quoteItemRow")].map((row) => {
       const quantity = numberValue(row.querySelector(".itemQuantity").value);
       const netUnitPrice = numberValue(row.querySelector(".itemPrice").value);
+      const discountPercent = Math.max(0, Math.min(100, numberValue(row.querySelector(".itemDiscount").value)));
+      const baseNetTotal = Math.round(quantity * netUnitPrice * 100) / 100;
+      const discountAmount = Math.round(baseNetTotal * discountPercent) / 100;
       return {
+        category: asText(row.querySelector(".itemCategory").value) || "egyeb",
+        sku: asText(row.querySelector(".itemSku").value),
         name: asText(row.querySelector(".itemName").value),
+        description: asText(row.querySelector(".itemDescription").value),
         quantity,
         unit: asText(row.querySelector(".itemUnit").value) || "db",
         net_unit_price: netUnitPrice,
-        net_total: Math.round(quantity * netUnitPrice * 100) / 100,
+        discount_percent: discountPercent,
+        base_net_total: baseNetTotal,
+        discount_amount: discountAmount,
+        net_total: Math.round((baseNetTotal - discountAmount) * 100) / 100,
       };
     });
   }
 
   function totals() {
-    const subtotal = collectItems().reduce((sum, item) => sum + item.net_total, 0);
+    const items = collectItems();
+    const beforeDiscount = items.reduce((sum, item) => sum + item.base_net_total, 0);
+    const discount = items.reduce((sum, item) => sum + item.discount_amount, 0);
+    const subtotal = beforeDiscount - discount;
     const vatRate = numberValue($("vatRate").value);
     const vat = Math.round(subtotal * vatRate) / 100;
-    return { subtotal, vatRate, vat, gross: subtotal + vat };
+    return { beforeDiscount, discount, subtotal, vatRate, vat, gross: subtotal + vat };
   }
 
   function recalculate() {
     document.querySelectorAll(".quoteItemRow").forEach((row) => {
       const quantity = numberValue(row.querySelector(".itemQuantity").value);
       const price = numberValue(row.querySelector(".itemPrice").value);
-      row.querySelector(".lineTotal").textContent = money(quantity * price);
+      const discount = Math.max(0, Math.min(100, numberValue(row.querySelector(".itemDiscount").value)));
+      row.querySelector(".lineTotal").textContent = money(quantity * price * (1 - discount / 100));
     });
     const total = totals();
+    $("subtotalBeforeDiscount").textContent = money(total.beforeDiscount);
+    $("discountAmount").textContent = `− ${money(total.discount)}`;
     $("subtotalNet").textContent = money(total.subtotal);
     $("vatAmount").textContent = money(total.vat);
     $("totalGross").textContent = money(total.gross);
+  }
+
+  function renderLogoPreview() {
+    const preview = $("contractorLogoPreview");
+    preview.innerHTML = "";
+    if (!contractorLogoData) {
+      const text = document.createElement("span");
+      text.textContent = "Nincs feltöltött logó";
+      preview.appendChild(text);
+      return;
+    }
+    const image = document.createElement("img");
+    image.src = contractorLogoData;
+    image.alt = "Vállalkozói logó előnézete";
+    preview.appendChild(image);
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "removeLogoBtn";
+    remove.textContent = "Logó törlése";
+    remove.addEventListener("click", () => {
+      contractorLogoData = "";
+      $("contractorLogoFile").value = "";
+      renderLogoPreview();
+    });
+    preview.appendChild(remove);
+  }
+
+  function resizeLogo(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !/^image\/(png|jpeg|webp)$/i.test(file.type)) return reject(new Error("PNG, JPG vagy WebP logót válassz."));
+      if (file.size > 8 * 1024 * 1024) return reject(new Error("A logófájl legfeljebb 8 MB lehet."));
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("A logófájl nem olvasható."));
+      reader.onload = () => {
+        const image = new Image();
+        image.onerror = () => reject(new Error("A kiválasztott kép nem feldolgozható."));
+        image.onload = () => {
+          const scale = Math.min(1, 900 / image.width, 450 / image.height);
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(image.width * scale));
+          canvas.height = Math.max(1, Math.round(image.height * scale));
+          const context = canvas.getContext("2d");
+          context.fillStyle = "#ffffff";
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL("image/jpeg", 0.86));
+        };
+        image.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function validityDays() {
+    const issue = new Date(`${$("issueDate").value}T12:00:00`);
+    const valid = new Date(`${$("validUntilDate").value}T12:00:00`);
+    return Math.max(1, Math.min(90, Math.ceil((valid - issue) / 86400000)));
   }
 
   function resetForm(quote = null) {
@@ -115,17 +205,30 @@
     $("quoteId").value = quote?.id || "";
     $("quoteNumber").value = quote?.quote_number || newQuoteNumber();
     $("projectName").value = quote?.project_name || "";
+    $("issueDate").value = dateOnly(quote?.issue_date) || today();
+    $("validUntilDate").value = dateOnly(quote?.valid_until) || addDays($("issueDate").value, numberValue(quote?.valid_days) || 30);
     $("validDays").value = numberValue(quote?.valid_days) || 30;
     $("clientName").value = quote?.client_name || "";
     $("clientEmail").value = quote?.client_email || "";
     $("clientPhone").value = quote?.client_phone || "";
     $("clientCity").value = quote?.client_city || "";
     $("clientAddress").value = quote?.client_address || "";
-    $("contractorName").value = quote?.contractor_name || "";
-    $("contractorTaxNumber").value = quote?.contractor_tax_number || "";
-    $("contractorAddress").value = quote?.contractor_address || "";
+    $("workAddress").value = quote?.work_address || [quote?.client_city, quote?.client_address].filter(Boolean).join(", ");
+    $("workStartDate").value = dateOnly(quote?.work_start_date);
+    $("workEndDate").value = dateOnly(quote?.work_end_date);
+    $("contractorName").value = quote?.contractor_name || currentProfile?.company_name || currentProfile?.full_name || currentUser?.user_metadata?.full_name || "";
+    $("contractorTaxNumber").value = quote?.contractor_tax_number || currentProfile?.company_tax_number || "";
+    $("contractorAddress").value = quote?.contractor_address || currentProfile?.company_address || "";
+    $("contractorPhone").value = quote?.contractor_phone || currentProfile?.company_phone || "";
+    $("contractorEmail").value = quote?.contractor_email || currentProfile?.company_email || currentUser?.email || "";
+    let localLogo = "";
+    try { localLogo = localStorage.getItem("epitesnaplo_company_logo") || ""; } catch (_) {}
+    contractorLogoData = quote?.contractor_logo_data || currentProfile?.company_logo_data || localLogo;
+    renderLogoPreview();
     $("introduction").value = quote?.introduction || "";
     $("paymentTerms").value = quote?.payment_terms || "";
+    $("warrantyTerms").value = quote?.warranty_terms || "";
+    $("exclusions").value = quote?.exclusions || "";
     $("notes").value = quote?.notes || "";
     $("vatRate").value = String(numberValue(quote?.vat_rate ?? 27));
     $("quoteItems").innerHTML = "";
@@ -135,8 +238,14 @@
   }
 
   function openEditor(quote = null) {
-    if (quote && ["accepted", "project_created"].includes(quote.status)) {
-      return toast("Az elfogadott ajánlat tartalma már nem módosítható.", "error");
+    if (!canCreateQuote) {
+      $("lockedPanel").classList.remove("hidden");
+      $("guestPreviewPanel").classList.remove("hidden");
+      $("lockedPanel").scrollIntoView({ behavior: "smooth", block: "center" });
+      return toast("A mentéshez jelentkezz be, és válassz aktív fizetős csomagot.", "error");
+    }
+    if (quote && !["draft", "rejected", "expired"].includes(quote.status)) {
+      return toast("Az elküldött vagy elfogadott ajánlat tartalma már nem módosítható.", "error");
     }
     resetForm(quote);
     $("editorPanel").classList.remove("hidden");
@@ -181,7 +290,7 @@
         button.addEventListener("click", () => handler(button));
         actions.appendChild(button);
       };
-      if (!["accepted", "project_created"].includes(quote.status)) addButton("Szerkesztés", () => openEditor(quote));
+      if (["draft", "rejected", "expired"].includes(quote.status)) addButton("Szerkesztés", () => openEditor(quote));
       if (!["accepted", "project_created"].includes(quote.status)) addButton("Küldési link", (button) => shareQuote(quote, button), "btn primary small");
       addButton("Nyomtatás / PDF", () => printQuote(quote));
       if (quote.status === "accepted") addButton("Projekt létrehozása", (button) => createProject(quote, button), "btn primary small");
@@ -207,7 +316,13 @@
     if (!items.length || items.some((item) => !item.name || item.quantity <= 0 || item.net_unit_price < 0)) {
       return toast("Minden tételnél adj meg nevet, pozitív mennyiséget és érvényes árat.", "error");
     }
+    if (!$("issueDate").value || !$("validUntilDate").value) return toast("Add meg a kiállítás és az érvényesség dátumát.", "error");
+    if (new Date($("validUntilDate").value) < new Date($("issueDate").value)) return toast("Az érvényességi dátum nem lehet korábbi a kiállításnál.", "error");
+    if ($("workStartDate").value && $("workEndDate").value && new Date($("workEndDate").value) < new Date($("workStartDate").value)) {
+      return toast("A várható befejezés nem lehet korábbi a munkakezdésnél.", "error");
+    }
     const total = totals();
+    $("validDays").value = validityDays();
     const payload = {
       quote_number: asText($("quoteNumber").value),
       project_name: asText($("projectName").value),
@@ -219,7 +334,19 @@
       contractor_name: asText($("contractorName").value) || null,
       contractor_tax_number: asText($("contractorTaxNumber").value) || null,
       contractor_address: asText($("contractorAddress").value) || null,
+      contractor_phone: asText($("contractorPhone").value) || null,
+      contractor_email: asText($("contractorEmail").value) || null,
+      contractor_logo_data: contractorLogoData || null,
+      issue_date: $("issueDate").value,
+      valid_until: new Date(`${$("validUntilDate").value}T23:59:59`).toISOString(),
+      work_address: asText($("workAddress").value) || null,
+      work_start_date: $("workStartDate").value || null,
+      work_end_date: $("workEndDate").value || null,
+      warranty_terms: asText($("warrantyTerms").value) || null,
+      exclusions: asText($("exclusions").value) || null,
       vat_rate: total.vatRate,
+      subtotal_before_discount: total.beforeDiscount,
+      discount_amount: total.discount,
       subtotal_net: total.subtotal,
       vat_amount: total.vat,
       total_gross: total.gross,
@@ -238,6 +365,21 @@
         : db.from("epitesi_quotes").insert({ ...payload, user_id: currentUser.id });
       const { error } = await query;
       if (error) throw error;
+      const profileDefaults = {
+        company_name: asText($("contractorName").value) || null,
+        company_tax_number: asText($("contractorTaxNumber").value) || null,
+        company_address: asText($("contractorAddress").value) || null,
+        company_phone: asText($("contractorPhone").value) || null,
+        company_email: asText($("contractorEmail").value) || null,
+        company_logo_data: contractorLogoData || null,
+      };
+      const profileResult = await db.from("profiles").update(profileDefaults).eq("id", currentUser.id);
+      if (profileResult.error) console.warn("A vállalkozói profiladatok mentése nem sikerült:", profileResult.error);
+      currentProfile = { ...(currentProfile || {}), ...profileDefaults };
+      try {
+        if (contractorLogoData) localStorage.setItem("epitesnaplo_company_logo", contractorLogoData);
+        else localStorage.removeItem("epitesnaplo_company_logo");
+      } catch (_) {}
       closeEditor();
       await loadQuotes();
       toast("Az árajánlat mentése sikerült.", "ok");
@@ -312,15 +454,20 @@
     const items = Array.isArray(quote.items) ? quote.items : [];
     const popup = window.open("", "_blank", "noopener,noreferrer");
     if (!popup) return toast("A böngésző blokkolta a nyomtatási ablakot.", "error");
-    popup.document.write(`<!doctype html><html lang="hu"><head><meta charset="utf-8"><title>${escapeHtml(quote.quote_number)}</title>
-      <style>body{font:15px Arial,sans-serif;color:#152033;max-width:900px;margin:35px auto;padding:0 24px}header{display:flex;justify-content:space-between;border-bottom:3px solid #0ea5e9;padding-bottom:18px}h1{margin:.2em 0}table{width:100%;border-collapse:collapse;margin:28px 0}th,td{padding:10px;border-bottom:1px solid #ccd5df;text-align:left}th:nth-child(n+2),td:nth-child(n+2){text-align:right}.totals{margin-left:auto;width:360px}.totals p{display:flex;justify-content:space-between}.gross{font-size:1.25em;border-top:2px solid #152033;padding-top:10px}.copy{white-space:pre-wrap}.actions{margin:25px 0}@media print{.actions{display:none}}</style></head><body>
-      <header><div><small>ÁRAJÁNLAT</small><h1>${escapeHtml(quote.project_name)}</h1><b>${escapeHtml(quote.quote_number)}</b></div><div>${escapeHtml(quote.contractor_name || "")}<br>${escapeHtml(quote.contractor_tax_number || "")}<br>${escapeHtml(quote.contractor_address || "")}</div></header>
-      <p><b>Megrendelő:</b> ${escapeHtml(quote.client_name || "nincs megadva")}<br>${escapeHtml([quote.client_city, quote.client_address].filter(Boolean).join(", "))}</p>
+    const status = statusLabels[quote.status] || quote.status || "Piszkozat";
+    const decisionDate = quote.accepted_at || quote.rejected_at;
+    const category = (value) => ({ anyag: "Anyag", munkadij: "Munkadíj", egyeb: "Egyéb" }[value] || "Egyéb");
+    popup.document.write(`<!DOCTYPE html><html lang="hu"><head><meta charset="utf-8"><title>${escapeHtml(quote.quote_number)}</title>
+      <style>body{font:14px Arial,sans-serif;color:#152033;max-width:1050px;margin:30px auto;padding:0 24px;line-height:1.45}header{display:flex;justify-content:space-between;gap:24px;border-bottom:3px solid #0ea5e9;padding-bottom:18px}.logo{max-width:170px;max-height:85px;object-fit:contain}.headleft{display:flex;gap:18px;align-items:center}h1{margin:.2em 0}.meta,.parties,.work{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}.box{border:1px solid #d7dee8;border-radius:8px;padding:10px}.status{display:inline-block;border:1px solid #0f766e;background:#ecfdf5;color:#115e59;border-radius:999px;padding:5px 9px;font-weight:bold}table{width:100%;border-collapse:collapse;margin:22px 0;font-size:12px}th,td{padding:9px 7px;border-bottom:1px solid #ccd5df;text-align:left}th:nth-child(n+4),td:nth-child(n+4){text-align:right}.totals{margin-left:auto;width:390px}.totals p{display:flex;justify-content:space-between}.gross{font-size:1.25em;border-top:2px solid #152033;padding-top:10px}.copy{white-space:pre-wrap}.terms{display:grid;grid-template-columns:1fr 1fr;gap:14px}.actions{margin:25px 0}@media(max-width:720px){.meta,.parties,.work,.terms{grid-template-columns:1fr}}@media print{.actions{display:none}body{margin:0}}</style></head><body>
+      <header><div class="headleft">${quote.contractor_logo_data ? `<img class="logo" src="${escapeHtml(quote.contractor_logo_data)}" alt="Vállalkozói logó">` : ""}<div><small>ÁRAJÁNLAT</small><h1>${escapeHtml(quote.project_name)}</h1><b>${escapeHtml(quote.quote_number)}</b></div></div><div><b>${escapeHtml(quote.contractor_name || "")}</b><br>${escapeHtml(quote.contractor_tax_number ? `Adószám: ${quote.contractor_tax_number}` : "")}<br>${escapeHtml(quote.contractor_address || "")}<br>${escapeHtml(quote.contractor_phone || "")}<br>${escapeHtml(quote.contractor_email || "")}</div></header>
+      <div class="meta"><div class="box"><b>Kiállítás</b><br>${huDate(quote.issue_date)}</div><div class="box"><b>Érvényes</b><br>${huDate(quote.valid_until)}</div><div class="box"><b>Állapot</b><br><span class="status">${escapeHtml(status)}</span>${decisionDate ? `<br>${new Date(decisionDate).toLocaleString("hu-HU")}` : ""}</div></div>
+      <div class="parties"><div class="box"><b>Megrendelő</b><br>${escapeHtml(quote.client_name || "nincs megadva")}<br>${escapeHtml(quote.client_email || "")}<br>${escapeHtml(quote.client_phone || "")}</div><div class="box"><b>Megrendelő címe</b><br>${escapeHtml([quote.client_city, quote.client_address].filter(Boolean).join(", ") || "nincs megadva")}</div><div class="box"><b>Munkavégzés címe</b><br>${escapeHtml(quote.work_address || "nincs megadva")}</div></div>
+      <div class="work"><div class="box"><b>Várható kezdés</b><br>${huDate(quote.work_start_date)}</div><div class="box"><b>Várható befejezés</b><br>${huDate(quote.work_end_date)}</div><div class="box"><b>Elfogadó</b><br>${escapeHtml(quote.decision_name || "—")}<br>${escapeHtml(quote.decision_email || "")}</div></div>
       <p class="copy">${escapeHtml(quote.introduction || "")}</p>
-      <table><thead><tr><th>Megnevezés</th><th>Mennyiség</th><th>Nettó egységár</th><th>Nettó összesen</th></tr></thead><tbody>
-      ${items.map((item) => `<tr><td>${escapeHtml(item.name)}</td><td>${numberValue(item.quantity).toLocaleString("hu-HU")} ${escapeHtml(item.unit)}</td><td>${money(item.net_unit_price)}</td><td>${money(item.net_total)}</td></tr>`).join("")}
-      </tbody></table><div class="totals"><p><span>Nettó:</span><b>${money(quote.subtotal_net)}</b></p><p><span>ÁFA (${numberValue(quote.vat_rate)}%):</span><b>${money(quote.vat_amount)}</b></p><p class="gross"><span>Bruttó:</span><b>${money(quote.total_gross)}</b></p></div>
-      <h3>Fizetési feltételek</h3><p class="copy">${escapeHtml(quote.payment_terms || "Nincs külön megadva.")}</p><h3>Megjegyzés</h3><p class="copy">${escapeHtml(quote.notes || "Nincs külön megjegyzés.")}</p>
+      <table><thead><tr><th>Kategória</th><th>Cikkszám</th><th>Megnevezés / leírás</th><th>Mennyiség</th><th>Nettó egységár</th><th>Kedvezmény</th><th>Nettó összesen</th></tr></thead><tbody>
+      ${items.map((item) => `<tr><td>${category(item.category)}</td><td>${escapeHtml(item.sku || "—")}</td><td><b>${escapeHtml(item.name)}</b>${item.description ? `<br>${escapeHtml(item.description)}` : ""}</td><td>${numberValue(item.quantity).toLocaleString("hu-HU")} ${escapeHtml(item.unit)}</td><td>${money(item.net_unit_price)}</td><td>${numberValue(item.discount_percent).toLocaleString("hu-HU")}%</td><td>${money(item.net_total)}</td></tr>`).join("")}
+      </tbody></table><div class="totals"><p><span>Kedvezmény előtti nettó:</span><b>${money(quote.subtotal_before_discount)}</b></p><p><span>Kedvezmény:</span><b>− ${money(quote.discount_amount)}</b></p><p><span>Nettó:</span><b>${money(quote.subtotal_net)}</b></p><p><span>ÁFA (${numberValue(quote.vat_rate)}%):</span><b>${money(quote.vat_amount)}</b></p><p class="gross"><span>Bruttó:</span><b>${money(quote.total_gross)}</b></p></div>
+      <div class="terms"><div class="box"><h3>Fizetési feltételek</h3><p class="copy">${escapeHtml(quote.payment_terms || "Nincs külön megadva.")}</p></div><div class="box"><h3>Garancia / jótállás</h3><p class="copy">${escapeHtml(quote.warranty_terms || "Nincs külön megadva.")}</p></div><div class="box"><h3>Az ajánlat nem tartalmazza</h3><p class="copy">${escapeHtml(quote.exclusions || "Nincs külön megadva.")}</p></div><div class="box"><h3>Megjegyzés</h3><p class="copy">${escapeHtml(quote.notes || "Nincs külön megjegyzés.")}</p></div></div>
       <div class="actions"><button onclick="window.print()">Nyomtatás / Mentés PDF-ként</button></div></body></html>`);
     popup.document.close();
   }
@@ -340,22 +487,25 @@
       if (!currentUser) {
         message("Az ajánlatkészítő használatához jelentkezz be.", "error");
         $("lockedPanel").classList.remove("hidden");
+        $("guestPreviewPanel").classList.remove("hidden");
         return;
       }
       const [profile, subscription] = await Promise.all([
         window.EpitesNaploAPI.getProfile(),
         window.EpitesNaploAPI.getSubscription(),
       ]);
+      currentProfile = profile || {};
       if (!(await hasPaidAccess(currentUser, profile, subscription))) {
         message("A fiókod elérhető, de az ajánlatkészítő fizetős funkció.", "error");
         $("lockedPanel").classList.remove("hidden");
+        $("guestPreviewPanel").classList.remove("hidden");
         $("lockedTitle").textContent = "Aktív fizetős csomag szükséges";
         $("lockedText").textContent = "A saját árajánlatkészítő a Starter, Pro és Business csomag része.";
         $("lockedAction").textContent = "Csomag választása";
-        $("lockedAction").href = "index.html#arak";
+        $("lockedAction").href = "index.html#subscription";
         return;
       }
-      $("newQuoteBtn").disabled = false;
+      canCreateQuote = true;
       $("listPanel").classList.remove("hidden");
       message("Az ajánlatkészítő használatra kész.", "ok");
       await loadQuotes();
@@ -366,12 +516,26 @@
     }
   }
 
-  $("newQuoteBtn").disabled = true;
   $("newQuoteBtn").addEventListener("click", () => openEditor());
   $("closeEditorBtn").addEventListener("click", closeEditor);
   $("cancelQuoteBtn").addEventListener("click", closeEditor);
   $("addItemBtn").addEventListener("click", () => addItem());
   $("vatRate").addEventListener("change", recalculate);
+  $("issueDate").addEventListener("change", () => {
+    if ($("issueDate").value) $("validUntilDate").value = addDays($("issueDate").value, 30);
+  });
+  $("contractorLogoFile").addEventListener("change", async (event) => {
+    const file = event.currentTarget.files?.[0];
+    if (!file) return;
+    try {
+      contractorLogoData = await resizeLogo(file);
+      renderLogoPreview();
+      toast("A logó előkészítve. Az ajánlat mentésekor a profilodba is bekerül.", "ok");
+    } catch (error) {
+      event.currentTarget.value = "";
+      toast(error.message || String(error), "error");
+    }
+  });
   $("quoteForm").addEventListener("submit", saveQuote);
   $("refreshBtn").addEventListener("click", async (event) => {
     setBusy(event.currentTarget, true, "Frissítés…");

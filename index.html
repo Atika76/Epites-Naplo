@@ -40,7 +40,7 @@
   <meta name="twitter:image" content="https://epitesi-naplo.eu/og-epitesi-naplo-v106.png" />
 
   <meta name="description" content="Digitális építési napló AI elemzéssel, projektkezeléssel, PDF exporttal, ügyfélriporttal és PayPal fizetéssel építőipari szakembereknek." />
-  <link rel="stylesheet" href="style.css?v=186-login-icon-fix" />
+  <link rel="stylesheet" href="style.css?v=191-professional-quotes" />
 </head>
 
 <body class="auth-loading">
@@ -57,6 +57,7 @@
 
     <nav id="nav" class="v178CleanNav">
       <a href="#home">Főoldal</a>
+      <a href="#ajanlatkeszito">Árajánlatkészítő</a>
       <a href="#systemFeatures" id="systemFeaturesNavLink" class="guestNavLink">Rendszerfunkciók</a>
       <a href="#naplo" class="userWorkNav">Napló</a>
       <a href="#ugyfel-riport" class="userWorkNav">Riport</a>
@@ -97,12 +98,13 @@
 
       <div class="heroActions">
         <a class="btn primary" href="#naplo">Napló indítása</a>
+        <a class="btn ghost" href="#ajanlatkeszito">Árajánlat készítése</a>
         <a class="btn ghost" href="#systemFeatures">Rendszerfunkciók</a>
         <button id="heroRegisterBtn" class="btn ghost" onclick="openAuthModal()">Regisztráció</button>
       </div>
 
       <p class="muted featureLine">
-        Saját projektek • Ügyfélriport • PDF átadás • AI előszűrés
+        Saját árajánlat • Elfogadás • Projekt • Ügyfélriport • PDF átadás
       </p>
     </div>
 
@@ -148,6 +150,29 @@
   <!-- V179: a felesleges demo előnézet blokk eltávolítva a főoldalról. -->
 
   <main class="grid">
+    <section class="card wide quoteHomePromo" id="ajanlatkeszito">
+      <div class="quoteHomeIntro">
+        <div>
+          <p class="badge">Az Építési Napló beépített ajánlatkészítője</p>
+          <h2>Építési Napló ajánlatkészítővel</h2>
+          <p class="muted">Saját logó, vállalkozói adatok, anyag- és munkadíjtételek, kedvezmény, nettó–ÁFA–bruttó összesítés és biztonságos ügyfélelfogadás.</p>
+          <div class="heroActions">
+            <a class="btn primary" href="ajanlatok.html">Árajánlatkészítő megnyitása</a>
+            <button class="btn ghost" type="button" onclick="openAuthModal()">Belépés / Regisztráció</button>
+          </div>
+          <small class="muted">A bemutató bejelentkezés nélkül is megtekinthető. Az ajánlatkészítő az Építési Napló fizetős csomagjának része.</small>
+        </div>
+        <div class="quoteHomeMockup" aria-label="Árajánlatkészítő előnézet">
+          <div class="quoteMockTop"><span>SAJÁT LOGÓ</span><b>ÁRAJÁNLAT</b></div>
+          <div class="quoteMockFields"><span>Ajánlatszám</span><span>Kiállítás dátuma</span><span>Érvényesség</span></div>
+          <div class="quoteMockLine"><b>Fürdőszoba felújítása</b><span>munkadíj</span><strong>320 000 Ft</strong></div>
+          <div class="quoteMockLine"><b>Burkolóanyag</b><span>anyag</span><strong>185 000 Ft</strong></div>
+          <div class="quoteMockTotal"><span>Bruttó végösszeg</span><b>641 350 Ft</b></div>
+          <div class="quoteMockAccepted">✓ Ügyfél által elfogadható</div>
+        </div>
+      </div>
+    </section>
+
     <section class="card wide" id="subscription">
       <h2>Csomag és hozzáférés</h2>
       <p class="muted">Indulj ingyen 1 projekttel. A pénzt hozó funkciók – AI, PDF, ügyfél link és jóváhagyás – fizetős csomagban nyílnak meg. PayPal fizetés után a csomag automatikusan aktiválódik.</p>
@@ -162,21 +187,21 @@
         <div class="planCard featured">
           <h3>Alap</h3>
           <strong>2 990 Ft / hó</strong>
-          <p>3 projekt, AI napi jelentés, PDF export, ügyfél link és jóváhagyás.</p>
+          <p>3 projekt, saját logós ajánlatkészítő, AI napi jelentés, PDF export, ügyféllink és jóváhagyás.</p>
           <div id="paypal-starter" class="paypalBox"></div>
         </div>
 
         <div class="planCard featured">
           <h3>Pro</h3>
           <strong>4 990 Ft / hó</strong>
-          <p>15 projekt, AI riport, PDF, ügyfél jóváhagyás, számla/költség riport és profi kivitelezői használat.</p>
+          <p>15 projekt, saját logós ajánlatkészítő, AI riport, PDF, ügyféljóváhagyás, számla/költség riport és profi kivitelezői használat.</p>
           <div id="paypal-pro" class="paypalBox"></div>
         </div>
 
         <div class="planCard featured">
           <h3>Business</h3>
           <strong>8 990 Ft / hó</strong>
-          <p><b>Bevezető ár: 8 990 Ft / hó</b><br>Korlátlan közeli használat, admin áttekintés, ügyfélriport, PDF, AI és céges működéshez.</p>
+          <p><b>Bevezető ár: 8 990 Ft / hó</b><br>Korlátlan közeli használat, saját logós ajánlatkészítő, admin áttekintés, ügyfélriport, PDF, AI és céges működéshez.</p>
           <div id="paypal-business" class="paypalBox"></div>
         </div>
       </div>
@@ -414,6 +439,7 @@
         <button type="button" class="featureExplainItem" onclick="openFeatureExplain('csomag')">✅ automatikus csomagaktiválás <span>Részletek</span></button>
         <button type="button" class="featureExplainItem" onclick="openFeatureExplain('adminFizetes')">✅ admin fizetéskövetés <span>Részletek</span></button>
         <button type="button" class="featureExplainItem" onclick="openFeatureExplain('projekt')">✅ projektkezelés <span>Részletek</span></button>
+        <button type="button" class="featureExplainItem" onclick="window.location.href='ajanlatok.html'">✅ saját logós árajánlatkészítő <span>Megnyitás</span></button>
         <button type="button" class="featureExplainItem" onclick="openFeatureExplain('naplo')">✅ naplóbejegyzések <span>Részletek</span></button>
         <button type="button" class="featureExplainItem" onclick="openFeatureExplain('ai')">✅ AI elemzés <span>Részletek</span></button>
         <button type="button" class="featureExplainItem" onclick="openFeatureExplain('riport')">✅ riport előnézet <span>Részletek</span></button>
@@ -488,7 +514,7 @@
   <script src="https://www.paypal.com/sdk/js?client-id=AQsaQCLj0og2wsfMoDKAqxJieD2cgXwWq5cssAJCJbO2KoYE8LGHCREyR4vMzMfKZK68qw6EY7IAxMYF&currency=HUF"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="supabase-adapter.js?v=152"></script>
-  <script src="header-v40.js?v=180-clean-extra-slim-header"></script>
+  <script src="header-v40.js?v=191-professional-quotes"></script>
   <script src="permissions-v187.js?v=187-permissions-settings"></script>
   <script src="important-notifications-v188.js?v=188-important-notifications"></script>
   <script src="v180-delete-notification-admin-fix.js?v=180"></script>

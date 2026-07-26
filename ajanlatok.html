@@ -7,8 +7,8 @@
   <title>Árajánlatok – ÉpítésNapló AI PRO</title>
   <meta name="description" content="Saját logózható árajánlat készítése, ügyfélelfogadás és projektindítás az Építési Naplóban.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="style.css?v=180-hamburger-text-right-video-fix">
-  <link rel="stylesheet" href="ajanlatok.css?v=1">
+  <link rel="stylesheet" href="style.css?v=191-professional-quotes">
+  <link rel="stylesheet" href="ajanlatok.css?v=2">
 </head>
 <body class="auth-loading quoteApp">
   <header class="topbar">
@@ -22,7 +22,7 @@
   <main class="quoteMain">
     <section class="quoteHero">
       <div>
-        <span class="quoteEyebrow">Önálló Építési Napló funkció</span>
+        <span class="quoteEyebrow">Az Építési Napló beépített funkciója</span>
         <h1>Árajánlatok</h1>
         <p>Készíts ajánlatot, küldd el egy biztonságos linken, majd az ügyfél elfogadása után indítsd el belőle a projektet.</p>
       </div>
@@ -36,8 +36,26 @@
       <p id="lockedText">Az ajánlatkészítő regisztrációhoz és aktív fizetős csomaghoz kötött.</p>
       <div class="quoteActions">
         <a id="lockedAction" class="btn primary" href="index.html#login">Belépés / Regisztráció</a>
-        <a class="btn ghost" href="index.html#arak">Csomagok megtekintése</a>
+        <a class="btn ghost" href="index.html#subscription">Csomagok megtekintése</a>
       </div>
+    </section>
+
+    <section id="guestPreviewPanel" class="quotePanel quoteGuestPreview hidden">
+      <div class="quoteSectionHead">
+        <div><span class="quoteEyebrow">Bejelentkezés nélküli előnézet</span><h2>Ilyen ajánlatot készíthetsz</h2></div>
+        <span class="quoteStatus">Bemutató</span>
+      </div>
+      <div class="previewDocument">
+        <div class="previewDocHead"><div class="previewLogo">SAJÁT<br>LOGÓ</div><div><small>ÁRAJÁNLAT</small><h3>Fürdőszoba felújítása</h3><span>EPN-20260726-1001</span></div></div>
+        <div class="previewMeta"><span>Kiállítás: 2026. 07. 26.</span><span>Érvényes: 2026. 08. 25.</span><span>Munkakezdés: egyeztetés szerint</span></div>
+        <div class="previewRows">
+          <div><b>Falburkolás</b><span>munkadíj</span><strong>320 000 Ft</strong></div>
+          <div><b>Burkolóanyag</b><span>anyag</span><strong>185 000 Ft</strong></div>
+          <div><b>Segédanyagok</b><span>anyag</span><strong>27 000 Ft</strong></div>
+        </div>
+        <div class="previewSum"><span>Bruttó végösszeg</span><b>675 640 Ft</b></div>
+      </div>
+      <p class="muted">A teljes ajánlat tartalmazhat logót, cégadatokat, munkacímet, határidőket, garanciát, kizárásokat, kedvezményt és ügyfélelfogadást.</p>
     </section>
 
     <section id="editorPanel" class="quotePanel hidden">
@@ -47,10 +65,12 @@
       </div>
       <form id="quoteForm">
         <input id="quoteId" type="hidden">
-        <div class="quoteGrid three">
+        <div class="quoteGrid four">
           <label>Ajánlatszám<input id="quoteNumber" type="text" required maxlength="80"></label>
           <label>Projekt / munka neve<input id="projectName" type="text" required maxlength="180" placeholder="Pl. Fürdőszoba felújítása"></label>
-          <label>Érvényesség (nap)<input id="validDays" type="number" min="1" max="90" value="30" required></label>
+          <label>Kiállítás dátuma<input id="issueDate" type="date" required></label>
+          <label>Pontos érvényességi dátum<input id="validUntilDate" type="date" required></label>
+          <input id="validDays" type="hidden" value="30">
         </div>
 
         <h3>Megrendelő adatai</h3>
@@ -62,16 +82,32 @@
           <label class="span2">Cím<input id="clientAddress" type="text" maxlength="240"></label>
         </div>
 
+        <h3>Munkavégzés</h3>
+        <div class="quoteGrid three">
+          <label class="span3">Munkavégzés pontos címe<input id="workAddress" type="text" maxlength="300" placeholder="Pl. 2500 Esztergom, Példa utca 12."></label>
+          <label>Várható munkakezdés<input id="workStartDate" type="date"></label>
+          <label>Várható befejezés<input id="workEndDate" type="date"></label>
+        </div>
+
         <h3>Vállalkozó adatai</h3>
         <div class="quoteGrid three">
           <label>Név / cégnév<input id="contractorName" type="text" maxlength="180"></label>
           <label>Adószám<input id="contractorTaxNumber" type="text" maxlength="80"></label>
           <label>Cím<input id="contractorAddress" type="text" maxlength="240"></label>
+          <label>Telefon<input id="contractorPhone" type="text" maxlength="80"></label>
+          <label>E-mail<input id="contractorEmail" type="email" maxlength="240"></label>
+          <label class="logoUploadLabel">Vállalkozói logó<input id="contractorLogoFile" type="file" accept="image/png,image/jpeg,image/webp"></label>
+        </div>
+        <div class="logoProfileRow">
+          <div id="contractorLogoPreview" class="contractorLogoPreview"><span>Nincs feltöltött logó</span></div>
+          <div><b>Automatikus profilkitöltés</b><p class="muted">Az új ajánlat a profilodban mentett cégadatokat és logót tölti be. Mentéskor a mostani adatok lesznek az új alapértékek.</p></div>
         </div>
 
         <div class="quoteGrid two">
           <label>Bevezető szöveg<textarea id="introduction" rows="3" maxlength="3000" placeholder="Rövid köszöntés és az ajánlat tárgya"></textarea></label>
           <label>Fizetési feltételek<textarea id="paymentTerms" rows="3" maxlength="3000" placeholder="Pl. 30% előleg, fennmaradó összeg átadáskor"></textarea></label>
+          <label>Garancia / jótállás<textarea id="warrantyTerms" rows="3" maxlength="3000" placeholder="Pl. A kivitelezésre 12 hónap vállalt garancia"></textarea></label>
+          <label>Az ajánlat nem tartalmazza<textarea id="exclusions" rows="3" maxlength="3000" placeholder="Pl. rejtett hibák javítása, hatósági díjak, elszállítás"></textarea></label>
         </div>
 
         <div class="quoteSectionHead itemHeading">
@@ -80,7 +116,7 @@
         </div>
         <div class="quoteItemsScroll">
           <div class="quoteItemsHead">
-            <span>Megnevezés</span><span>Mennyiség</span><span>Egység</span><span>Nettó egységár</span><span>Nettó összesen</span><span></span>
+            <span>Kategória</span><span>Cikkszám</span><span>Megnevezés és leírás</span><span>Mennyiség</span><span>Egység</span><span>Nettó egységár</span><span>Kedvezmény</span><span>Nettó összesen</span><span></span>
           </div>
           <div id="quoteItems"></div>
         </div>
@@ -89,6 +125,8 @@
           <label>Megjegyzés<textarea id="notes" rows="4" maxlength="4000" placeholder="Határidő, kizárások, egyéb feltételek"></textarea></label>
           <div class="quoteTotals">
             <label>ÁFA kulcs<select id="vatRate"><option value="0">0%</option><option value="5">5%</option><option value="18">18%</option><option value="27" selected>27%</option></select></label>
+            <div><span>Kedvezmény előtti nettó</span><strong id="subtotalBeforeDiscount">0 Ft</strong></div>
+            <div><span>Kedvezmény</span><strong id="discountAmount">− 0 Ft</strong></div>
             <div><span>Nettó összesen</span><strong id="subtotalNet">0 Ft</strong></div>
             <div><span>ÁFA</span><strong id="vatAmount">0 Ft</strong></div>
             <div class="grand"><span>Bruttó végösszeg</span><strong id="totalGross">0 Ft</strong></div>
@@ -115,7 +153,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-adapter.js?v=152"></script>
-  <script src="header-v40.js?v=190-quotes"></script>
-  <script src="ajanlatok.js?v=1"></script>
+  <script src="header-v40.js?v=191-professional-quotes"></script>
+  <script src="ajanlatok.js?v=2"></script>
 </body>
 </html>

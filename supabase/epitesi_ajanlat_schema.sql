@@ -1,4 +1,4 @@
--- Építési Napló önálló árajánlatkészítő és ügyfélelfogadás.
+-- Az Építési Napló beépített árajánlatkészítője és ügyfélelfogadása.
 -- A SzakiPiac importfolyamattól külön táblákon működik.
 
 create extension if not exists pgcrypto with schema extensions;
@@ -56,8 +56,19 @@ create table if not exists public.epitesi_quotes (
   contractor_name text,
   contractor_tax_number text,
   contractor_address text,
+  contractor_phone text,
+  contractor_email text,
+  contractor_logo_data text,
+  issue_date date not null default current_date,
+  work_address text,
+  work_start_date date,
+  work_end_date date,
+  warranty_terms text,
+  exclusions text,
   currency text not null default 'HUF',
   vat_rate numeric not null default 27,
+  subtotal_before_discount numeric not null default 0,
+  discount_amount numeric not null default 0,
   subtotal_net numeric not null default 0,
   vat_amount numeric not null default 0,
   total_gross numeric not null default 0,
@@ -84,6 +95,41 @@ create table if not exists public.epitesi_quotes (
 
 alter table public.epitesi_quotes
   add column if not exists valid_days integer not null default 30;
+alter table public.epitesi_quotes add column if not exists contractor_phone text;
+alter table public.epitesi_quotes add column if not exists contractor_email text;
+alter table public.epitesi_quotes add column if not exists contractor_logo_data text;
+alter table public.epitesi_quotes add column if not exists issue_date date not null default current_date;
+alter table public.epitesi_quotes add column if not exists work_address text;
+alter table public.epitesi_quotes add column if not exists work_start_date date;
+alter table public.epitesi_quotes add column if not exists work_end_date date;
+alter table public.epitesi_quotes add column if not exists warranty_terms text;
+alter table public.epitesi_quotes add column if not exists exclusions text;
+alter table public.epitesi_quotes add column if not exists subtotal_before_discount numeric not null default 0;
+alter table public.epitesi_quotes add column if not exists discount_amount numeric not null default 0;
+
+-- A profil ezeket az alapértelmezett vállalkozói adatokat adja az új ajánlatokhoz.
+alter table public.profiles add column if not exists company_name text;
+alter table public.profiles add column if not exists company_phone text;
+alter table public.profiles add column if not exists company_email text;
+alter table public.profiles add column if not exists company_tax_number text;
+alter table public.profiles add column if not exists company_address text;
+alter table public.profiles add column if not exists company_logo_data text;
+alter table public.profiles enable row level security;
+
+drop policy if exists "profiles_self_update_quote_defaults" on public.profiles;
+create policy "profiles_self_update_quote_defaults"
+on public.profiles for update to authenticated
+using (id = auth.uid())
+with check (id = auth.uid());
+
+grant update (
+  company_name,
+  company_phone,
+  company_email,
+  company_tax_number,
+  company_address,
+  company_logo_data
+) on table public.profiles to authenticated;
 
 create table if not exists public.epitesi_quote_shares (
   id uuid primary key default gen_random_uuid(),
@@ -150,8 +196,19 @@ grant update (
   contractor_name,
   contractor_tax_number,
   contractor_address,
+  contractor_phone,
+  contractor_email,
+  contractor_logo_data,
+  issue_date,
+  work_address,
+  work_start_date,
+  work_end_date,
+  warranty_terms,
+  exclusions,
   currency,
   vat_rate,
+  subtotal_before_discount,
+  discount_amount,
   subtotal_net,
   vat_amount,
   total_gross,
@@ -160,6 +217,7 @@ grant update (
   notes,
   payment_terms,
   valid_days,
+  valid_until,
   updated_at
 ) on table public.epitesi_quotes to authenticated;
 
@@ -206,7 +264,13 @@ begin
   where quote_id = p_quote_id and revoked_at is null and decision is null;
 
   v_token := encode(gen_random_bytes(32), 'hex');
-  v_expires_at := now() + make_interval(days => greatest(1, least(coalesce(p_valid_days, 30), 90)));
+  v_expires_at := coalesce(
+    v_quote.valid_until,
+    now() + make_interval(days => greatest(1, least(coalesce(p_valid_days, 30), 90)))
+  );
+  if v_expires_at <= now() then
+    raise exception 'Az ajánlat érvényességi dátuma már lejárt. Módosítsd a dátumot a küldés előtt.';
+  end if;
 
   insert into public.epitesi_quote_shares(quote_id, owner_user_id, token_hash, expires_at)
   values (
@@ -288,8 +352,19 @@ begin
     'contractor_name', v_quote.contractor_name,
     'contractor_tax_number', v_quote.contractor_tax_number,
     'contractor_address', v_quote.contractor_address,
+    'contractor_phone', v_quote.contractor_phone,
+    'contractor_email', v_quote.contractor_email,
+    'contractor_logo_data', v_quote.contractor_logo_data,
+    'issue_date', v_quote.issue_date,
+    'work_address', v_quote.work_address,
+    'work_start_date', v_quote.work_start_date,
+    'work_end_date', v_quote.work_end_date,
+    'warranty_terms', v_quote.warranty_terms,
+    'exclusions', v_quote.exclusions,
     'currency', v_quote.currency,
     'vat_rate', v_quote.vat_rate,
+    'subtotal_before_discount', v_quote.subtotal_before_discount,
+    'discount_amount', v_quote.discount_amount,
     'subtotal_net', v_quote.subtotal_net,
     'vat_amount', v_quote.vat_amount,
     'total_gross', v_quote.total_gross,

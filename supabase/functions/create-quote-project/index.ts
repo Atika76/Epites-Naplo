@@ -120,7 +120,7 @@ serve(async (req) => {
       return json(req, { ok: false, error: "Az ügyfél elfogadása nem igazolható." }, 409);
     }
 
-    const location = [quote.client_city, quote.client_address].filter(Boolean).join(", ");
+    const location = text(quote.work_address) || [quote.client_city, quote.client_address].filter(Boolean).join(", ");
     const { data: project, error: projectError } = await admin
       .from("projects")
       .insert({ user_id: userId, name: quote.project_name, location: location || null })
@@ -160,12 +160,15 @@ serve(async (req) => {
       `E-mail: ${quote.client_email || "nincs megadva"}`,
       `Telefon: ${quote.client_phone || "nincs megadva"}`,
       `Helyszín: ${location || "nincs megadva"}`,
+      `Várható kezdés: ${quote.work_start_date || "nincs megadva"}`,
+      `Várható befejezés: ${quote.work_end_date || "nincs megadva"}`,
       `Elfogadta: ${acceptedShare.decision_name || "nincs megadva"}`,
+      `Kedvezmény: ${money(quote.discount_amount)}`,
       `Bruttó végösszeg: ${money(quote.total_gross)}`,
       "",
       "Elfogadott tételek:",
       ...items.map((item: any, index: number) =>
-        `${index + 1}. ${text(item.name, "Tétel")} – ${Number(item.quantity || 0)} ${text(item.unit, "db")} – ${money(item.net_total)} nettó`
+        `${index + 1}. [${text(item.category, "egyéb")}] ${text(item.name, "Tétel")} – ${Number(item.quantity || 0)} ${text(item.unit, "db")} – ${money(item.net_total)} nettó`
       ),
     ].join("\n");
 

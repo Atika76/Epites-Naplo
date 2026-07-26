@@ -12,6 +12,12 @@
   const text = (value) => String(value ?? "").trim();
   const numberValue = (value) => Number.isFinite(Number(value)) ? Number(value) : 0;
   const money = (value) => `${Math.round(numberValue(value)).toLocaleString("hu-HU")} Ft`;
+  const huDate = (value, withTime = false) => {
+    if (!value) return "nincs megadva";
+    const date = new Date(value);
+    return withTime ? date.toLocaleString("hu-HU") : date.toLocaleDateString("hu-HU");
+  };
+  const categoryLabel = (value) => ({ anyag: "Anyag", munkadij: "Munkadíj", egyeb: "Egyéb" }[value] || "Egyéb");
   function setText(id, value) { $(id).textContent = text(value); }
 
   function statusMessage(message, type = "") {
@@ -36,25 +42,50 @@
     setText("publicStatusBadge", labels[data.status] || data.status);
     $("publicStatusBadge").className = `quoteStatus ${data.status || ""}`.trim();
     setText("publicIntro", data.introduction || "");
-    setText("publicContractor", [data.contractor_name, data.contractor_tax_number && `Adószám: ${data.contractor_tax_number}`, data.contractor_address].filter(Boolean).join("\n") || "Nincs megadva.");
+    if (text(data.contractor_logo_data).startsWith("data:image/")) {
+      const image = document.createElement("img");
+      image.src = data.contractor_logo_data;
+      image.alt = "Vállalkozói logó";
+      $("publicContractorLogo").innerHTML = "";
+      $("publicContractorLogo").appendChild(image);
+      $("publicContractorLogo").classList.remove("hidden");
+    }
+    setText("publicContractor", [data.contractor_name, data.contractor_tax_number && `Adószám: ${data.contractor_tax_number}`, data.contractor_address, data.contractor_phone, data.contractor_email].filter(Boolean).join("\n") || "Nincs megadva.");
     setText("publicClient", [data.client_name, data.client_email].filter(Boolean).join("\n") || "Nincs megadva.");
+    setText("publicIssueDate", huDate(data.issue_date));
+    setText("publicValidUntil", huDate(data.valid_until));
+    setText("publicDecisionDate", data.decided_at ? huDate(data.decided_at, true) : "—");
+    setText("publicWorkAddress", data.work_address || "nincs megadva");
+    setText("publicWorkStart", huDate(data.work_start_date));
+    setText("publicWorkEnd", huDate(data.work_end_date));
     const body = $("publicItems");
     body.innerHTML = "";
     (Array.isArray(data.items) ? data.items : []).forEach((item) => {
       const row = document.createElement("tr");
-      [text(item.name), `${numberValue(item.quantity).toLocaleString("hu-HU")} ${text(item.unit)}`, money(item.net_unit_price), money(item.net_total)].forEach((value) => {
+      [
+        categoryLabel(item.category),
+        text(item.sku) || "—",
+        [text(item.name), text(item.description)].filter(Boolean).join("\n"),
+        `${numberValue(item.quantity).toLocaleString("hu-HU")} ${text(item.unit)}`,
+        money(item.net_unit_price),
+        `${numberValue(item.discount_percent).toLocaleString("hu-HU")}%`,
+        money(item.net_total),
+      ].forEach((value) => {
         const cell = document.createElement("td");
         cell.textContent = value;
         row.appendChild(cell);
       });
       body.appendChild(row);
     });
+    setText("publicBeforeDiscount", money(data.subtotal_before_discount));
+    setText("publicDiscount", `− ${money(data.discount_amount)}`);
     setText("publicNet", money(data.subtotal_net));
     setText("publicVat", `${money(data.vat_amount)} (${numberValue(data.vat_rate)}%)`);
     setText("publicGross", money(data.total_gross));
     setText("publicPaymentTerms", data.payment_terms || "Nincs külön megadva.");
-    setText("publicNotes", data.notes || "");
-    setText("publicValidUntil", data.valid_until ? new Date(data.valid_until).toLocaleString("hu-HU") : "nincs megadva");
+    setText("publicWarranty", data.warranty_terms || "Nincs külön megadva.");
+    setText("publicExclusions", data.exclusions || "Nincs külön megadva.");
+    setText("publicNotes", data.notes || "Nincs külön megjegyzés.");
     $("decisionName").value = data.client_name || "";
     $("decisionEmail").value = data.client_email || "";
     $("publicQuote").classList.remove("hidden");
@@ -100,6 +131,7 @@
       showDecisionResult(finalDecision, name, data.decided_at);
       setText("publicStatusBadge", labels[finalDecision]);
       $("publicStatusBadge").className = `quoteStatus ${finalDecision}`;
+      setText("publicDecisionDate", huDate(data.decided_at, true));
     } catch (error) {
       statusMessage(error.message || String(error), "error");
       buttons.forEach((item) => { item.disabled = false; });

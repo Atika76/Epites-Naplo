@@ -122,6 +122,7 @@
     if (!logged) {
       return `
         <a href="index.html#home">Főoldal</a>
+        <a href="ajanlatok.html">Árajánlatkészítő</a>
         <a id="systemFeaturesNavLink" href="index.html#systemFeatures">Rendszerfunkciók</a>
         ${permissionBtn}
         ${loginBtn}
