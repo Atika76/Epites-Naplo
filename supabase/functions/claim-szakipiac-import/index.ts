@@ -100,7 +100,7 @@ function getItems(payload: any): any[] {
 }
 
 function normalizeItem(item: any, index: number) {
-  const quantity = num(pick(item, ["qty", "quantity", "mennyiseg", "amountQty", "db"], 1)) || 1;
+  const quantity = num(pick(item, ["qty", "quantity", "mennyiseg", "amountQty", "db"], 1));
   const matUnit = num(pick(item, [
     "mat_unit_price",
     "material_unit_price",
