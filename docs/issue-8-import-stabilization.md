@@ -14,7 +14,7 @@ Alap: `4b480c77655bedf807693bc841e7b20722e30549`. Fejlesztési ág: `codex/issue
 
 ## Tranzakció, ismétlés és hiba
 
-Új migráció: `supabase/migrations/202610180001_szakipiac_import_stabilization.sql`.
+Migrációk: `supabase/migrations/202610180001_szakipiac_import_stabilization.sql` és `202610180002_deleted_import_recovery.sql`. Az eredeti 001 változat változatlan.
 
 Előfeltétel a meglévő projekt-/naplóséma és `supabase/szakipiac_import_schema.sql` táblái/oszlopai. Az éles séma hozzáférési hiba miatt még nem igazolt; ez élesítés előtt blokkoló feltétel.
 
@@ -24,11 +24,19 @@ Az anyag-, feladat- és naplóírás külön újrapróbálható lépés. A `comp
 
 Korábbi importokat nem törlünk és nem deduplikálunk. Korábbi, már átvett projekt tulajdonosi ellenőrzéssel megnyitható, teljességi figyelmeztetéssel. Régi, még függő és nem igazolt linkhez új indítás kell az elfogadott ajánlatból. Több régi, már átvett projekt ugyanarra a forrásra kézi ellenőrzést igényel.
 
+## Törölt projekt kezelése
+
+Ha az ON DELETE SET NULL miatt eltűnt a projektazonosító, a complete/partial állapot nem jelenthet sikert. Új link és normál újrapróbálás is kifejezett töröltprojekt-jelzést ad. Az igazolt eredeti fiók külön megerősítheti az elfogadott ajánlatból új projekt létrehozását; a törölt napi bejegyzéseket és fényképeket ez nem állítja vissza. Másik fiók ezt nem teheti meg. A helyreállítás új feldolgozási állapotból, tranzakciósan indul, párhuzamos megerősítések egy új projektre futnak össze. Régi, nem igazolt import törölt projektjét kézzel kell ellenőrizni.
+
 ## Telepítés és visszaállítás
 
 Az első fejlesztési push commitja `d4cbab6`: az éles backend már akkor kézi, mainre és explicit bemenetre korlátozott. Az ellenőrzési workflow helyi PostgreSQL-konténert használ, éles secretek nélkül.
 
-A két migráció és backend összehangolt, jóváhagyott telepítése szükséges. Sorrend: séma/RLS előellenőrzés és staging; mindkét migráció; Napló v2 fogadó/claim; SzakiPiac átadó; frontendek. Az éles manuális workflow új migrációs lépést is tartalmaz, de nem futott.
+A célzott workflow `migrate` fázisa kizárólag a saját 001 és 002 migrációt, `functions` fázisa kizárólag a `create-szakipiac-import` és `claim-szakipiac-import` függvényt telepíti. Más séma, AI-, PayPal-, értesítési vagy riportfunkció nem része. Csak manuálisan, mainről, explicit megerősítéssel és előzetes tulajdonosi jóváhagyással futhat; nem indult el.
+
+A két alkalmazás valós Supabase Auth/REST/RLS/Edge integrációja két helyi Docker-stackkel sikeres. A hosted Napló-séma/konfiguráció 403 miatti előellenőrzése azonban továbbra is blokkoló.
+
+Sorrend: független ellenőrzés és hosted preflight, jóváhagyás/mentés; mindkét repo migrációs fázisa; Napló két importfüggvénye; SzakiPiac átadófüggvénye; kompatibilis frontendek jóváhagyott mainre emelése. A SzakiPiac Pages main-pushra automatikus, ezért az alkalmazáskód mainre emelését a backend készenléte előtt nem szabad engedni.
 
 Visszaállításkor az importindítást kell leállítani, a meglévő projekteket és állapotokat megőrizve. Nem szabad a régi, elfogadást megkerülő útvonalat vagy token alapján idegen fiókba importálást visszakapcsolni. Az additív mezőknek nincs automatikus törlő down-migrációja.
 
