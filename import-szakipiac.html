@@ -25,6 +25,7 @@
 
       <button id="importBtn" class="hidden mt-5 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black p-4">Projekt létrehozása az Építési Naplóban</button>
       <div id="importDetails" class="hidden mt-4 whitespace-pre-wrap rounded-xl border p-4" role="alert"></div>
+      <button id="restoreProjectBtn" class="hidden mt-4 w-full rounded-xl border border-amber-400 bg-amber-50 p-4 font-bold">Új projekt létrehozása az elfogadott ajánlatból</button>
       <a id="openProject" class="hidden block mt-4 text-center font-bold underline">Naplóprojekt megnyitása</a>
       <a href="/" class="block text-center mt-4 text-sm font-bold text-slate-600 hover:text-slate-900">Vissza az Építési Napló főoldalra</a>
     </section>
@@ -76,18 +77,24 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   await checkLogin();
 });
 
-async function claimImport(){
+async function claimImport(options = {}){
   if (claimInProgress) return;
   claimInProgress = true;
   importBtn.disabled = true;
   importBtn.textContent = 'Import folyamatban...';
+  const restore = document.getElementById('restoreProjectBtn');
+  restore.classList.add('hidden');
+  restore.disabled = true;
+  const previousOpen = document.getElementById('openProject');
+  previousOpen.classList.add('hidden');
+  previousOpen.removeAttribute('href');
   try {
     const { data: sessionData } = await db.auth.getSession();
     const accessToken = sessionData?.session?.access_token;
     if (!accessToken) { await checkLogin(); return; }
     const res = await fetch(EPITESNAPLO_CONFIG.supabaseUrl + '/functions/v1/claim-szakipiac-import', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + accessToken },
-      body: JSON.stringify({ token })
+      body: JSON.stringify({ token, restore_deleted_project: options.restoreDeleted === true })
     });
     const out = await res.json();
     const details = document.getElementById('importDetails');
@@ -95,6 +102,11 @@ async function claimImport(){
     const counts = out.inserted || {};
     details.textContent = [ ...warnings, ...Object.entries(counts).map(([key,value]) => `${key}: ${value}`) ].join('\n');
     details.classList.toggle('hidden', !details.textContent);
+    if (out.code === 'project_deleted') {
+      setStatus(out.error, 'info');
+      restore.classList.toggle('hidden', out.can_restore !== true);
+      return;
+    }
     if (!res.ok || !out.ok) { setStatus(out.error || 'Az import nem sikerült. Újrapróbálható.', 'error'); return; }
     if (!out.project_id) throw new Error('Hiányzó projektazonosító.');
     const projectUrl = '/project.html?id=' + encodeURIComponent(out.project_id);
@@ -109,11 +121,17 @@ async function claimImport(){
   } catch (error) {
     setStatus('Import hiba: ' + (error.message || error) + '. Próbáld újra.', 'error');
   } finally {
+    restore.disabled = false;
     claimInProgress = false; importBtn.disabled = false; importBtn.textContent = 'Import ellenőrzése / újrapróbálása';
   }
 }
 
-importBtn.addEventListener('click', claimImport);
+importBtn.addEventListener('click', () => claimImport());
+document.getElementById('restoreProjectBtn').addEventListener('click', () => {
+  if (confirm('Új naplóprojekt készüljön az elfogadott ajánlatból? A törölt projekt napi bejegyzései és fényképei ettől nem állnak vissza.')) {
+    claimImport({ restoreDeleted: true });
+  }
+});
 
 checkLogin();
 </script>

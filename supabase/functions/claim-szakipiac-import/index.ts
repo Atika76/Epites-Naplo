@@ -196,7 +196,7 @@ serve(async (req) => {
       return json({ ok: false, error: "Hiányzó Supabase secret." }, 500);
     }
 
-    const { token } = await req.json().catch(() => ({}));
+    const { token, restore_deleted_project } = await req.json().catch(() => ({}));
     if (!token) return json({ ok: false, error: "Hiányzó import token." }, 400);
 
     const userClient = createClient(supabaseUrl, anonKey, {
@@ -280,7 +280,7 @@ serve(async (req) => {
 
     const { data: result, error: importError } = await admin.rpc("claim_szakipiac_import_v2", {
       p_token: String(token), p_user_id: userId,
-      p_plan: { location, phase: mainWork?.name || "SzakiPiac import", note, items, ai: { source: "szakipiac", totals, client, items } },
+      p_plan: { restore_deleted: restore_deleted_project === true, location, phase: mainWork?.name || "SzakiPiac import", note, items, ai: { source: "szakipiac", totals, client, items } },
     });
     if (importError) return json({ ok: false, error: importError.message }, 409);
     if (!result?.ok) return json(result, 409);
