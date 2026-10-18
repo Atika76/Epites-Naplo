@@ -34,7 +34,7 @@ check('historical pending import without verification is blocked, not changed',(
 check('historical claimed project is reused without modifying it',()=>{sql(`insert into project_import_requests(token,source_quote_id,project_name,claimed_project_id,claimed_by) values('legacy-claimed','old','Historical','${result.project_id}','${owner}');`);const x=JSON.parse(sql(claim('legacy-claimed')));assert.equal(x.project_id,result.project_id);assert.equal(x.status,'legacy');assert.ok(x.warnings.length);sql(claim('legacy-claimed',other),false)});
 (async()=>{
  const next=register();
- const holder=concurrent(`begin;select pg_advisory_xact_lock(hashtextextended('szakipiac:${next.row.source_quote_id}',0));\echo READY
+ const holder=concurrent(`begin;select pg_advisory_xact_lock(hashtextextended('szakipiac:${next.row.source_quote_id}',0));\\echo READY
 select pg_sleep(1);${claim(next.row.token)}commit;`);
  await ready(holder);const waiting=concurrent(claim(next.row.token));
  const [a,b]=await Promise.all([holder.done,waiting.done]);assert.equal(a.code,0,a.err);assert.equal(b.code,0,b.err);
