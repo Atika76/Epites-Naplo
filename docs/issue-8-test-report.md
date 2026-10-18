@@ -1,3 +1,5 @@
+> Frissítés (2026-10-18): a második független ellenőrzés új mentési hibájának javítása, 93 sikeres teszt és a 403-as hozzáférés vizsgálata: [legújabb tesztjelentés](issue-8-review-2-followup.md). Az alábbi 87 esetes jelentés az előző ellenőrzési kör eredménye.
+
 # Issue #8 – frissített stabilizálási tesztjelentés
 
 Dátum: 2026. október 18. Ág mindkét tárolóban: `codex/issue-8-stabilization`.
