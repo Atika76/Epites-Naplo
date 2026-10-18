@@ -2,17 +2,16 @@ name: Deploy Építési Napló backend
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'supabase/functions/**'
-      - 'supabase/epitesi_ajanlat_schema.sql'
-      - 'supabase/config.toml'
-      - '.github/workflows/deploy-epites-import-functions.yml'
+    inputs:
+      production_confirmation:
+        description: 'Külön tulajdonosi jóváhagyás után írd be: DEPLOY_PRODUCTION'
+        required: true
+        type: string
+
 
 jobs:
   deploy:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.production_confirmation == 'DEPLOY_PRODUCTION'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
