@@ -2,6 +2,23 @@
 -- Exact public-table inventory from 2026-10-19; preserve CRUD, RLS and service_role.
 -- TRUNCATE is unnecessary for the inspected application and bypasses RLS.
 BEGIN;
+-- Per-schema REVOKE cannot subtract a global default grant. The captured live
+-- catalogs have no global table defaults for this creator. Fail closed on drift;
+-- do not broaden this public-schema proposal to other schemas automatically.
+DO $defaults$
+BEGIN
+ IF EXISTS (
+  SELECT 1 FROM pg_catalog.pg_default_acl d
+  CROSS JOIN LATERAL pg_catalog.aclexplode(d.defaclacl) a
+  WHERE d.defaclrole='postgres'::regrole AND d.defaclnamespace=0
+   AND d.defaclobjtype='r' AND a.privilege_type='TRUNCATE'
+   AND CASE WHEN a.grantee=0 THEN true ELSE
+    pg_catalog.pg_has_role('anon',a.grantee,'USAGE') OR pg_catalog.pg_has_role('authenticated',a.grantee,'USAGE') END
+ ) THEN
+  RAISE EXCEPTION 'Global TRUNCATE default requires separate review for postgres' USING ERRCODE='P0001';
+ END IF;
+END;
+$defaults$;
 REVOKE TRUNCATE ON TABLE public."account_deletions" FROM anon,authenticated;
 REVOKE TRUNCATE ON TABLE public."ai_credit_accounts" FROM anon,authenticated;
 REVOKE TRUNCATE ON TABLE public."ai_credit_transactions" FROM anon,authenticated;

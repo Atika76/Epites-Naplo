@@ -1,0 +1,1089 @@
+{
+  "defaults": [
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "DELETE"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "INSERT"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "MAINTAIN"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "SELECT"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "UPDATE"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "DELETE"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "INSERT"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "MAINTAIN"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "SELECT"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "UPDATE"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "DELETE"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "INSERT"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "MAINTAIN"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "SELECT"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "UPDATE"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "DELETE"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "INSERT"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "MAINTAIN"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "SELECT"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "scope": "public",
+      "creator": "postgres",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "UPDATE"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "DELETE"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "INSERT"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "MAINTAIN"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "SELECT"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "anon",
+      "is_grantable": false,
+      "privilege_type": "UPDATE"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "DELETE"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "INSERT"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "MAINTAIN"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "SELECT"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "authenticated",
+      "is_grantable": false,
+      "privilege_type": "UPDATE"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "DELETE"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "INSERT"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "MAINTAIN"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "SELECT"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "postgres",
+      "is_grantable": false,
+      "privilege_type": "UPDATE"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "DELETE"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "INSERT"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "MAINTAIN"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "SELECT"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "scope": "public",
+      "creator": "supabase_admin",
+      "grantee": "service_role",
+      "is_grantable": false,
+      "privilege_type": "UPDATE"
+    }
+  ],
+  "read_only": "on",
+  "collected_at": "2026-10-19T19:08:15.43691+02:00",
+  "public_tables": [
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "account_deletions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "account_deletions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "account_deletions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "account_deletions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "ai_credit_accounts"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "ai_credit_accounts"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "ai_credit_accounts"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "ai_credit_accounts"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "ai_credit_transactions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "ai_credit_transactions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "ai_credit_transactions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "ai_credit_transactions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "ai_photo_analyses"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "ai_photo_analyses"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "ai_photo_analyses"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "ai_photo_analyses"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "analytics_events"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "analytics_events"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "analytics_events"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "analytics_events"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "client_project_links"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "client_project_links"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "client_project_links"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "client_project_links"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "client_project_messages"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "client_project_messages"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "client_project_messages"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "client_project_messages"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "diary_entries"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "diary_entries"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "diary_entries"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "diary_entries"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "entries"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "entries"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "entries"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "entries"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "epitesi_quote_shares"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "epitesi_quote_shares"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "epitesi_quote_shares"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "epitesi_quotes"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "epitesi_quotes"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "epitesi_quotes"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "epitesi_quotes"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "media_files"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "media_files"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "media_files"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "media_files"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "notifications"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "notifications"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "notifications"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "notifications"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "payments"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "payments"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "payments"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "payments"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "photo_ai_results"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "photo_ai_results"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "photo_ai_results"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "photo_ai_results"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "profiles"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "profiles"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "profiles"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "profiles"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "project_extra_works"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "project_extra_works"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "project_extra_works"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "project_extra_works"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "project_import_requests"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "project_import_requests"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "project_import_requests"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "project_import_requests"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "project_imports"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "project_imports"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "project_imports"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "project_imports"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "project_invoices"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "project_invoices"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "project_invoices"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "project_invoices"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "project_materials"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "project_materials"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "project_materials"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "project_materials"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "project_members"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "project_members"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "project_members"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "project_members"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "projects"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "projects"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "projects"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "projects"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "public_reports"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "public_reports"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "public_reports"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "public_reports"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "push_subscriptions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "push_subscriptions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "push_subscriptions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "push_subscriptions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "report_approvals"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "report_approvals"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "report_approvals"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "report_approvals"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "report_documents"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "report_documents"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "report_documents"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "report_documents"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "report_events"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "report_events"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "report_events"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "report_events"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "shared_bundle_entitlements"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "shared_bundle_entitlements"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "shared_bundle_entitlements"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "subscriptions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "subscriptions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "subscriptions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "subscriptions"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "support_messages"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "support_messages"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "support_messages"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "support_messages"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "anon",
+      "table_name": "tasks"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "authenticated",
+      "table_name": "tasks"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "postgres",
+      "table_name": "tasks"
+    },
+    {
+      "owner": "postgres",
+      "grantee": "service_role",
+      "table_name": "tasks"
+    }
+  ],
+  "source_catalog_sha256": "3efbc014273c5fb078b9c6b00001e45b5067a203cfc52fa89a751679a3b7c0b4",
+  "project_ref": "tcmihuwjlapfaonihdma",
+  "note": "Read-only pg_default_acl (GLOBAL/public, table objects, both creators) and public TRUNCATE ACL only. No business rows."
+}

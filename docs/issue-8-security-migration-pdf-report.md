@@ -1,3 +1,5 @@
+> Pontosítás (2026-10-19): a migrációs hibainjektálás és az RLS UPDATE bizonyításának javítását a [három észrevétel lezárása](issue-8-final-review-followup.md) tartalmazza. A korábbi rollback-állítás csak ezzel a helyesbítéssel érvényes.
+
 # SzakiPiac 360 és ÉpítésNapló – jogosultságok, migrációk és PDF-regresszió
 
 2026. október 19. Fejlesztési ág mindkét repositoryban: `codex/issue-8-stabilization`.
