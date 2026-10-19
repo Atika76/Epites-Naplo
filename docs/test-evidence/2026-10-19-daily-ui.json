@@ -1,0 +1,32 @@
+[
+  {
+    "width": 1440,
+    "scope": "Standalone daily form/photo save, next entry without photo reuse, reload and actual closing report print HTML to PDF",
+    "entries": 3,
+    "pdf": "diary-1440.pdf",
+    "overflow": false,
+    "errors": [],
+    "networkFailures": [],
+    "consoleErrors": [],
+    "unmodelledCalls": [
+      "unmodelled:listReportDocuments",
+      "unmodelled:getReportApprovals",
+      "unmodelled:getSubscription"
+    ]
+  },
+  {
+    "width": 390,
+    "scope": "Standalone daily form/photo save, next entry without photo reuse, reload and actual closing report print HTML to PDF",
+    "entries": 3,
+    "pdf": "diary-390.pdf",
+    "overflow": false,
+    "errors": [],
+    "networkFailures": [],
+    "consoleErrors": [],
+    "unmodelledCalls": [
+      "unmodelled:listReportDocuments",
+      "unmodelled:getReportApprovals",
+      "unmodelled:getSubscription"
+    ]
+  }
+]
