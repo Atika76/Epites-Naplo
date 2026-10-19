@@ -62,6 +62,39 @@ if(naplo){
   assert.equal(saved.revision,1);assert.equal(saved.source_quote_id,null);
  });
 }
+if(naplo){
+ const project='f2222222-2222-4222-8222-222222222222',ownProject='f3333333-3333-4333-8333-333333333333';
+ sql(as(owner,`insert into projects(id,user_id,name) values('${project}','${owner}','Ownership guard');`));
+ sql(as(other,`insert into projects(id,user_id,name) values('${ownProject}','${other}','Other own project');`));
+ check('hosted baseline permits own user_id to inject an entry into a foreign project',()=>{
+  sql(`begin;${as(other,`insert into entries(user_id,project_id,note) values('${other}','${project}','Rolled-back baseline proof');`)}rollback;`);
+ });
+ const proposal=fs.readFileSync('docs/proposals/enforce-project-write-ownership.sql','utf8');sql(proposal);sql(proposal);
+ check('restrictive proposal rejects foreign project INSERT and UPDATE and keeps valid owner writes',()=>{
+  for(const [table,column] of [['entries','note'],['tasks','title'],['project_materials','name'],['diary_entries','description']]){
+   sql(as(other,`insert into ${table}(user_id,project_id,${column}) values('${other}','${project}','Forbidden');`),false);
+   const id=sql(as(other,`insert into ${table}(user_id,project_id,${column}) values('${other}','${ownProject}','Own') returning id;`));
+   const move=as(other,`update ${table} set project_id='${project}' where id='${id}' returning id;`);
+   if(table==='diary_entries')assert.equal(sql(move),'');else sql(move,false);
+   sql(as(owner,`insert into ${table}(user_id,project_id,${column}) values('${owner}','${project}','Allowed');`));
+  }
+  sql(as(owner,`insert into entries(user_id,note) values('${owner}','Legacy unassigned');`));
+  assert.equal(sql(as(other,`select count(*) from projects where id='${project}'`)),'0');
+ });
+ check('restrictive proposal preserves the existing profile-based admin path',()=>{
+  const id='33333333-3333-4333-8333-333333333333';
+  sql(`insert into profiles(id,email,role,is_admin) values('${id}','admin@example.test','admin',true) on conflict(id) do update set role='admin',is_admin=true;`);
+  sql(as(id,`insert into entries(user_id,project_id,note) values('${id}','${project}','Authorized admin');`));
+ });
+ check('restrictive proposal preserves atomic accepted import and idempotent retry',()=>{
+  const row={protocol_version:2,source_status:'accepted',source_quote_id:'f4444444-4444-4444-8444-444444444444',accepted_at:'2026-10-18T00:00:00Z',owner_email:'owner@example.test',token:'rls-proposal-import',project_name:'Guarded import',payload:{}};
+  sql(`set role service_role;select register_szakipiac_import_v2('${JSON.stringify(row)}');`);
+  const claim=`set role service_role;select claim_szakipiac_import_v2('rls-proposal-import','${owner}','{"location":"Test","note":"Accepted","items":[]}');`;
+  const first=JSON.parse(sql(claim));assert.equal(first.status,'complete');assert.equal(JSON.parse(sql(claim)).project_id,first.project_id);
+  assert.equal(sql(as(owner,`select count(*) from projects where id='${first.project_id}'`)),'1');
+  assert.equal(sql(as(other,`select count(*) from projects where id='${first.project_id}'`)),'0');
+ });
+}
 check('captured permission rollback restores exactly the original modeled table rights',()=>{
  const restore=(fs.readFileSync('docs/proposals/restore-browser-truncate-snapshot.sql','utf8')+'\n'+fs.readFileSync('docs/proposals/restore-platform-default-truncate-snapshot.sql','utf8')).split('\n').filter(line=>line.startsWith('ALTER DEFAULT')||(line.startsWith('GRANT TRUNCATE')&&tables.some(t=>line.includes('public."'+t+'"'))));
  sql('begin;'+restore.join('\n')+'commit;');

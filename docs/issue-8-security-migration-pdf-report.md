@@ -6,7 +6,7 @@ PR-ek: [SzakiPiac #9](https://github.com/Atika76/szakipiac-2025/pull/9), [Épít
 
 ## 1. Közvetlen, csak olvasó ellenőrzés
 
-Mindkét külön hitelesítés működik. A vizsgálat a hivatalos `/database/query/read-only` API-n, `BEGIN TRANSACTION READ ONLY` / `ROLLBACK` között, `supabase_read_only_user` szereppel történt. Nem használtunk login-szerepet automatikusan létrehozó `supabase link` vagy `db query --linked` parancsot. Csak katalógusokat és a Storage-bucket beállításait olvastuk, üzleti vagy személyes éles rekordokat nem másoltunk tesztadatbázisba.
+Mindkét külön hitelesítés működik. A vizsgálat a hivatalos `/database/query/read-only` API-n, `BEGIN TRANSACTION READ ONLY` / `ROLLBACK` között, `supabase_read_only_user` szereppel történt. Nem használtunk login-szerepet automatikusan létrehozó `supabase link` vagy `db query --linked` parancsot. Katalógusokat, Storage-bucket beállításokat és névtelen rekordkapcsolati összesítéseket olvastunk; üzleti vagy személyes éles rekordokat nem másoltunk tesztadatbázisba.
 
 | Rendszer | Projekt | public táblák | Effektív TRUNCATE anon | Effektív TRUNCATE authenticated |
 |---|---|---:|---:|---:|
@@ -21,7 +21,15 @@ Az alapértelmezett ACL-ek is túl szélesek: a `public` sémában a `postgres` 
 
 A repositoryk átvizsgált alkalmazáskódjában nincs szükséges TRUNCATE-hívás. A public függvénytörzsek katalóguskeresése sem talált közvetlen TRUNCATE-hivatkozást. Ez célzott vizsgálat, nem valamennyi fizetési, AI- és admin-RPC teljes biztonsági auditja.
 
-### Minimális javaslat, még nem telepítve
+### További igazolt RLS-hiányosság
++
++A tulajdonosi negatív próbában a tényleges régi `entries_all_own` policy a saját user_id-val idegen projekt alá is megengedett bejegyzésbeszúrást, ha a projekt UUID-je ismert. A célprojekt olvasása továbbra is tiltott, de az idegen projekt alá írás külön integritási hiba. Ezt a bizonyítást kizárólag visszagörgetett szintetikus tranzakcióban végeztük.
++
++Külön, még nem telepített javaslat: a Napló `docs/proposals/enforce-project-write-ownership.sql` fájlja az entries/tasks/project_materials/diary_entries táblákon szűkítő (RESTRICTIVE) INSERT/UPDATE-ellenőrzést ad a projekt tulajdonosára. Nem tágítja a meglévő olvasási vagy írási jogokat. A régi projekt nélküli bejegyzéseket, a profil alapján jogosult admint és a hitelesített szerveroldali importot megőrzi. A forrás-RLS policy-ket nem törli. Mind a tiltott beszúrás/áthelyezés, mind a jogos tulajdonosi/admin/import/ismételt import út sikeres célzott tesztet kapott. Az éles, csak olvasó kapcsolati összesítés a négy táblán 0 tulajdonosi eltérést és 0 árva projektkapcsolatot mutatott; egyedi rekordot nem kértünk le.
++
++Ez a javaslat is külön tulajdonosi jóváhagyás és független ellenőrzés után alkalmazható, nem része a kézi backend-workflow automatikusan kijelölt 001/002 fájllistájának. Visszavonásához csak az új, név szerint ismert nyolc policy törlése jöhet szóba külön jóváhagyással, nem az eredeti RLS-védelem lebontása.
++
++### Minimális javaslat, még nem telepítve
 
 - `docs/proposals/revoke-browser-truncate.sql`: kizárólag TRUNCATE visszavonása a rögzített public táblalistán anon/authenticated szereptől, és a `postgres` saját public-táblaalapértelmezéseinek szűkítése.
 - `docs/proposals/revoke-platform-default-truncate.sql`: külön platformoperátori lépés a `supabase_admin` által létrehozott jövőbeli public táblákhoz.
@@ -78,7 +86,7 @@ Mindkét adatbázison teljes szintetikus `pg_dump` / üres tesztadatbázisba `pg
 | Eredeti PostgreSQL/RLS suite | SzakiPiac 23, Napló 21 sikeres |
 | Ugyanezek a hosted katalógusból felépített sémán | 23 + 21 sikeres |
 | Szándékosan megszakított migráció és újrafuttatás | mind a 4 migráció sikeres helyreállítási próbája |
-| Jogosultság/önálló működés/rollback/role-boundary tesztek | SzakiPiac 7, Napló 9 sikeres |
+| Jogosultság/önálló működés/rollback/role-boundary tesztek | SzakiPiac 7, Napló 13 sikeres |
 | Teljes szintetikus DB-backup/restore | 2 sikeres |
 | Korábbi mentési/import-böngészőregresszió | 1440 és 390 px, sikeres; nincs JS-/hálózati hiba vagy oldal-túlcsordulás |
 | Valódi napi űrlap + kép mentés, következő kép nélküli nap, visszatöltés, lezáró riport | mindkét nézet sikeres, mock tárolással, nincs konzol-/API-/hálózati hiba |
@@ -88,7 +96,7 @@ A PDF-minták: 1 tételes ajánlat 1 oldal (nettó 6000, bruttó 7620 Ft); 35 t�
 
 A Node TypeScript-stripping experimental figyelmeztetése ismert tesztkörnyezeti figyelmeztetés, nem alkalmazáshiba. A statikus HTML/JS projekteknek nincs külön csomagolt buildfolyamatuk; a létező tesztek, JavaScript-parse, böngészőfuttatás és git diff-ellenőrzés futott.
 
-**Két valódi Supabase-stack:** az E2E most a hosted public sémákat, a Napló valódi Storage-policy-jait és privát 100 MB-os bucketbeállítását használja. A teszt a minimális TRUNCATE-szűkítés után fut: ajánlat → anon elfogadás → tényleges Edge-átadás → párhuzamos claim, opcionális KivitelezésPRO, idegen user, visszaállítás; továbbá önálló napi REST-műveletek és valódi privát Storage-feltöltés/visszaolvasás/idegen user tiltása. A küldő JWT-ellenőrzése bekapcsolt, a fogadó két függvényéé a tényleges konfigurációnak megfelelően saját hitelesítésre épül. Ezt csak a friss CI-futás eredménye alapján szabad sikeresnek minősíteni. A legutóbbi elfogadott régi 10 E2E eset nem helyettesíti az új 12-es suite-ot.
+**Két valódi Supabase-stack:** az E2E most a hosted public sémákat, a Napló valódi Storage-policy-jait és privát 100 MB-os bucketbeállítását használja. A teszt a minimális TRUNCATE-szűkítés és az új Napló írási tulajdonos-ellenőrzési javaslat után fut: ajánlat → anon elfogadás → tényleges Edge-átadás → párhuzamos claim, opcionális KivitelezésPRO, idegen user, visszaállítás; továbbá önálló napi REST-műveletek és valódi privát Storage-feltöltés/visszaolvasás/idegen user tiltása. A küldő JWT-ellenőrzése bekapcsolt, a fogadó két függvényéé a tényleges konfigurációnak megfelelően saját hitelesítésre épül. Ezt csak a friss CI-futás eredménye alapján szabad sikeresnek minősíteni. A legutóbbi elfogadott régi 10 E2E eset nem helyettesíti az új 12-es suite-ot.
 
 A GitHub október 19-én Actions/Pages/Webhooks üzemzavart jelzett; több futás sorban állt, egy E2E-futás lépések/log nélkül failure állapotot kapott. Ezt nem számítjuk sikeres tesztnek. A végső futások linkje és állapota a PR leírásában/az alábbi frissítési blokkban szerepel. [GitHub státusz](https://www.githubstatus.com/).
 
@@ -97,7 +105,7 @@ Nem ellenőrzött: fizikai telefon kamerája/GPS/mobil nyomtatómenü; az össze
 ## 6. Élesítési sorrend – későbbi külön jóváhagyáshoz
 
 1. Független ChatGPT-kódellenőrzés a két aktuális PR-headen; minden friss CI legyen zöld. Új hosted HTTPS-staginghez a tulajdonosnak külön, engedélyezett tesztprojektet/ágat és a szükséges erőforráskeretet kell biztosítania. Nem kérünk titkos kulcsot chatben és nem hozunk létre automatikusan fizetős erőforrást.
-2. Tulajdonosi jóváhagyás a pontos immutable commitokra, migrációkra, három Edge-függvényre, frontendekre és a külön jogosultságcsomagra. A platform-default részhez Supabase által jogosított operátor szükséges. A két projekt azonosítóját minden lépés előtt vissza kell ellenőrizni.
+2. Tulajdonosi jóváhagyás a pontos immutable commitokra, migrációkra, három Edge-függvényre, frontendekre és a külön jogosultság-/RLS-csomagra. A jelenleg túl széles éles TRUNCATE és az idegen projekt alá írás lehetősége még fennáll: a fejlesztési javaslat nem helyettesíti a jóváhagyott éles javítást. A platform-default részhez Supabase által jogosított operátor szükséges. A két projekt azonosítóját minden lépés előtt vissza kell ellenőrizni. A jóváhagyott tábla-/saját-default-javítás és a Napló szűkítő írási policy-i külön, célzott tranzakciókban, friss leltár és mentés után alkalmazandók; ez a terv nem indítja el őket.
 3. Jóváhagyott éles mentés: mindkét teljes adatbázis (Auth és jogosultságok is), a három érintett Edge jelenlegi forrása/verziója/JWT-konfigurációja és frontend-verziók. A Storage-bájtokról külön mentés kell, a DB-mentés nem helyettesíti. Titkokat védett tárolóban, nem Gitben/chatben. A választott backup/PITR szolgáltatás elérhetőségét és visszaállíthatóságát előre igazolni kell.
 4. Az érintett ajánlat/cloud-mentés/import írások rövid karbantartási ablakát előre elkészített és tesztelt módon biztosítani. Nem feltételezünk létező feature flaget. A Napló napi dokumentálását nem kapcsoljuk le általános rendszerátépítéssel.
 5. Célzott backend, ellenőrzött commitból: Napló 001/002 SQL → SzakiPiac 001/002 SQL → csak Napló create/claim importfüggvények → csak SzakiPiac sender. Köztes read-only preflight, verzió-/policy-/RPC-jogleltár; nem az összes Supabase-funkció újratelepítése.
@@ -112,3 +120,5 @@ Először az új importok/érintett írások megállítása; a napi új adatokat
 A TRUNCATE-proposal visszaállításához a pontos korábbi ACL alapján készült snapshot-scriptek vannak; ezek használata külön biztonsági döntés, nem automatikus gyengítés. Az alkalmazásműködés helyreállításához várhatóan nincs rájuk szükség, mert a vizsgált működés nem használ TRUNCATE-ot.
 
 **Állapot:** a konkrét fejlesztési hibák javítva, a hozzáférés rendezett, a helyi sémás és PDF-próbák sikeresek. Élesítésre késznek csak a friss teljes E2E eredménye, a még nyitott staging/backup-operatív lépések és a független ellenőrzés után nevezhető. TERC-fejlesztés még nem indult; a meglévő PRO+ későbbi továbbfejlesztése marad a cél.
+
+A CI-tesztek runner-képe Ubuntu 24.04-re rögzített; az ubuntu-latest október 19-i Ubuntu 26-ra váltását nem keverjük össze alkalmazáshibával.
