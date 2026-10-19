@@ -1,7 +1,13 @@
 const fs=require('node:fs');
 const {sql,check,as,owner,other,concurrent,ready,assert}=require('./pg-helper.cjs');
-const file=p=>sql(fs.readFileSync(p,'utf8'));
-file('tests/bootstrap.sql');file('supabase-schema.sql');file('supabase/szakipiac_import_schema.sql');
+const tried=new Set();
+const file=p=>{const text=fs.readFileSync(p,'utf8');
+ if(process.env.ISSUE8_SCHEMA==='hosted' && p.includes('/migrations/') && !tried.has(p)){
+  require('./hosted-migration-check.cjs').verifyRollback(text,p);tried.add(p);
+ }const result=sql(text);if(process.env.ISSUE8_SCHEMA==='hosted' && p.includes('/migrations/'))require('./hosted-migration-check.cjs').verifyPreserved();return result;};
+file('tests/bootstrap.sql');
+if(process.env.ISSUE8_SCHEMA==='hosted')file('tests/hosted-schema.sql');
+else{file('supabase-schema.sql');file('supabase/szakipiac_import_schema.sql');}
 const migration='supabase/migrations/202610180001_szakipiac_import_stabilization.sql';file(migration);file(migration);
 file('supabase/migrations/202610180002_deleted_import_recovery.sql');file('supabase/migrations/202610180002_deleted_import_recovery.sql');
 sql('grant select on projects,entries,tasks,project_materials to authenticated;');
