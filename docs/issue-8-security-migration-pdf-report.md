@@ -57,7 +57,7 @@ A szerep objektuma még létezik, LOGIN attribútuma true, superuser/BYPASSRLS a
 Új `tests/hosted-schema.sql` fixture-ök a tényleges katalógusból:
 
 - SzakiPiac: a 3 érintett tábla, 59 eredeti oszlop, 8 eredeti constraint, 10 public policy, a megosztási függvények és trigger.
-- Napló: a 8 import/napi tábla és profiles, összesen 112 oszlop, 22 constraint, 30 public policy, admin-/Auth-triggerfüggvények; külön a 11 Storage-policy.
+- Napló: a 8 import/napi tábla, profiles és az Auth-trigger subscriptions függősége, összesen 121 oszlop, 24 constraint, 34 public policy, admin-/Auth-triggerfüggvények; külön a 11 Storage-policy.
 - Az ACL-eket a közvetlen katalógusból állítottuk elő, beleértve a profiles oszlopszintű UPDATE-jogait. A Napló helperében/policy-jában lévő beégetett admin e-mailt `admin@example.test` tesztliterálra cseréltük; a feltétel szerkezete változatlan.
 - Nem kerültek át éles rekordok vagy fájlok. Az Auth alapját a PostgreSQL-próbában meglévő teszthelper, a Supabase-próbában a valódi helyi Supabase adja. Nem állítjuk, hogy ez a teljes platform/billing/AI-séma másolata.
 
@@ -86,7 +86,7 @@ Mindkét adatbázison teljes szintetikus `pg_dump` / üres tesztadatbázisba `pg
 | Eredeti PostgreSQL/RLS suite | SzakiPiac 23, Napló 21 sikeres |
 | Ugyanezek a hosted katalógusból felépített sémán | 23 + 21 sikeres |
 | Szándékosan megszakított migráció és újrafuttatás | mind a 4 migráció sikeres helyreállítási próbája |
-| Jogosultság/önálló működés/rollback/role-boundary tesztek | SzakiPiac 7, Napló 13 sikeres |
+| Jogosultság/önálló működés/rollback/role-boundary tesztek | SzakiPiac 7, Napló 14 sikeres |
 | Teljes szintetikus DB-backup/restore | 2 sikeres |
 | Korábbi mentési/import-böngészőregresszió | 1440 és 390 px, sikeres; nincs JS-/hálózati hiba vagy oldal-túlcsordulás |
 | Valódi napi űrlap + kép mentés, következő kép nélküli nap, visszatöltés, lezáró riport | mindkét nézet sikeres, mock tárolással, nincs konzol-/API-/hálózati hiba |
@@ -97,6 +97,8 @@ A PDF-minták: 1 tételes ajánlat 1 oldal (nettó 6000, bruttó 7620 Ft); 35 t�
 A Node TypeScript-stripping experimental figyelmeztetése ismert tesztkörnyezeti figyelmeztetés, nem alkalmazáshiba. A statikus HTML/JS projekteknek nincs külön csomagolt buildfolyamatuk; a létező tesztek, JavaScript-parse, böngészőfuttatás és git diff-ellenőrzés futott.
 
 **Két valódi Supabase-stack:** az E2E most a hosted public sémákat, a Napló valódi Storage-policy-jait és privát 100 MB-os bucketbeállítását használja. A teszt a minimális TRUNCATE-szűkítés és az új Napló írási tulajdonos-ellenőrzési javaslat után fut: ajánlat → anon elfogadás → tényleges Edge-átadás → párhuzamos claim, opcionális KivitelezésPRO, idegen user, visszaállítás; továbbá önálló napi REST-műveletek és valódi privát Storage-feltöltés/visszaolvasás/idegen user tiltása. A küldő JWT-ellenőrzése bekapcsolt, a fogadó két függvényéé a tényleges konfigurációnak megfelelően saját hitelesítésre épül. Ezt csak a friss CI-futás eredménye alapján szabad sikeresnek minősíteni. A legutóbbi elfogadott régi 10 E2E eset nem helyettesíti az új 12-es suite-ot.
+
+Az első friss teljes E2E az új felhasználó létrehozásánál 500-as hibával megállt: a tesztfixture-ből kimaradt az eredeti Auth-trigger subscriptions táblafüggősége. Ezt a hosted katalógusból pótoltuk; külön új felhasználós trigger-regresszió védi. Éles regisztrációs kódot nem írtunk át.
 
 A GitHub október 19-én Actions/Pages/Webhooks üzemzavart jelzett; több futás sorban állt, egy E2E-futás lépések/log nélkül failure állapotot kapott. Ezt nem számítjuk sikeres tesztnek. A végső futások linkje és állapota a PR leírásában/az alábbi frissítési blokkban szerepel. [GitHub státusz](https://www.githubstatus.com/).
 

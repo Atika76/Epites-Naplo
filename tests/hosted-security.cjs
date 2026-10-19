@@ -35,6 +35,12 @@ check('new tables from both creator roles no longer inherit TRUNCATE',()=>{
  }
 });
 if(naplo){
+ check('hosted Auth trigger provisions profile and trial subscription without a missing dependency',()=>{
+  const id='f5555555-5555-4555-8555-555555555555';
+  sql(`insert into auth.users(id,email,raw_user_meta_data) values('${id}','new-user@example.test','{"full_name":"Synthetic new user"}');`);
+  assert.equal(sql(`select count(*) from profiles where id='${id}'`),'1');
+  assert.equal(sql(`select count(*) from subscriptions where user_id='${id}' and plan='trial'`),'1');
+ });
  const id='f1111111-1111-4111-8111-111111111111';
  check('standalone journal CRUD, daily photos/tasks/materials survive minimum rights change',()=>{
   sql(as(owner,`insert into projects(id,user_id,name) values('${id}','${owner}','Standalone');

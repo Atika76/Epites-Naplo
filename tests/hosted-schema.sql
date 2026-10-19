@@ -120,6 +120,17 @@ CREATE TABLE public."shared_bundle_entitlements" (
  "verified_at" timestamp with time zone DEFAULT now() NOT NULL,
  "updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
+CREATE TABLE public."subscriptions" (
+ "id" uuid DEFAULT gen_random_uuid() NOT NULL,
+ "user_id" uuid,
+ "plan" text DEFAULT 'trial'::text,
+ "status" text DEFAULT 'active'::text,
+ "trial_ends_at" timestamp with time zone,
+ "current_period_end" timestamp with time zone,
+ "created_at" timestamp with time zone DEFAULT now(),
+ "updated_at" timestamp with time zone DEFAULT now(),
+ "paypal_order_id" text
+);
 CREATE TABLE public."tasks" (
  "id" uuid DEFAULT gen_random_uuid() NOT NULL,
  "user_id" uuid,
@@ -142,6 +153,7 @@ ALTER TABLE public."project_materials" ADD CONSTRAINT "project_materials_pkey" P
 ALTER TABLE public."projects" ADD CONSTRAINT "projects_pkey" PRIMARY KEY (id);
 ALTER TABLE public."shared_bundle_entitlements" ADD CONSTRAINT "shared_bundle_entitlements_pkey" PRIMARY KEY (user_id);
 ALTER TABLE public."shared_bundle_entitlements" ADD CONSTRAINT "shared_bundle_entitlements_plan_check" CHECK ((plan = 'bundle'::text));
+ALTER TABLE public."subscriptions" ADD CONSTRAINT "subscriptions_pkey" PRIMARY KEY (id);
 ALTER TABLE public."tasks" ADD CONSTRAINT "tasks_pkey" PRIMARY KEY (id);
 ALTER TABLE public."entries" ADD CONSTRAINT "entries_project_id_fkey" FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 ALTER TABLE public."entries" ADD CONSTRAINT "entries_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
@@ -151,6 +163,7 @@ ALTER TABLE public."project_import_requests" ADD CONSTRAINT "project_import_requ
 ALTER TABLE public."project_imports" ADD CONSTRAINT "project_imports_project_id_fkey" FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 ALTER TABLE public."projects" ADD CONSTRAINT "projects_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 ALTER TABLE public."shared_bundle_entitlements" ADD CONSTRAINT "shared_bundle_entitlements_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE public."subscriptions" ADD CONSTRAINT "subscriptions_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 ALTER TABLE public."tasks" ADD CONSTRAINT "tasks_project_id_fkey" FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 ALTER TABLE public."tasks" ADD CONSTRAINT "tasks_source_entry_id_fkey" FOREIGN KEY (source_entry_id) REFERENCES entries(id) ON DELETE SET NULL;
 ALTER TABLE public."tasks" ADD CONSTRAINT "tasks_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
@@ -175,6 +188,8 @@ CREATE INDEX idx_project_import_requests_token ON public.project_import_requests
 CREATE INDEX idx_project_import_requests_claimed_by ON public.project_import_requests USING btree (claimed_by);
 CREATE INDEX idx_tasks_project_id_v110 ON public.tasks USING btree (project_id);
 CREATE INDEX idx_tasks_user_id_v110 ON public.tasks USING btree (user_id);
+CREATE UNIQUE INDEX subscriptions_user_id_unique ON public.subscriptions USING btree (user_id);
+CREATE INDEX subscriptions_user_id_idx ON public.subscriptions USING btree (user_id);
 CREATE OR REPLACE FUNCTION public.handle_new_user()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -265,6 +280,8 @@ ALTER TABLE public."projects" ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public."projects" FROM PUBLIC,anon,authenticated,service_role;
 ALTER TABLE public."shared_bundle_entitlements" ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public."shared_bundle_entitlements" FROM PUBLIC,anon,authenticated,service_role;
+ALTER TABLE public."subscriptions" ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public."subscriptions" FROM PUBLIC,anon,authenticated,service_role;
 ALTER TABLE public."tasks" ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public."tasks" FROM PUBLIC,anon,authenticated,service_role;
 GRANT DELETE ON public."diary_entries" TO "anon";
@@ -448,6 +465,27 @@ GRANT SELECT ON public."shared_bundle_entitlements" TO "service_role";
 GRANT TRIGGER ON public."shared_bundle_entitlements" TO "service_role";
 GRANT TRUNCATE ON public."shared_bundle_entitlements" TO "service_role";
 GRANT UPDATE ON public."shared_bundle_entitlements" TO "service_role";
+GRANT DELETE ON public."subscriptions" TO "anon";
+GRANT INSERT ON public."subscriptions" TO "anon";
+GRANT MAINTAIN ON public."subscriptions" TO "anon";
+GRANT REFERENCES ON public."subscriptions" TO "anon";
+GRANT SELECT ON public."subscriptions" TO "anon";
+GRANT TRIGGER ON public."subscriptions" TO "anon";
+GRANT TRUNCATE ON public."subscriptions" TO "anon";
+GRANT UPDATE ON public."subscriptions" TO "anon";
+GRANT MAINTAIN ON public."subscriptions" TO "authenticated";
+GRANT REFERENCES ON public."subscriptions" TO "authenticated";
+GRANT SELECT ON public."subscriptions" TO "authenticated";
+GRANT TRIGGER ON public."subscriptions" TO "authenticated";
+GRANT TRUNCATE ON public."subscriptions" TO "authenticated";
+GRANT DELETE ON public."subscriptions" TO "service_role";
+GRANT INSERT ON public."subscriptions" TO "service_role";
+GRANT MAINTAIN ON public."subscriptions" TO "service_role";
+GRANT REFERENCES ON public."subscriptions" TO "service_role";
+GRANT SELECT ON public."subscriptions" TO "service_role";
+GRANT TRIGGER ON public."subscriptions" TO "service_role";
+GRANT TRUNCATE ON public."subscriptions" TO "service_role";
+GRANT UPDATE ON public."subscriptions" TO "service_role";
 GRANT DELETE ON public."tasks" TO "anon";
 GRANT INSERT ON public."tasks" TO "anon";
 GRANT MAINTAIN ON public."tasks" TO "anon";
@@ -503,6 +541,10 @@ CREATE POLICY "tasks_all_own" ON "public"."tasks" AS PERMISSIVE FOR ALL TO PUBLI
 CREATE POLICY "admin_select_all_entries" ON "public"."entries" AS PERMISSIVE FOR SELECT TO PUBLIC USING (is_current_user_admin());
 CREATE POLICY "entries owner delete v56" ON "public"."entries" AS PERMISSIVE FOR DELETE TO "authenticated" USING ((user_id = auth.uid()));
 CREATE POLICY "entries_all_own" ON "public"."entries" AS PERMISSIVE FOR ALL TO PUBLIC USING ((auth.uid() = user_id)) WITH CHECK ((auth.uid() = user_id));
+CREATE POLICY "Admin see all subscriptions" ON "public"."subscriptions" AS PERMISSIVE FOR SELECT TO PUBLIC USING (is_current_user_admin());
+CREATE POLICY "Admin update subscriptions" ON "public"."subscriptions" AS PERMISSIVE FOR UPDATE TO PUBLIC USING (is_current_user_admin());
+CREATE POLICY "admin_select_all_subscriptions" ON "public"."subscriptions" AS PERMISSIVE FOR SELECT TO "authenticated" USING ((is_current_user_admin() OR (auth.uid() = user_id)));
+CREATE POLICY "subscriptions read own or admin v31" ON "public"."subscriptions" AS PERMISSIVE FOR SELECT TO "authenticated" USING (((user_id = auth.uid()) OR is_current_user_admin()));
 CREATE POLICY "Admin see all diary" ON "public"."diary_entries" AS PERMISSIVE FOR SELECT TO PUBLIC USING (is_current_user_admin());
 CREATE POLICY "Users insert diary" ON "public"."diary_entries" AS PERMISSIVE FOR INSERT TO PUBLIC WITH CHECK ((auth.uid() = user_id));
 CREATE POLICY "Users see own diary" ON "public"."diary_entries" AS PERMISSIVE FOR SELECT TO PUBLIC USING ((auth.uid() = user_id));
