@@ -1,0 +1,26 @@
+{
+  "collected_at": "2026-10-19T17:52:30.303525+02:00",
+  "source_catalog_sha256": "8e6e5a98f65536ba5badcfaa1b65d34ff678aab3b4a4a24f3f8a8813621452a8",
+  "tables": [
+    "diary_entries",
+    "entries",
+    "profiles",
+    "project_import_requests",
+    "project_imports",
+    "project_materials",
+    "projects",
+    "shared_bundle_entitlements",
+    "subscriptions",
+    "tasks"
+  ],
+  "columns": 121,
+  "constraints": 24,
+  "public_policies": 34,
+  "storage_policies": 11,
+  "limitations": [
+    "Auth/Storage platform base comes from local Supabase, not a hosted dump.",
+    "Synthetic test records only; no production data.",
+    "No complete unrelated billing/AI/platform-schema compatibility claim."
+  ],
+  "sanitization": "Hard-coded admin email in metadata replaced by admin@example.test; predicate structure unchanged."
+}

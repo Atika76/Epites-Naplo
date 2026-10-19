@@ -100,7 +100,7 @@ function getItems(payload: any): any[] {
 }
 
 function normalizeItem(item: any, index: number) {
-  const quantity = num(pick(item, ["qty", "quantity", "mennyiseg", "amountQty", "db"], 1)) || 1;
+  const quantity = num(pick(item, ["qty", "quantity", "mennyiseg", "amountQty", "db"], 1));
   const matUnit = num(pick(item, [
     "mat_unit_price",
     "material_unit_price",
@@ -179,17 +179,6 @@ function itemsText(items: any[]): string {
   }).join("\n");
 }
 
-async function optionalInsert(admin: any, table: string, rowOrRows: any, warnings: string[]) {
-  const { error } = await admin.from(table).insert(rowOrRows);
-  if (!error) return true;
-  if (isMissingObject(error)) {
-    warnings.push(`${table}: hiányzó tábla/oszlop, az alap projekt ettől még létrejött.`);
-    return false;
-  }
-  warnings.push(`${table}: ${error.message || error}`);
-  return false;
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ ok: false, error: "Csak POST kérés engedélyezett." }, 405);
@@ -207,7 +196,7 @@ serve(async (req) => {
       return json({ ok: false, error: "Hiányzó Supabase secret." }, 500);
     }
 
-    const { token } = await req.json().catch(() => ({}));
+    const { token, restore_deleted_project } = await req.json().catch(() => ({}));
     if (!token) return json({ ok: false, error: "Hiányzó import token." }, 400);
 
     const userClient = createClient(supabaseUrl, anonKey, {
@@ -229,51 +218,10 @@ serve(async (req) => {
     if (reqError) return json({ ok: false, error: "Import lekérési hiba: " + reqError.message }, 500);
     if (!reqRow) return json({ ok: false, error: "Nem található import link." }, 404);
     const payload = reqRow.payload || {};
-    const bundle = payload.bundle_entitlement || {};
-    const bundleEmail = lower(bundle.user_email);
-    const bundleExpiresAt = text(bundle.expires_at);
-    const bundleActive = bundle.plan === "bundle"
-      && bundleEmail
-      && bundleEmail === userEmail
-      && (!bundleExpiresAt || new Date(bundleExpiresAt).getTime() >= Date.now());
-    if (bundleActive) {
-      const { error: bundleError } = await admin.from("shared_bundle_entitlements").upsert({
-        user_id: userId,
-        source_app: "szakipiac",
-        source_email: bundleEmail,
-        plan: "bundle",
-        expires_at: bundleExpiresAt || null,
-        verified_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id" });
-      if (bundleError) warnings.push("A közös Szaki Digitális Csomag jogosultságának átvétele nem sikerült: " + bundleError.message);
+    // Token possession alone cannot move a quote into an unrelated account.
+    if (reqRow.protocol_version === 2 && String(reqRow.verified_owner_email).toLowerCase() !== userEmail) {
+      return json({ ok: false, error: "Az ajánlat tulajdonosának Építési Napló fiókjával jelentkezz be." }, 403);
     }
-    if (reqRow.claimed_project_id) {
-      return json({ ok: true, already_claimed: true, project_id: reqRow.claimed_project_id, warnings });
-    }
-    if (reqRow.source_quote_id) {
-      const { data: previousClaim } = await admin
-        .from("project_import_requests")
-        .select("claimed_project_id")
-        .eq("source_app", "szakipiac")
-        .eq("source_quote_id", reqRow.source_quote_id)
-        .not("claimed_project_id", "is", null)
-        .order("claimed_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (previousClaim?.claimed_project_id) {
-        await admin.from("project_import_requests").update({
-          claimed_by: userId,
-          claimed_project_id: previousClaim.claimed_project_id,
-          claimed_at: new Date().toISOString(),
-        }).eq("id", reqRow.id).is("claimed_project_id", null);
-        return json({ ok: true, already_claimed: true, project_id: previousClaim.claimed_project_id, warnings });
-      }
-    }
-    if (Date.now() - new Date(reqRow.created_at).getTime() > 7 * 24 * 60 * 60 * 1000) {
-      return json({ ok: false, error: "Az import link lejárt. Készíts új linket a SzakiPiacban." }, 410);
-    }
-
     const client = payload.client || {};
     const totals = payload.totals || {};
     const items = getItems(payload).map(normalizeItem).filter((item: any) => item.name);
@@ -313,54 +261,6 @@ serve(async (req) => {
     const vatAmount = num(totals.vatAmount) || Math.max(0, grossTotal - sumMat - sumLab);
     const mainWork = items.find((item: any) => item.type === "munka") || items[0];
 
-    const { data: project, error: projectError } = await admin
-      .from("projects")
-      .insert({
-        user_id: userId,
-        name: projectName,
-        location: location || null,
-      })
-      .select("*")
-      .single();
-
-    if (projectError) return json({ ok: false, error: "Projekt létrehozási hiba: " + projectError.message }, 500);
-
-    const { data: claimedRows, error: claimError } = await admin
-      .from("project_import_requests")
-      .update({
-        claimed_by: userId,
-        claimed_project_id: project.id,
-        claimed_at: new Date().toISOString(),
-      })
-      .eq("id", reqRow.id)
-      .is("claimed_project_id", null)
-      .select("id");
-    if (claimError || !claimedRows?.length) {
-      await admin.from("projects").delete().eq("id", project.id).eq("user_id", userId);
-      const { data: currentRequest } = await admin
-        .from("project_import_requests")
-        .select("claimed_project_id")
-        .eq("id", reqRow.id)
-        .maybeSingle();
-      if (currentRequest?.claimed_project_id) {
-        return json({ ok: true, already_claimed: true, project_id: currentRequest.claimed_project_id, warnings });
-      }
-      return json({ ok: false, error: "Az import foglalását nem sikerült rögzíteni. Próbáld újra." }, 500);
-    }
-
-    await optionalInsert(admin, "project_imports", {
-      project_id: project.id,
-      source_app: "szakipiac",
-      source_quote_id: reqRow.source_quote_id,
-      client_name: clientName || null,
-      client_email: clientEmail || null,
-      client_phone: clientPhone || null,
-      client_city: clientCity || null,
-      client_address: clientAddress || null,
-      quote_total_gross: grossTotal || null,
-      payload,
-    }, warnings);
-
     const note = [
       payload?.source_type === "kivitelezes_pro" ? "SzakiPiac KivitelezésPRO projekt importálva." : "SzakiPiac ajánlat importálva.",
       "",
@@ -378,81 +278,27 @@ serve(async (req) => {
       itemsText(items),
     ].join("\n");
 
-    const baseEntry = {
-      user_id: userId,
-      project_id: project.id,
-      phase: mainWork?.name || "SzakiPiac import",
-      status: "folyamatban",
-      priority: "normál",
-      responsible: clientName || null,
-      note,
-      ai_title: payload?.source_type === "kivitelezes_pro" ? "SzakiPiac KivitelezésPRO projekt importálva" : "SzakiPiac ajánlat importálva",
-      ai_advice: { source: "szakipiac", totals, client, items },
-    };
-
-    let entryResult = await admin
-      .from("entries")
-      .insert({
-        ...baseEntry,
-        ai_json: { source: "szakipiac", totals, client, items },
-        materials_json: items,
-        location_address: location || null,
-      })
-      .select("id")
-      .single();
-
-    if (entryResult.error && isMissingObject(entryResult.error)) {
-      entryResult = await admin.from("entries").insert(baseEntry).select("id").single();
-    }
-
-    if (entryResult.error) warnings.push("A projekt létrejött, de a kezdő naplóbejegyzést nem sikerült menteni: " + entryResult.error.message);
-    const entry = entryResult.error ? null : entryResult.data;
-
-    const materialRows = items
-      .filter((item: any) => item.type === "anyag")
-      .map((item: any) => ({
-        user_id: userId,
-        project_id: project.id,
-        entry_id: entry?.id,
-        name: item.name,
-        quantity: item.quantity,
-        unit: item.unit,
-        note: `SzakiPiac import - egységár: ${ft(item.mat_unit_price)} - összesen: ${ft(item.material_total || item.total)}`,
-      }));
-    if (entry && materialRows.length) await optionalInsert(admin, "project_materials", materialRows, warnings);
-
-    const taskRows = items
-      .filter((item: any) => item.type === "munka" || item.type === "egyeb")
-      .map((item: any) => ({
-        user_id: userId,
-        project_id: project.id,
-        source_entry_id: entry?.id,
-        title: `${item.name} - ${item.quantity} ${item.unit} - ${ft(item.labor_total || item.total)}`,
-        owner: clientName || "",
-        deadline: null,
-        priority: "normál",
-        done: false,
-      }));
-    if (entry && taskRows.length) await optionalInsert(admin, "tasks", taskRows, warnings);
-
-    await optionalInsert(admin, "diary_entries", {
-      user_id: userId,
-      project_id: project.id,
-      description: note,
-      work_type: mainWork?.name || "SzakiPiac import",
-    }, warnings);
-
-    return json({
-      ok: true,
-      project_id: project.id,
-      project,
-      entry_id: entry?.id || null,
-      inserted: {
-        materials: entry ? materialRows.length : 0,
-        tasks: entry ? taskRows.length : 0,
-      },
-      warnings,
+    const { data: result, error: importError } = await admin.rpc("claim_szakipiac_import_v2", {
+      p_token: String(token), p_user_id: userId,
+      p_plan: { restore_deleted: restore_deleted_project === true, location, phase: mainWork?.name || "SzakiPiac import", note, items, ai: { source: "szakipiac", totals, client, items } },
     });
+    if (importError) return json({ ok: false, error: importError.message }, 409);
+    if (!result?.ok) return json(result, 409);
+    const bundle = payload.bundle_entitlement || {};
+    const expiry = text(bundle.expires_at);
+    if (bundle.plan === "bundle" && lower(bundle.user_email) === userEmail
+      && (!expiry || new Date(expiry).getTime() >= Date.now())) {
+      const { error: bundleError } = await admin.from("shared_bundle_entitlements").upsert({
+        user_id: userId, source_app: "szakipiac", source_email: userEmail, plan: "bundle",
+        expires_at: expiry || null, verified_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id" });
+      if (bundleError) {
+        result.warnings = [...(result.warnings || []), "A közös csomag jogosultságának átvétele nem sikerült: " + bundleError.message];
+        // Keep auxiliary warnings durable too. Core import status/counts remain authoritative.
+        await admin.from("project_import_requests").update({ import_warnings: result.warnings }).eq("id", reqRow.id);
+      }
+    }
+    return json(result);
   } catch (error) {
     return json({ ok: false, error: String((error as Error)?.message || error), warnings }, 500);
   }

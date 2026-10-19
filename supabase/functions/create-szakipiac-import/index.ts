@@ -51,17 +51,19 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const sourceQuoteId = body.source_quote_id ? text(body.source_quote_id, 180) : "";
     const sourceStatus = text(body.source_status, 40).toLowerCase();
-    const isKivitelezesPro = sourceQuoteId.startsWith("kivitelezes_projektek:") || sourceStatus === "kivitelezes_pro";
-    if (!sourceQuoteId) return json({ ok: false, error: "Hiányzó forrásajánlat-azonosító." }, 400);
-    if (!isKivitelezesPro && sourceStatus !== "accepted") {
-      return json({ ok: false, error: "Csak az ügyfél által elfogadott ajánlat importálható." }, 409);
+    if (body.protocol_version !== 2 || sourceStatus !== "accepted" || !body.accepted_at
+      || !body.owner_email || !/^[0-9a-f-]{36}$/i.test(sourceQuoteId)) {
+      return json({ ok: false, error: "Hitelesített, elfogadott ajánlatverzió szükséges (v2)." }, 409);
     }
-
     const projectName = text(body.project_name || body.projectName || "SzakiPiac projekt", 180);
     const token = await importToken(expectedSecret, sourceQuoteId);
     const admin = createClient(supabaseUrl, serviceKey);
 
     const row = {
+      protocol_version: 2,
+      source_status: "accepted",
+      accepted_at: body.accepted_at,
+      owner_email: String(body.owner_email).toLowerCase(),
       token,
       source_app: "szakipiac",
       source_quote_id: sourceQuoteId,
@@ -75,74 +77,11 @@ serve(async (req) => {
       payload: body.payload && typeof body.payload === "object" ? body.payload : {},
     };
 
-    const { data: existing, error: existingError } = await admin
-      .from("project_import_requests")
-      .select("id, token, project_name, created_at, claimed_project_id")
-      .eq("source_app", "szakipiac")
-      .eq("source_quote_id", sourceQuoteId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (existingError) return json({ ok: false, error: "Korábbi importkérés ellenőrzési hiba: " + existingError.message }, 500);
-
-    if (existing) {
-      if (existing.claimed_project_id) {
-        return json({
-          ok: true,
-          already_claimed: true,
-          request_id: existing.id,
-          project_id: existing.claimed_project_id,
-          import_url: `${siteUrl}/import-szakipiac.html?token=${encodeURIComponent(existing.token)}`,
-        });
-      }
-      const { data: refreshed, error: refreshError } = await admin
-        .from("project_import_requests")
-        .update({ ...row, token, created_at: new Date().toISOString() })
-        .eq("id", existing.id)
-        .select("id, token, project_name, created_at")
-        .single();
-      if (refreshError) return json({ ok: false, error: "Importkérés frissítési hiba: " + refreshError.message }, 500);
-      return json({
-        ok: true,
-        reused: true,
-        request_id: refreshed.id,
-        token: refreshed.token,
-        import_url: `${siteUrl}/import-szakipiac.html?token=${encodeURIComponent(refreshed.token)}`,
-      });
-    }
-
-    const { data, error } = await admin
-      .from("project_import_requests")
-      .insert(row)
-      .select("id, token, project_name, created_at")
-      .single();
-
-    if (error) {
-      const { data: concurrent } = await admin
-        .from("project_import_requests")
-        .select("id, token, claimed_project_id")
-        .eq("token", token)
-        .maybeSingle();
-      if (concurrent) {
-        return json({
-          ok: true,
-          reused: true,
-          already_claimed: Boolean(concurrent.claimed_project_id),
-          request_id: concurrent.id,
-          project_id: concurrent.claimed_project_id || undefined,
-          token: concurrent.token,
-          import_url: `${siteUrl}/import-szakipiac.html?token=${encodeURIComponent(concurrent.token)}`,
-        });
-      }
-      return json({ ok: false, error: "Import kérés mentési hiba: " + error.message }, 500);
-    }
-
-    return json({
-      ok: true,
-      request_id: data.id,
-      token,
-      import_url: `${siteUrl}/import-szakipiac.html?token=${encodeURIComponent(token)}`,
-    });
+    const { data, error } = await admin.rpc("register_szakipiac_import_v2", { p_row: row });
+    if (error) return json({ ok: false, error: "Importkérés nem rögzíthető: " + error.message }, 409);
+    return json({ ok: true, request_id: data.id, already_claimed: Boolean(data.claimed_project_id),
+      project_id: data.claimed_project_id || null,
+      import_url: `${siteUrl}/import-szakipiac.html?token=${encodeURIComponent(data.token)}` });
   } catch (error) {
     return json({ ok: false, error: String((error as Error)?.message || error) }, 500);
   }
