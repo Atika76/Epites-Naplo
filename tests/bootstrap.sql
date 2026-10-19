@@ -1,3 +1,4 @@
+COMMENT ON DATABASE issue8_test IS 'Issue8 disposable synthetic test';
 -- Only the disposable issue8_test database. Auth helpers model signed request claims.
 create role anon nologin;
 create role authenticated nologin;

@@ -1831,7 +1831,9 @@ window.addEventListener('DOMContentLoaded', () => {
   function initBasket(id){
     const input = q(id); if(!input || input.dataset.v37Basket === '1') return;
     input.dataset.v37Basket = '1';
-    window.v37FileBaskets[id] = window.v37FileBaskets[id] || [];
+    // Preserve a file selected before the delayed change listener was installed.
+    const selected = [...(window.v37FileBaskets[id] || []), ...Array.from(input.files || [])];
+    window.v37FileBaskets[id] = Array.from(new Map(selected.map(file => [fileKey(file), file])).values());
     input.addEventListener('change', () => {
       const old = window.v37FileBaskets[id] || [];
       const map = new Map(old.map(f => [fileKey(f), f]));

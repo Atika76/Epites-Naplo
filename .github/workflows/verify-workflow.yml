@@ -63,3 +63,7 @@ jobs:
           node-version: '24'
       - run: node tests/postgres-integration.cjs
       - run: node tests/hosted-security.cjs
+      - run: node tests/backup-restore.cjs
+        env:
+          ISSUE8_RESTORE_TEST: synthetic-only
+          PG_CONTAINER: ${{ job.services.postgres.id }}

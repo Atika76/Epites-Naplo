@@ -20,5 +20,6 @@
     "Auth/Storage platform base comes from local Supabase, not a hosted dump.",
     "Synthetic test records only; no production data.",
     "No complete unrelated billing/AI/platform-schema compatibility claim."
-  ]
+  ],
+  "sanitization": "Hard-coded admin email in metadata replaced by admin@example.test; predicate structure unchanged."
 }

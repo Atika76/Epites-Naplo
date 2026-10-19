@@ -1,3 +1,5 @@
+> Aktuális 2026-10-19-i biztonsági, hosted-séma- és PDF-jelentés: [issue-8-security-migration-pdf-report.md](issue-8-security-migration-pdf-report.md). Az alábbi eredmények korábbi állapotot dokumentálnak.
+
 > Frissítés (2026-10-18): a második független ellenőrzés új mentési hibájának javítása, 93 sikeres teszt és a 403-as hozzáférés vizsgálata: [legújabb tesztjelentés](issue-8-review-2-followup.md). Az alábbi 87 esetes jelentés az előző ellenőrzési kör eredménye.
 
 # Issue #8 – frissített stabilizálási tesztjelentés

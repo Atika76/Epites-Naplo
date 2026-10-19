@@ -18,7 +18,7 @@ check('TRUNCATE bypasses RLS on synthetic disposable table',()=>{
 });
 sql('drop table public.test_truncate_probe;create role supabase_admin nologin;');
 for(const creator of ['postgres','supabase_admin'])sql(`alter default privileges for role ${creator} in schema public grant truncate on tables to anon,authenticated;`);
-const proposal=fs.readFileSync('docs/proposals/revoke-browser-truncate.sql','utf8');
+const proposal=fs.readFileSync('docs/proposals/revoke-browser-truncate.sql','utf8')+'\n'+fs.readFileSync('docs/proposals/revoke-platform-default-truncate.sql','utf8');
 // The proposal inventories all live public tables. This fixture models only the
 // affected subset: execute its matching statements plus both creator defaults.
 const statements=proposal.split('\n').filter(line=>line.startsWith('ALTER DEFAULT')||(line.startsWith('REVOKE TRUNCATE')&&tables.some(t=>line.includes('public."'+t+'"'))));
@@ -62,4 +62,25 @@ if(naplo){
   assert.equal(saved.revision,1);assert.equal(saved.source_quote_id,null);
  });
 }
+check('captured permission rollback restores exactly the original modeled table rights',()=>{
+ const restore=(fs.readFileSync('docs/proposals/restore-browser-truncate-snapshot.sql','utf8')+'\n'+fs.readFileSync('docs/proposals/restore-platform-default-truncate-snapshot.sql','utf8')).split('\n').filter(line=>line.startsWith('ALTER DEFAULT')||(line.startsWith('GRANT TRUNCATE')&&tables.some(t=>line.includes('public."'+t+'"'))));
+ sql('begin;'+restore.join('\n')+'commit;');
+ for(const table of tables){
+  const original=fs.readFileSync('tests/hosted-schema.sql','utf8');
+  for(const role of ['anon','authenticated'])assert.equal(sql(`select has_table_privilege('${role}','public."${table}"','TRUNCATE')`),original.includes('GRANT TRUNCATE ON public."'+table+'" TO "'+role+'";')?'t':'f');
+ }
+ assert.deepEqual(rights(),before);
+});
+check('non-superuser owner can change own defaults but cannot change platform defaults',()=>{
+ sql(`begin;create role issue8_owner nologin createrole;grant usage,create on schema public to issue8_owner;
+ set role issue8_owner;
+ alter default privileges in schema public revoke truncate on tables from anon,authenticated;
+ do $$begin
+  begin
+   execute 'alter default privileges for role supabase_admin in schema public revoke truncate on tables from anon,authenticated';
+   raise exception 'Unexpected platform privilege';
+  exception when insufficient_privilege then null;
+  end;
+ end $$;reset role;rollback;`);
+});
 console.log('Hosted-schema security/standalone checks completed. No production privileges modified.');
