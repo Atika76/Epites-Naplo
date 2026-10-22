@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-v197-import-account-feedback-20261022';
+const CACHE_NAME = 'epitesnaplo-v197-transfer-help-20261022';
 const APP_SHELL = [
   './',
   './index.html',

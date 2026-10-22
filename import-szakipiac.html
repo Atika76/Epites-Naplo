@@ -11,8 +11,18 @@
   <main class="max-w-2xl mx-auto p-5 pt-10">
     <section class="bg-white rounded-3xl shadow-xl p-6 border">
       <div class="text-sm font-bold text-emerald-700">SzakiPiac → Építési Napló</div>
-      <h1 class="text-2xl md:text-3xl font-black mt-2">Projekt importálása</h1>
+      <h1 class="text-2xl md:text-3xl font-black mt-2">Munka átvétele az Építési Naplóba</h1>
       <p class="text-slate-600 mt-3">Ez az oldal egy SzakiPiac ajánlatból hoz létre új Építési Napló projektet. A két rendszer külön marad, csak ez az egy munka kerül át.</p>
+      <div id="registrationHelp" class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
+        <p class="font-bold">Hogyan folytathatod itt a munkát?</p>
+        <ol class="mt-2 list-decimal pl-5 space-y-2">
+          <li>Az Építési Naplóhoz külön fiók szükséges, az ajánlat tulajdonosának SzakiPiacban használt <b>ugyanazzal az e-mail-címével</b>. Meglévő fiókkal elég bejelentkezni.</li>
+          <li>Ha még nincs fiókod, nyisd meg a regisztrációt új lapon. A főoldalon válaszd a „Regisztráció”, majd az „Új regisztráció” gombot. Regisztráció után térj vissza erre az oldalra.</li>
+          <li>A „Projekt létrehozása az Építési Naplóban” gombbal hagyod jóvá az átvételt. Ezután a projektben vezetheted a napi bejegyzéseket és a fényképeket.</li>
+        </ol>
+        <a id="naploRegistrationLink" href="/" target="_blank" rel="noopener noreferrer" class="inline-block mt-3 rounded-lg border border-emerald-700 bg-white px-3 py-2 font-bold underline">Napló regisztráció / belépés megnyitása ↗</a>
+        <p class="mt-2 text-xs">Ez választható összekapcsolás. A SzakiPiac és az Építési Napló külön-külön is használható.</p>
+      </div>
 
       <div id="status" role="status" aria-live="polite" class="mt-5 p-4 rounded-2xl bg-slate-50 border text-slate-700">Betöltés...</div>
       <div id="activeAccount" class="hidden mt-3 rounded-xl border p-3 break-words">
@@ -24,7 +34,7 @@
         <input id="email" type="email" placeholder="E-mail cím" class="w-full rounded-xl border p-3" />
         <input id="password" type="password" placeholder="Jelszó" class="w-full rounded-xl border p-3" />
         <button id="loginBtn" class="w-full rounded-xl bg-slate-900 text-white font-black p-3">Belépés</button>
-        <p class="text-xs text-slate-500">Ha nincs még Építési Napló fiókod, előbb regisztrálj a főoldalon.</p>
+        <p class="text-xs text-slate-500">Az Építési Napló-fiókod jelszavát add meg. A SzakiPiac és az Építési Napló bejelentkezése külön működik.</p>
       </div>
 
       <button id="importBtn" class="hidden mt-5 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-45 disabled:cursor-not-allowed text-white font-black p-4">Projekt létrehozása az Építési Naplóban</button>

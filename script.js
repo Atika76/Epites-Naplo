@@ -3152,7 +3152,7 @@ function requireLoginV38(message){
     if(state.user) return;
     const target = e.target.closest('button, a, input, select, textarea');
     if(!target) return;
-    if(target.closest('#authModal') || target.closest('#guestLockModalV38') || target.closest('#subscription') || target.closest('#systemFeatures') || target.closest('#featureExplainModal') || target.id === 'heroRegisterBtn') return;
+    if(target.closest('#authModal') || target.closest('#guestLockModalV38') || target.closest('#subscription') || target.closest('#systemFeatures') || target.closest('#featureExplainModal') || target.id === 'heroRegisterBtn' || target.id === 'loginBtn') return;
     const href = target.getAttribute && target.getAttribute('href');
     if(href && (
       href.startsWith('#home') || href.startsWith('#subscription') || href.startsWith('#demo') || href.startsWith('#systemFeatures') ||
