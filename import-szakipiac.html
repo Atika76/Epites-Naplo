@@ -13,16 +13,16 @@
       <div class="text-sm font-bold text-emerald-700">SzakiPiac → Építési Napló</div>
       <h1 class="text-2xl md:text-3xl font-black mt-2">Munka átvétele az Építési Naplóba</h1>
       <p class="text-slate-600 mt-3">Ez az oldal egy SzakiPiac ajánlatból hoz létre új Építési Napló projektet. A két rendszer külön marad, csak ez az egy munka kerül át.</p>
-      <div id="registrationHelp" class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
-        <p class="font-bold">Hogyan folytathatod itt a munkát?</p>
+      <details id="registrationHelp" class="hidden mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
+        <summary class="font-bold cursor-pointer">Első átadás – regisztráció és segítség</summary>
         <ol class="mt-2 list-decimal pl-5 space-y-2">
           <li>Az Építési Naplóhoz külön fiók szükséges, az ajánlat tulajdonosának SzakiPiacban használt <b>ugyanazzal az e-mail-címével</b>. Meglévő fiókkal elég bejelentkezni.</li>
           <li>Ha még nincs fiókod, nyisd meg a regisztrációt új lapon. A főoldalon válaszd a „Regisztráció”, majd az „Új regisztráció” gombot. Regisztráció után térj vissza erre az oldalra.</li>
-          <li>A „Projekt létrehozása az Építési Naplóban” gombbal hagyod jóvá az átvételt. Ezután a projektben vezetheted a napi bejegyzéseket és a fényképeket.</li>
+          <li>Bejelentkezés után a SzakiPiacból indított munka automatikusan megnyílik. Korábbi átadásnál a meglévő projektet nyitjuk meg, új átadásnál létrehozzuk a projektet. Itt vezetheted a napi bejegyzéseket és a fényképeket.</li>
         </ol>
         <a id="naploRegistrationLink" href="/" target="_blank" rel="noopener noreferrer" class="inline-block mt-3 rounded-lg border border-emerald-700 bg-white px-3 py-2 font-bold underline">Napló regisztráció / belépés megnyitása ↗</a>
         <p class="mt-2 text-xs">Ez választható összekapcsolás. A SzakiPiac és az Építési Napló külön-külön is használható.</p>
-      </div>
+      </details>
 
       <div id="status" role="status" aria-live="polite" class="mt-5 p-4 rounded-2xl bg-slate-50 border text-slate-700">Betöltés...</div>
       <div id="activeAccount" class="hidden mt-3 rounded-xl border p-3 break-words">
@@ -38,6 +38,9 @@
       </div>
 
       <button id="importBtn" class="hidden mt-5 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-45 disabled:cursor-not-allowed text-white font-black p-4">Projekt létrehozása az Építési Naplóban</button>
+      <div id="importDetails" class="hidden mt-3 whitespace-pre-wrap rounded-xl border p-3 text-sm" role="alert"></div>
+      <a id="openProject" class="hidden block mt-3 text-center font-bold underline">Naplóprojekt megnyitása</a>
+      <button id="restoreProjectBtn" class="hidden mt-3 rounded-xl border border-amber-500 p-3 font-bold">Törölt projekt helyett új projekt létrehozása</button>
       <a href="/" class="block text-center mt-4 text-sm font-bold text-slate-600 hover:text-slate-900">Vissza az Építési Napló főoldalra</a>
     </section>
   </main>
@@ -60,13 +63,20 @@ function setStatus(msg, type='info') {
 }
 
 let claimInProgress = false;
+let loginCheckEpoch = 0;
+const autoOpened = new Set();
 
 async function checkLogin(){
+  const epoch = ++loginCheckEpoch;
   if (!token) {
     setStatus('Hiányzó import token. Nyisd meg újra a linket a SzakiPiacból.', 'error');
     return;
   }
   const { data } = await db.auth.getSession();
+  if (epoch !== loginCheckEpoch || claimInProgress) return;
+  const session = data?.session;
+  const accountKey = session?.user?.id + ':' + token;
+  if (session && autoOpened.has(accountKey)) return;
   const account = document.getElementById('activeAccount');
   account.classList.toggle('hidden', !data?.session);
   document.getElementById('activeAccountText').textContent = data?.session ? 'Építési Napló – bejelentkezve: ' + (data.session.user?.email || 'azonosított felhasználó') : '';
@@ -74,12 +84,48 @@ async function checkLogin(){
     setStatus('Az importáláshoz jelentkezz be az Építési Napló fiókoddal.', 'info');
     loginBox.classList.remove('hidden');
     importBtn.classList.add('hidden');
+    document.getElementById('registrationHelp').open = true;
+    document.getElementById('registrationHelp').classList.remove('hidden');
   } else {
     loginBox.classList.add('hidden');
     importBtn.classList.remove('hidden');
     importBtn.disabled = false;
     importBtn.textContent = 'Projekt létrehozása az Építési Naplóban';
-    setStatus('Be vagy jelentkezve. Ellenőrizd, hogy ebbe a fiókba szeretnéd-e létrehozni a projektet, majd nyomd meg a gombot.', 'ok');
+    document.getElementById('registrationHelp').open = false;
+    document.getElementById('registrationHelp').classList.add('hidden');
+    setStatus('Be vagy jelentkezve. Ellenőrzöm és megnyitom a munkát...', 'ok');
+    if (!session?.user?.id) return;
+    try {
+      // Read only, with the existing RLS. Never trust a browser flag as proof of ownership.
+      const own = await db.from('project_import_requests').select('claimed_by,claimed_project_id,protocol_version,verified_owner_email,import_status').eq('token', token).eq('claimed_by', session.user.id).maybeSingle();
+      if (epoch !== loginCheckEpoch || claimInProgress) return;
+      if (own.error) return setStatus('A korábbi projektet most nem sikerült ellenőrizni. Az átadás a gombbal újrapróbálható.', 'info');
+      const request = own.data;
+      const email = String(session.user.email || '').toLowerCase();
+      if (request?.protocol_version === 2 && request.verified_owner_email !== email) {
+        importBtn.disabled = true;
+        return setStatus('A bejelentkezett fiók e-mail-címe nem egyezik az ajánlat igazolt tulajdonosával. Válts a megfelelő Napló-fiókra.', 'error');
+      }
+      if (request?.claimed_project_id) {
+        document.getElementById('registrationHelp').open = false;
+        const project = await db.from('projects').select('id').eq('id', request.claimed_project_id).eq('user_id', session.user.id).maybeSingle();
+        if (epoch !== loginCheckEpoch || claimInProgress) return;
+        if (!project.error && project.data && request.import_status === 'complete') {
+          autoOpened.add(accountKey);
+          setStatus('A meglévő naplóprojekt megnyitása...', 'ok');
+          location.replace('/project.html?id=' + encodeURIComponent(project.data.id));
+          return;
+        }
+        setStatus(project.error ? 'A meglévő projektet most nem sikerült ellenőrizni. Az import kézzel újrapróbálható.' : project.data ? 'A korábbi import részleges. Ellenőrizd vagy próbáld újra; új projekt nem készül automatikusan.' : 'A korábbi naplóprojekt már nem érhető el. Ellenőrizd az importot; új projekt csak külön jóváhagyással készülhet.', 'info');
+        return;
+      }
+      autoOpened.add(accountKey);
+      setStatus('A SzakiPiacból indított munka átvétele és megnyitása...');
+      await claimImport();
+    } catch {
+      // A status-check outage must leave the explicit import action available.
+      if (epoch === loginCheckEpoch) setStatus('A korábbi átadást most nem sikerült ellenőrizni. Be vagy jelentkezve; az importot a gombbal indíthatod.', 'info');
+    }
   }
 }
 
@@ -101,7 +147,7 @@ document.getElementById('switchAccount').addEventListener('click', async () => {
 });
 db.auth.onAuthStateChange(() => { setTimeout(() => checkLogin(), 0); });
 
-async function claimImport(){
+async function claimImport(options = {}){
   if (claimInProgress) return;
   claimInProgress = true;
   importBtn.disabled = true;
@@ -114,12 +160,23 @@ async function claimImport(){
     importBtn.textContent = 'Projekt létrehozása az Építési Naplóban';
     return checkLogin();
   }
+  try {
   const res = await fetch(EPITESNAPLO_CONFIG.supabaseUrl + '/functions/v1/claim-szakipiac-import', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + accessToken },
-    body: JSON.stringify({ token })
+    body: JSON.stringify({ token, restore_deleted_project: options.restoreDeleted === true })
   });
   const out = await res.json().catch(()=>({}));
+  const details = document.getElementById('importDetails');
+  details.textContent = Array.isArray(out.warnings) ? out.warnings.join('\n') : '';
+  details.classList.toggle('hidden', !details.textContent);
+  const restore = document.getElementById('restoreProjectBtn');
+  restore.classList.add('hidden');
+  if (out.code === 'project_deleted') {
+    claimInProgress = false; importBtn.disabled = false; importBtn.textContent = 'Import ellenőrzése / újrapróbálása';
+    restore.classList.toggle('hidden', out.can_restore !== true);
+    return setStatus(out.error || 'A korábbi projekt törölve lett. Új projektet csak külön jóváhagyással hozunk létre.', 'info');
+  }
   if (res.status === 403) {
     claimInProgress = false;
     importBtn.disabled = true;
@@ -132,11 +189,27 @@ async function claimImport(){
     importBtn.textContent = 'Projekt létrehozása az Építési Naplóban';
     return setStatus(out.error || 'Nem sikerült az importálás.', 'error');
   }
-  setStatus('Projekt létrehozva. Átirányítás...', 'ok');
-  location.href = '/project.html?id=' + encodeURIComponent(out.project_id);
+  if (!out.project_id) throw new Error('Hiányzó projektazonosító.');
+  const projectUrl = '/project.html?id=' + encodeURIComponent(out.project_id);
+  if (out.status === 'partial' || out.status === 'legacy' || details.textContent) {
+    const open = document.getElementById('openProject'); open.href = projectUrl; open.classList.remove('hidden');
+    claimInProgress = false; importBtn.disabled = false; importBtn.textContent = 'Import ellenőrzése / újrapróbálása';
+    return setStatus('A projekt megnyitható, de az import figyelmeztetéseket tartalmaz. Ellenőrizd a részleteket.', 'info');
+  }
+  document.getElementById('registrationHelp').open = false;
+  autoOpened.add(sessionData.session.user?.id + ':' + token);
+  setStatus('A naplóprojekt megnyitása...', 'ok');
+  location.replace(projectUrl);
+  } catch (error) {
+    claimInProgress = false; importBtn.disabled = false; importBtn.textContent = 'Import újrapróbálása';
+    setStatus('Az import most nem sikerült. Próbáld újra: ' + (error.message || error), 'error');
+  }
 }
 
-importBtn.addEventListener('click', claimImport);
+importBtn.addEventListener('click', () => claimImport());
+document.getElementById('restoreProjectBtn').addEventListener('click', () => {
+  if (confirm('Új projekt készüljön az elfogadott ajánlatból? A törölt napi bejegyzések és fényképek nem állnak vissza.')) claimImport({ restoreDeleted: true });
+});
 
 checkLogin();
 </script>
