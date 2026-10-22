@@ -14,7 +14,11 @@
       <h1 class="text-2xl md:text-3xl font-black mt-2">Projekt importálása</h1>
       <p class="text-slate-600 mt-3">Ez az oldal egy SzakiPiac ajánlatból hoz létre új Építési Napló projektet. A két rendszer külön marad, csak ez az egy munka kerül át.</p>
 
-      <div id="status" class="mt-5 p-4 rounded-2xl bg-slate-50 border text-slate-700">Betöltés...</div>
+      <div id="status" role="status" aria-live="polite" class="mt-5 p-4 rounded-2xl bg-slate-50 border text-slate-700">Betöltés...</div>
+      <div id="activeAccount" class="hidden mt-3 rounded-xl border p-3 break-words">
+        <p id="activeAccountText" class="text-sm"></p>
+        <button id="switchAccount" type="button" class="mt-2 rounded-xl border px-3 py-2 font-bold">Másik Napló-fiókkal lépek be</button>
+      </div>
 
       <div id="loginBox" class="hidden mt-5 space-y-3">
         <input id="email" type="email" placeholder="E-mail cím" class="w-full rounded-xl border p-3" />
@@ -23,7 +27,7 @@
         <p class="text-xs text-slate-500">Ha nincs még Építési Napló fiókod, előbb regisztrálj a főoldalon.</p>
       </div>
 
-      <button id="importBtn" class="hidden mt-5 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black p-4">Projekt létrehozása az Építési Naplóban</button>
+      <button id="importBtn" class="hidden mt-5 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-45 disabled:cursor-not-allowed text-white font-black p-4">Projekt létrehozása az Építési Naplóban</button>
       <a href="/" class="block text-center mt-4 text-sm font-bold text-slate-600 hover:text-slate-900">Vissza az Építési Napló főoldalra</a>
     </section>
   </main>
@@ -53,6 +57,9 @@ async function checkLogin(){
     return;
   }
   const { data } = await db.auth.getSession();
+  const account = document.getElementById('activeAccount');
+  account.classList.toggle('hidden', !data?.session);
+  document.getElementById('activeAccountText').textContent = data?.session ? 'Építési Napló – bejelentkezve: ' + (data.session.user?.email || 'azonosított felhasználó') : '';
   if (!data?.session) {
     setStatus('Az importáláshoz jelentkezz be az Építési Napló fiókoddal.', 'info');
     loginBox.classList.remove('hidden');
@@ -60,6 +67,8 @@ async function checkLogin(){
   } else {
     loginBox.classList.add('hidden');
     importBtn.classList.remove('hidden');
+    importBtn.disabled = false;
+    importBtn.textContent = 'Projekt létrehozása az Építési Naplóban';
     setStatus('Be vagy jelentkezve. Ellenőrizd, hogy ebbe a fiókba szeretnéd-e létrehozni a projektet, majd nyomd meg a gombot.', 'ok');
   }
 }
@@ -73,6 +82,14 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   if (error) return setStatus('Belépési hiba: ' + error.message, 'error');
   await checkLogin();
 });
+
+document.getElementById('switchAccount').addEventListener('click', async () => {
+  const { error } = await db.auth.signOut({ scope: 'local' });
+  if (error) return setStatus('Nem sikerült a fiókváltás: ' + error.message, 'error');
+  document.getElementById('password').value = '';
+  await checkLogin();
+});
+db.auth.onAuthStateChange(() => { setTimeout(() => checkLogin(), 0); });
 
 async function claimImport(){
   if (claimInProgress) return;
@@ -93,6 +110,12 @@ async function claimImport(){
     body: JSON.stringify({ token })
   });
   const out = await res.json().catch(()=>({}));
+  if (res.status === 403) {
+    claimInProgress = false;
+    importBtn.disabled = true;
+    importBtn.textContent = 'Másik tulajdonos ajánlata';
+    return setStatus('A bejelentkezésedet felismertük, de ez az import másik ajánlattulajdonoshoz tartozik. Saját ajánlatodat indítsd a SzakiPiacból, vagy válts az ajánlat tulajdonosának Napló-fiókjára. Az adminisztrátori hozzáférés nem változtatja meg az ajánlat tulajdonosát.', 'error');
+  }
   if (!res.ok || !out.ok) {
     claimInProgress = false;
     importBtn.disabled = false;
