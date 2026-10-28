@@ -54,7 +54,7 @@ serve(async (req) => {
     const creditCount = Number(credits);
     const amountHuf = Number(amount);
     if (!orderId || ![1, 10].includes(creditCount)) return json({ error: "Hibás AI kredit csomag." }, 400);
-    if ((creditCount === 1 && amountHuf !== 490) || (creditCount === 10 && amountHuf !== 2990)) return json({ error: "Hibás összeg." }, 400);
+    if ((creditCount === 1 && amountHuf !== 390) || (creditCount === 10 && amountHuf !== 2990)) return json({ error: "Hibás összeg." }, 400);
 
     const { token, base } = await getPayPalAccessToken();
     const verify = await fetch(`${base}/v2/checkout/orders/${encodeURIComponent(orderId)}`, {

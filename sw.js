@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-v199-admin-security-20261028';
+const CACHE_NAME = 'epitesnaplo-v200-paypal-render-price-20261028';
 const APP_SHELL = [
   './',
   './index.html',
