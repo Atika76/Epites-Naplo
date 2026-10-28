@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="hu">
 <head>
+  <meta name="robots" content="noindex,nofollow,noarchive" />
   <link rel="icon" type="image/png" sizes="192x192" href="https://epitesi-naplo.eu/epitesi-naplo-icon-192-2026.png">
   <link rel="icon" type="image/png" href="https://epitesi-naplo.eu/epitesi-naplo-icon-512-2026.png">
   <link rel="shortcut icon" href="https://epitesi-naplo.eu/epitesi-naplo-favicon-2026.ico">
@@ -95,7 +96,7 @@
       safeEl('loginBtn').classList.toggle('hidden', !!inboxUser);
       safeEl('logoutBtn').classList.toggle('hidden', !inboxUser);
       if(!inboxUser){ safeEl('inboxList').innerHTML='<p class="muted">Belépés szükséges.</p>'; return; }
-      if(inboxUser.email !== window.EPITESNAPLO_CONFIG.adminEmail){
+      if(!(await window.EpitesNaploAPI.isCurrentUserAdmin())){
         safeEl('inboxList').innerHTML='<p class="muted">Ez az oldal csak adminnak látható.</p>';
         return;
       }
@@ -129,7 +130,10 @@
       await loadInbox();
     }
 
-    initInbox();
+    initInbox().catch(err => {
+      inboxMessages = [];
+      safeEl('inboxList').textContent = 'Admin betöltési hiba: ' + (err.message || err);
+    });
   </script>
 <script>window.addEventListener("DOMContentLoaded",()=>setTimeout(()=>document.body.classList.remove("auth-loading"),500));</script>
 </body>

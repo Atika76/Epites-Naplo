@@ -1,4 +1,4 @@
-const CACHE_NAME = 'epitesnaplo-v198-automatic-handoff-20261022';
+const CACHE_NAME = 'epitesnaplo-v199-admin-security-20261028';
 const APP_SHELL = [
   './',
   './index.html',
@@ -49,6 +49,8 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET') return;
+  // Supabase/API és külső kérések adatai nem kerülhetnek az offline cache-be.
+  if (new URL(req.url).origin !== self.location.origin) return;
   event.respondWith(
     fetch(req).then(res => {
       const copy = res.clone();
