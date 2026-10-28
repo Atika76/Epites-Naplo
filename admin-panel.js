@@ -1,7 +1,6 @@
 let adminUsers = [];
 let adminPayments = [];
 let currentUser = null;
-let currentProfile = null;
 
 function $(id) { return document.getElementById(id); }
 function esc(v) { return String(v ?? '').replace(/[&<>"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s])); }
@@ -16,36 +15,39 @@ function formatDate(value) {
   if (!value) return '';
   try { return new Date(value).toLocaleDateString('hu-HU'); } catch { return ''; }
 }
-function isAdminUser(user, profile = null) {
-  return !!user && (profile?.is_admin || user.email === window.EPITESNAPLO_CONFIG.adminEmail);
+function showAdminError(err) {
+  adminUsers = [];
+  adminPayments = [];
+  $('userList').innerHTML = '';
+  renderKpis();
+  $('adminPanelContent').classList.add('hidden');
+  $('adminAccessBox').classList.remove('hidden');
+  $('adminAccessBox').innerHTML = `<h2>Admin hozzáférési vagy betöltési hiba</h2><p class="muted">${esc(err.message || err)}</p><a class="btn primary" href="index.html">Vissza a főoldalra</a>`;
 }
 
 async function initAdminPanel() {
-  currentUser = await window.EpitesNaploAPI.getCurrentUser();
-  currentProfile = currentUser ? await window.EpitesNaploAPI.getProfile() : null;
-  if (!isAdminUser(currentUser, currentProfile)) {
-    $('adminAccessBox').innerHTML = `
-      <h2>Nincs admin hozzáférés</h2>
-      <p class="muted">Ez az oldal csak a Cégweb26 admin fiókkal érhető el.</p>
-      <a class="btn primary" href="index.html">Vissza a főoldalra</a>
-    `;
-    return;
-  }
-  $('adminAccessBox').classList.add('hidden');
-  $('adminPanelContent').classList.remove('hidden');
   await refreshAdminPanel();
 }
 
 async function refreshAdminPanel() {
   try {
-    adminUsers = await window.EpitesNaploAPI.getAdminUsers();
-    adminPayments = await window.EpitesNaploAPI.getAdminPayments();
+    currentUser = await window.EpitesNaploAPI.getCurrentUser();
+    if (!currentUser || !(await window.EpitesNaploAPI.isCurrentUserAdmin())) {
+      throw new Error('Nincs admin hozzáférés. Jelentkezz be jogosult admin fiókkal.');
+    }
+    const [users, payments] = await Promise.all([
+      window.EpitesNaploAPI.getAdminUsers({ strict: true }),
+      window.EpitesNaploAPI.getAdminPayments({ strict: true })
+    ]);
+    adminUsers = users;
+    adminPayments = payments;
     renderKpis();
     renderUsers();
+    $('adminAccessBox').classList.add('hidden');
+    $('adminPanelContent').classList.remove('hidden');
     toast('Admin adatok frissítve.');
   } catch (err) {
-    $('adminAccessBox').classList.remove('hidden');
-    $('adminAccessBox').innerHTML = `<h2>Admin betöltési hiba</h2><p class="muted">${esc(err.message || err)}</p>`;
+    showAdminError(err);
   }
 }
 
@@ -132,24 +134,30 @@ async function savePlan(userId) {
     return alert("Érvénytelen státusz.");
   }
 
-  await window.EpitesNaploAPI.adminSetUserPlan(userId, plan, status, days);
-  toast(status === "expired" ? "Csomag lejártra állítva." : "Csomag frissítve.");
-  await refreshAdminPanel();
+  try {
+    await window.EpitesNaploAPI.adminSetUserPlan(userId, plan, status, days);
+    toast(status === "expired" ? "Csomag lejártra állítva." : "Csomag frissítve.");
+    await refreshAdminPanel();
+  } catch (err) { showAdminError(err); }
 }
 
 async function grantCredits(userId) {
   const credits = Number($(`credits_${userId}`).value || 0);
   if (!credits || credits < 1) return alert('Adj meg legalább 1 kreditet.');
-  await window.EpitesNaploAPI.adminGrantAiCredits(userId, credits, 'admin_manual_grant');
-  toast(`${credits} AI kredit jóváírva.`);
-  await refreshAdminPanel();
+  try {
+    await window.EpitesNaploAPI.adminGrantAiCredits(userId, credits, 'admin_manual_grant');
+    toast(`${credits} AI kredit jóváírva.`);
+    await refreshAdminPanel();
+  } catch (err) { showAdminError(err); }
 }
 
 async function toggleAdmin(userId, makeAdmin) {
   if (!confirm(makeAdmin ? 'Biztos adminná teszed ezt a felhasználót?' : 'Biztos elveszed az admin jogot?')) return;
-  await window.EpitesNaploAPI.adminSetUserAdmin(userId, makeAdmin);
-  toast('Admin jogosultság frissítve.');
-  await refreshAdminPanel();
+  try {
+    await window.EpitesNaploAPI.adminSetUserAdmin(userId, makeAdmin);
+    toast('Admin jogosultság frissítve.');
+    await refreshAdminPanel();
+  } catch (err) { showAdminError(err); }
 }
 
 function openUserOnMain(userId) {

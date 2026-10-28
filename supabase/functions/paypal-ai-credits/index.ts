@@ -79,7 +79,7 @@ serve(async (req) => {
     });
     if (error) return json({ error: error.message }, 400);
 
-    return json({ ok: true, credits: data?.credits ?? 0, added: data?.added ?? creditCount, duplicate: data?.duplicate || false });
+    return json({ ok: true, credits: data?.credits ?? 0, added: data?.duplicate ? 0 : (data?.added ?? creditCount), duplicate: data?.duplicate || false });
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : "Ismeretlen hiba" }, 500);
   }

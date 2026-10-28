@@ -197,15 +197,15 @@ window.EpitesNaploAPI = {
   async isCurrentUserAdmin() {
     const user = await this.getCurrentUser();
     if (!user) return false;
-    if (user.email === window.EPITESNAPLO_CONFIG.adminEmail) return true;
-
+    // A szerver dönt; az e-mail és a kliensprofil nem írhatja felül az elutasítást.
     try {
       const { data, error } = await supabaseClient.rpc("is_current_user_admin");
-      if (!error && data === true) return true;
-    } catch (_) {}
-
-    const profile = await this.getProfile();
-    return !!profile?.is_admin;
+      if (error) throw error;
+      return data === true;
+    } catch (error) {
+      console.warn("Admin jogosultság ellenőrzési hiba:", error);
+      return false;
+    }
   },
 
   async getSubscription() {
@@ -1252,33 +1252,27 @@ window.EpitesNaploAPI = {
   },
 
   async adminSetUserPlan(userId, plan, status = "active", days = 30) {
-    const user = await this.getCurrentUser();
-    const profile = user ? await this.getProfile() : null;
-    if (!user || !(profile?.is_admin || user.email === window.EPITESNAPLO_CONFIG.adminEmail)) throw new Error("Nincs admin jogosultság.");
+    if (!(await this.isCurrentUserAdmin())) throw new Error("Nincs admin jogosultság.");
     const { data, error } = await supabaseClient.rpc("admin_set_user_plan", { p_user_id: userId, p_plan: plan, p_status: status, p_days: days });
     if (error) { alert("Csomag állítási hiba: " + error.message); throw error; }
     return data;
   },
 
   async adminGrantAiCredits(userId, credits, reason = "admin_manual_grant") {
-    const user = await this.getCurrentUser();
-    const profile = user ? await this.getProfile() : null;
-    if (!user || !(profile?.is_admin || user.email === window.EPITESNAPLO_CONFIG.adminEmail)) throw new Error("Nincs admin jogosultság.");
+    if (!(await this.isCurrentUserAdmin())) throw new Error("Nincs admin jogosultság.");
     const { data, error } = await supabaseClient.rpc("admin_grant_ai_credits", { p_user_id: userId, p_credits: credits, p_reason: reason });
     if (error) { alert("AI kredit jóváírási hiba: " + error.message); throw error; }
     return data;
   },
 
   async adminSetUserAdmin(userId, isAdmin) {
-    const user = await this.getCurrentUser();
-    const profile = user ? await this.getProfile() : null;
-    if (!user || !(profile?.is_admin || user.email === window.EPITESNAPLO_CONFIG.adminEmail)) throw new Error("Nincs admin jogosultság.");
+    if (!(await this.isCurrentUserAdmin())) throw new Error("Nincs admin jogosultság.");
     const { data, error } = await supabaseClient.rpc("admin_set_user_admin", { p_user_id: userId, p_is_admin: !!isAdmin });
     if (error) { alert("Admin jogosultság állítási hiba: " + error.message); throw error; }
     return data;
   },
 
-  async getAdminUsers() {
+  async getAdminUsers({ strict = false } = {}) {
     const user = await this.getCurrentUser();
     if (!user || !(await this.isCurrentUserAdmin())) return [];
 
@@ -1288,6 +1282,7 @@ window.EpitesNaploAPI = {
       .order("created_at", { ascending: false });
 
     if (error) {
+      if (strict) throw error;
       console.warn(error);
       return [];
     }
@@ -1295,7 +1290,7 @@ window.EpitesNaploAPI = {
     return data || [];
   },
 
-  async getAdminPayments() {
+  async getAdminPayments({ strict = false } = {}) {
     const user = await this.getCurrentUser();
     if (!user || !(await this.isCurrentUserAdmin())) return [];
 
@@ -1305,6 +1300,7 @@ window.EpitesNaploAPI = {
       .order("created_at", { ascending: false });
 
     if (error) {
+      if (strict) throw error;
       console.warn(error);
       return [];
     }
