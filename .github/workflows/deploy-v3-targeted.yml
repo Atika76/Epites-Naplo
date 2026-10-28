@@ -1,0 +1,146 @@
+name: Deploy approved V3 security and PayPal only
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: approved-v3-tcmihuwjlapfaonihdma
+  cancel-in-progress: false
+
+jobs:
+  approved-v3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      TARGET_PROJECT: tcmihuwjlapfaonihdma
+    steps:
+      - name: Checkout immutable approved payload
+        uses: actions/checkout@v4
+        with:
+          ref: f27739e6e3777061929c2a34b951a4a6489b9531
+
+      - name: Verify exact production project and retain PayPal gateway settings
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync } from 'node:fs';
+          import assert from 'node:assert/strict';
+          const ref = process.env.TARGET_PROJECT;
+          assert.equal(ref, 'tcmihuwjlapfaonihdma');
+          assert.ok(process.env.SUPABASE_ACCESS_TOKEN, 'Missing existing Supabase credential');
+          const headers = { Authorization: `Bearer ${process.env.SUPABASE_ACCESS_TOKEN}` };
+          async function get(path) {
+            const response = await fetch(`https://api.supabase.com/v1/projects/${ref}${path}`, { headers });
+            if (!response.ok) throw new Error(`Target access failed: HTTP ${response.status}: ${await response.text()}`);
+            return response.json();
+          }
+          const project = await get('');
+          assert.equal(project.id, ref, 'Wrong production project');
+          const fn = await get('/functions/paypal-ai-credits');
+          assert.equal(fn.slug, 'paypal-ai-credits');
+          assert.equal(typeof fn.verify_jwt, 'boolean', 'Unknown gateway configuration');
+          appendFileSync(process.env.GITHUB_ENV, `PAYPAL_VERIFY_JWT=${fn.verify_jwt}\nPAYPAL_PREVIOUS_VERSION=${fn.version}\n`);
+          console.log(`Verified production project ${project.id}; PayPal version ${fn.version}, verify_jwt=${fn.verify_jwt}`);
+          NODE
+
+      - name: Apply urgent security SQL then atomic PayPal SQL
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          import assert from 'node:assert/strict';
+          const ref = process.env.TARGET_PROJECT;
+          assert.equal(ref, 'tcmihuwjlapfaonihdma');
+          const headers = { Authorization: `Bearer ${process.env.SUPABASE_ACCESS_TOKEN}`, 'Content-Type': 'application/json' };
+          for (const [file, label] of [
+            ['supabase-security-urgent-20261028-v3.sql', 'Urgent security SQL'],
+            ['supabase-payment-atomic-20261028.sql', 'Atomic PayPal SQL'],
+          ]) {
+            const query = readFileSync(file, 'utf8');
+            const response = await fetch(`https://api.supabase.com/v1/projects/${ref}/database/query`, {
+              method: 'POST', headers, body: JSON.stringify({ query }),
+            });
+            const body = await response.text();
+            if (!response.ok) throw new Error(`${label} failed: HTTP ${response.status}: ${body}`);
+            const data = JSON.parse(body);
+            assert.ok(Array.isArray(data), 'Unexpected SQL response');
+            console.log(`${label}: successfully committed on ${ref}`);
+            appendFileSync(process.env.GITHUB_STEP_SUMMARY, `- ${label}: committed on ${ref}\n`);
+          }
+          NODE
+
+      - name: Verify deployed permissions and unique order index without modifying data
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          import assert from 'node:assert/strict';
+          const query = readFileSync('supabase-security-postcheck-readonly.sql', 'utf8')
+            .replace(/^begin read only;\s*$/mi, '').replace(/^rollback;\s*$/mi, '');
+          const response = await fetch(`https://api.supabase.com/v1/projects/${process.env.TARGET_PROJECT}/database/query`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${process.env.SUPABASE_ACCESS_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query, read_only: true }),
+          });
+          if (!response.ok) throw new Error(`Postcheck failed: HTTP ${response.status}: ${await response.text()}`);
+          const rows = await response.json();
+          let result = rows[0]?.security_postcheck;
+          if (typeof result === 'string') result = JSON.parse(result);
+          assert.ok(result, 'Missing postcheck result');
+          assert.equal(result.payment_anon_execute, false);
+          assert.equal(result.payment_authenticated_execute, false);
+          assert.equal(result.payment_service_execute, true);
+          assert.equal(result.unrestricted_notifications_policy_remaining, false);
+          assert.equal(result.profile_role_update, false);
+          assert.equal(result.profile_admin_update, false);
+          assert.equal(Number(result.duplicate_order_groups), 0);
+          assert.equal(result.admin_rpc_permissions.length, 7);
+          for (const rpc of result.admin_rpc_permissions) {
+            assert.equal(rpc.anon_execute, false, rpc.function);
+            assert.equal(rpc.authenticated_execute, true, rpc.function);
+          }
+          assert.ok(result.credit_indexes.some(i => i.unique && i.valid && i.ready &&
+            i.definition.includes('ai_credit_transactions_paypal_order_uidx') &&
+            i.definition.includes('paypal_order_id')));
+          assert.ok(result.payment_function_definition.includes('on conflict (paypal_order_id)'));
+          assert.ok(result.support_insert_boundary.some(p => p.permissive === 'RESTRICTIVE'));
+          const support = result.admin_views.find(v => v.name === 'admin_support_messages_overview');
+          assert.ok(support.options.includes('security_invoker=true'));
+          assert.ok(support.definition.includes('is_current_user_admin()'));
+          console.log('Live SQL postcheck passed: RPC permissions, credit uniqueness, notifications, profile and support restrictions.');
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, '- Live read-only SQL postcheck: passed\n');
+          NODE
+
+      - name: Deploy only the approved PayPal Edge Function
+        shell: bash
+        run: |
+          args=()
+          case "$PAYPAL_VERIFY_JWT" in
+            true) ;;
+            false) args+=(--no-verify-jwt) ;;
+            *) echo 'Unknown previous gateway setting'; exit 1 ;;
+          esac
+          npx --yes supabase@2.105.0 functions deploy paypal-ai-credits --project-ref "$TARGET_PROJECT" --use-api "${args[@]}"
+
+      - name: Verify PayPal function deployment metadata
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync } from 'node:fs';
+          import assert from 'node:assert/strict';
+          const response = await fetch(`https://api.supabase.com/v1/projects/${process.env.TARGET_PROJECT}/functions/paypal-ai-credits`, {
+            headers: { Authorization: `Bearer ${process.env.SUPABASE_ACCESS_TOKEN}` },
+          });
+          if (!response.ok) throw new Error(`Function verification failed: HTTP ${response.status}`);
+          const fn = await response.json();
+          assert.equal(fn.slug, 'paypal-ai-credits');
+          assert.equal(fn.status, 'ACTIVE');
+          assert.equal(String(fn.verify_jwt), process.env.PAYPAL_VERIFY_JWT);
+          assert.ok(Number(fn.version) > Number(process.env.PAYPAL_PREVIOUS_VERSION), 'No new deployed version');
+          console.log(`PayPal function ACTIVE at version ${fn.version}; gateway settings preserved.`);
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, `- PayPal Edge Function: ACTIVE, version ${fn.version}, verify_jwt=${fn.verify_jwt}\n`);
+          NODE
