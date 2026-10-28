@@ -880,6 +880,31 @@ async function loadAdminData() {
   state.notifications = await window.EpitesNaploAPI.getNotifications();
 }
 
+// Ugyanarra a DOM-elemre a párhuzamos init/auth hívás is csak egyszer renderelhet.
+const paypalButtonInstances = new WeakMap();
+
+function renderPayPalButton(container, options) {
+  if (paypalButtonInstances.has(container)) return;
+  const buttons = window.paypal.Buttons(options);
+  paypalButtonInstances.set(container, buttons);
+  Promise.resolve(buttons.render(container)).catch(err => {
+    // A dinamikus kreditajánlat szabályos bezárása megszakíthat egy folyó renderelést.
+    if (paypalButtonInstances.get(container) !== buttons || !container.isConnected) return;
+    paypalButtonInstances.delete(container);
+    console.error('PayPal gomb betöltési hiba:', err);
+  });
+}
+
+function closePayPalButtons(root) {
+  root.querySelectorAll('.paypalBox').forEach(container => {
+    const buttons = paypalButtonInstances.get(container);
+    if (!buttons) return;
+    paypalButtonInstances.delete(container);
+    // Az SDK saját lezárása a DOM cseréje előtt fut, nem töröljük alóla az iframe-et.
+    Promise.resolve(buttons.close()).catch(() => {});
+  });
+}
+
 function renderPayPal() {
   if (!window.paypal) return;
 
@@ -893,9 +918,7 @@ function renderPayPal() {
     const container = document.getElementById(plan.id);
     if (!container) return;
 
-    container.innerHTML = '';
-
-    paypal.Buttons({
+    renderPayPalButton(container, {
       style: {
         layout: 'vertical',
         color: 'gold',
@@ -937,7 +960,7 @@ function renderPayPal() {
         console.error(err);
         alert('PayPal fizetési hiba történt.');
       }
-    }).render('#' + plan.id);
+    });
   });
 
   const creditProducts = [
@@ -950,9 +973,7 @@ function renderPayPal() {
   creditProducts.forEach(product => {
     const container = document.getElementById(product.id);
     if (!container) return;
-    container.innerHTML = '';
-
-    paypal.Buttons({
+    renderPayPalButton(container, {
       style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
       createOrder: function(data, actions) {
         if (!state.user) {
@@ -980,7 +1001,7 @@ function renderPayPal() {
         console.error(err);
         alert('PayPal AI kredit fizetési hiba történt.');
       }
-    }).render('#' + product.id);
+    });
   });
 
 }
@@ -1222,7 +1243,13 @@ function selectedProProject() {
 }
 function selectedProjectEntries(projectId) { return state.entries.filter(e => (e.project_id || e.projectId) === projectId); }
 function selectedProjectTasks(projectId) { return state.tasks.filter(t => (t.project_id || t.projectId) === projectId); }
-function proResult(html) { const box = document.getElementById('proToolsResult'); if (box) box.innerHTML = html; }
+function proResult(html) {
+  const box = document.getElementById('proToolsResult');
+  if (box) {
+    closePayPalButtons(box);
+    box.innerHTML = html;
+  }
+}
 
 function showLastAnalysis(analysis) {
   const box = document.getElementById('aiLastResult');
